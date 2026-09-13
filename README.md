@@ -7,7 +7,19 @@ Unity: **6000.3.5f2**, URP y New Input System.
 ## Estado actual
 
 High Concept completo y greybox inicial guardado en `Assets/Scenes/NucleoCero.unity`.
-La cápsula, terminal, puerta y meta son referencias de posición y tamaño: todavía no tienen comportamientos jugables. La cámara actual ofrece una vista general del nivel; la cámara de tercera persona está pendiente.
+La cápsula ya se mueve con New Input System y CharacterController. Tiene gravedad, giro hacia la dirección de avance y retorno al inicio si cae fuera del mapa. La cámara orbital sigue al personaje y se acerca ante obstáculos. La terminal, puerta y meta siguen siendo referencias sin interacción.
+
+### Controles y aprendizaje
+
+Presionar Play y hacer clic en Game. WASD o flechas mueven al personaje; el mouse gira la cámara; Esc libera el cursor y suspende el movimiento; clic izquierdo lo captura nuevamente.
+
+`PlayerMovement.cs` lee la acción Player/Move del asset InputSystem_Actions. Calcula una dirección relativa a la cámara, aplica gravedad y llama a CharacterController.Move. Multiplicar velocidad por Time.deltaTime convierte unidades por segundo en desplazamiento por frame. El CharacterController detecta paredes y suelo, pero no aplica gravedad por sí solo.
+
+`ThirdPersonCamera.cs` lee el mouse mediante New Input System y sigue al personaje en LateUpdate, después de su movimiento. Un SphereCast detecta obstáculos entre el personaje y la posición deseada de la cámara. El jugador usa la capa Ignore Raycast para no bloquear su propia cámara.
+
+En Inspector, seleccionar Player para ajustar Speed o Gravity; seleccionar Main Camera para ajustar Distance o Sensitivity. Hacer cambios permanentes fuera de Play. La cámara actual es un controlador propio básico; todavía no incorpora Cinemachine y deberá cotejarse con el sistema trabajado en clase.
+
+Verificado en Editor: compilación sin errores, entrada W y desplazamiento, detección de suelo, bloqueo por pared, método de respawn y captura visual de cámara. Pendientes: prueba manual prolongada de controles, caída automática y comportamiento en una build WebGL.
 
 Objetivo de publicación: WebGL cuando resulte viable, con Windows como alternativa aceptada por la consigna. Todavía no se generó una build.
 
@@ -49,6 +61,6 @@ Guardar las escenas antes de registrar cambios. Revisar lo preparado antes del c
 
 ## Próximas etapas
 
-Controlador con New Input System y CharacterController; cámara en tercera persona; raycast e interacción; prefab de núcleo con Rigidbody; puerta y trigger final; pruebas, build, GDD, informe de testing y publicación.
+Raycast e interacción; prefab de núcleo con Rigidbody; puerta y trigger final; pruebas, build, GDD, informe de testing y publicación.
 
 El paquete Unity Pipeline permite operar el Editor local durante el desarrollo. No constituye una mecánica del juego.

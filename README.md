@@ -7,7 +7,21 @@ Unity: **6000.3.5f2**, URP y New Input System.
 ## Estado actual
 
 High Concept completo y greybox inicial guardado en `Assets/Scenes/NucleoCero.unity`.
-La cápsula ya se mueve con New Input System y CharacterController. Tiene gravedad, giro hacia la dirección de avance y retorno al inicio si cae fuera del mapa. La cámara orbital sigue al personaje y se acerca ante obstáculos. La terminal, puerta y meta siguen siendo referencias sin interacción.
+La cápsula ya se mueve con New Input System y CharacterController. Tiene gravedad, giro hacia la dirección de avance y retorno al inicio si cae fuera del mapa. La cámara orbital sigue al personaje y se acerca ante obstáculos. La terminal permite restaurar energía con E: cambia a verde, genera un núcleo físico y desactiva la puerta. La zona cian detrás de la puerta detecta la llegada y muestra la finalización.
+
+### Recorrido de esta versión
+
+1. Entrar en Play y hacer clic en Game.
+2. Acercarse al bloque cian situado a la izquierda y apuntar con la mira central hasta ver «E: restaurar energía».
+3. Presionar E y observar el núcleo caer sobre su base a la derecha.
+4. Cruzar la puerta abierta y entrar en la zona cian del fondo.
+5. R recarga la escena para reiniciar; Esc libera el cursor.
+
+`PlayerInteraction` lanza un Raycast desde la cámara y comprueba una distancia máxima de tres unidades desde el personaje al objeto. `IInteractable` define qué debe ofrecer un objeto interactivo: un mensaje y una acción. `TerminalInteractable` implementa ese contrato; su bandera Activated evita activaciones repetidas. `Instantiate` crea una copia del prefab NucleoEnergia, cuyo Rigidbody aplica gravedad y cuyo SphereCollider permite que se apoye sobre la base. `FinishTrigger.OnTriggerEnter` detecta al jugador y exige que la terminal esté activada.
+
+El HUD usa Canvas y TextMeshPro con escala adaptable, controles arriba, mira central y objetivo abajo. Sus textos no capturan clics. No utiliza botones.
+
+Pruebas de esta etapa en Play mediante comandos de Editor: raycast válido, pulsación E simulada en New Input System, bloqueo por distancia y pared, una única instancia ante activaciones repetidas, puerta abierta, caída y apoyo del núcleo tras simular física, trigger de llegada y render del HUD de finalización. No equivalen a un recorrido manual completo. Reinicio con R y build WebGL siguen pendientes de prueba.
 
 ### Controles y aprendizaje
 
@@ -61,6 +75,6 @@ Guardar las escenas antes de registrar cambios. Revisar lo preparado antes del c
 
 ## Próximas etapas
 
-Raycast e interacción; prefab de núcleo con Rigidbody; puerta y trigger final; pruebas, build, GDD, informe de testing y publicación.
+Prueba manual del recorrido y reinicio; build WebGL; actualización del GDD y High Concept con el estado real; informe de testing y publicación. Cotejar la cámara propia con el sistema trabajado en clase.
 
 El paquete Unity Pipeline permite operar el Editor local durante el desarrollo. No constituye una mecánica del juego.

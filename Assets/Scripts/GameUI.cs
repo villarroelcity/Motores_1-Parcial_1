@@ -13,6 +13,7 @@ namespace EnElCamino
         [SerializeField] private Text messageText;
         [SerializeField] private GameObject completedPanel;
         private Coroutine messageRoutine;
+        private string lastObjective;
 
         private void Awake()
         {
@@ -22,16 +23,24 @@ namespace EnElCamino
             if (messageText != null) messageText.gameObject.SetActive(false);
         }
 
+        private void Start()
+        {
+            Canvas.ForceUpdateCanvases();
+            foreach (Text text in GetComponentsInChildren<Text>(true)) text.SetAllDirty();
+        }
+
         public void Configure(Text objective, Text prompt, Text message, GameObject completed)
         {
             objectiveText = objective;
             promptText = prompt;
             messageText = message;
             completedPanel = completed;
+            if (!string.IsNullOrWhiteSpace(lastObjective)) SetObjective(lastObjective);
         }
 
         public void SetObjective(string text)
         {
+            lastObjective = text;
             if (objectiveText != null) objectiveText.text = text;
         }
 
@@ -64,7 +73,7 @@ namespace EnElCamino
         {
             messageText.text = text;
             messageText.gameObject.SetActive(true);
-            yield return new WaitForSeconds(2.5f);
+            yield return new WaitForSeconds(4.5f);
             messageText.gameObject.SetActive(false);
         }
     }

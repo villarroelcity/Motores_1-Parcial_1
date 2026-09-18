@@ -34,7 +34,7 @@ namespace EnElCamino.Editor
             GameFlow flow = flowObject.AddComponent<GameFlow>();
 
             CreateLight();
-            CreateWorld(ground, road, wall, roof, metal, yellow, red, green, blue, tire, fuelCanPrefab);
+            CreateWorld(ground, road, wall, roof, metal, yellow, red, green, blue, tire, fuelCanPrefab, flow);
             GameUI ui = CreateUI();
             CreatePlayerAndCamera();
 
@@ -134,7 +134,7 @@ namespace EnElCamino.Editor
             lightObject.transform.rotation = Quaternion.Euler(45f, -35f, 0f);
         }
 
-        private static void CreateWorld(Material ground, Material road, Material wall, Material roof, Material metal, Material yellow, Material red, Material green, Material blue, Material tire, GameObject fuelCanPrefab)
+        private static void CreateWorld(Material ground, Material road, Material wall, Material roof, Material metal, Material yellow, Material red, Material green, Material blue, Material tire, GameObject fuelCanPrefab, GameFlow flow)
         {
             GameObject world = new GameObject("EstacionDeServicio");
             CreateBlock("Terreno", new Vector3(0f, -0.25f, 0f), new Vector3(60f, 0.5f, 50f), ground, world.transform);
@@ -195,6 +195,11 @@ namespace EnElCamino.Editor
             exitCollider.isTrigger = true;
             exitCollider.size = new Vector3(7f, 2f, 1f);
             exit.AddComponent<ExitTrigger>();
+
+            GameObject generatorMarker = CreateObjectiveMarker("MarcadorGenerador", generator.transform.position, yellow, world.transform);
+            GameObject fuelMarker = CreateObjectiveMarker("MarcadorSurtidor", pump.transform.position, blue, world.transform);
+            GameObject exitMarker = CreateObjectiveMarker("MarcadorSalida", exit.transform.position, green, world.transform);
+            flow.ConfigureObjectiveMarkers(generatorMarker, fuelMarker, exitMarker);
         }
 
         private static void CreateWorkshop(Transform parent, Material wall, Material roof, Material metal, Material yellow)
@@ -215,7 +220,7 @@ namespace EnElCamino.Editor
         {
             Transform car = new GameObject("VehiculoConRuedas").transform;
             car.SetParent(parent);
-            car.position = new Vector3(0f, 0f, -8.5f);
+            car.position = new Vector3(5.2f, 0f, -7.2f);
             CreateBlock("Carroceria", car.position + new Vector3(0f, 0.65f, 0f), new Vector3(3f, 0.9f, 5.2f), body, car);
             CreateBlock("Capot", car.position + new Vector3(0f, 1.15f, -1.7f), new Vector3(2.7f, 0.25f, 1.5f), body, car);
             CreateBlock("TechoAuto", car.position + new Vector3(0f, 1.35f, 0.55f), new Vector3(2.45f, 0.25f, 2.1f), body, car);
@@ -246,6 +251,39 @@ namespace EnElCamino.Editor
             return crate;
         }
 
+        private static GameObject CreateObjectiveMarker(string name, Vector3 position, Material material, Transform parent)
+        {
+            GameObject marker = new GameObject(name);
+            marker.transform.SetParent(parent);
+            marker.transform.position = position;
+
+            GameObject beam = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            beam.name = "HazDeGuia";
+            beam.transform.SetParent(marker.transform);
+            beam.transform.localPosition = new Vector3(0f, 5.2f, 0f);
+            beam.transform.localScale = new Vector3(0.24f, 4.5f, 0.24f);
+            beam.GetComponent<Renderer>().sharedMaterial = material;
+            Object.DestroyImmediate(beam.GetComponent<Collider>());
+
+            GameObject beacon = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            beacon.name = "BalizaDeGuia";
+            beacon.transform.SetParent(marker.transform);
+            beacon.transform.localPosition = new Vector3(0f, 9.8f, 0f);
+            beacon.transform.localScale = Vector3.one * 0.75f;
+            beacon.GetComponent<Renderer>().sharedMaterial = material;
+            Object.DestroyImmediate(beacon.GetComponent<Collider>());
+
+            GameObject lightObject = new GameObject("LuzDeGuia");
+            lightObject.transform.SetParent(marker.transform);
+            lightObject.transform.localPosition = new Vector3(0f, 9.5f, 0f);
+            Light light = lightObject.AddComponent<Light>();
+            light.type = LightType.Point;
+            light.color = material.color;
+            light.range = 8f;
+            light.intensity = 2.5f;
+            return marker;
+        }
+
         private static GameObject CreateBlock(string name, Vector3 position, Vector3 size, Material material, Transform parent)
         {
             GameObject block = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -269,10 +307,13 @@ namespace EnElCamino.Editor
             GameUI ui = canvasObject.AddComponent<GameUI>();
 
             Text title = CreateText("Titulo", canvasObject.transform, "EN EL CAMINO", 34, TextAnchor.UpperCenter, Color.white, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -28f), new Vector2(600f, 60f));
-            Text objective = CreateText("Objetivo", canvasObject.transform, "", 22, TextAnchor.UpperLeft, Color.white, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(28f, -28f), new Vector2(650f, 100f));
+            GameObject objectivePanel = CreatePanel("PanelObjetivo", canvasObject.transform, new Color(0.03f, 0.05f, 0.07f, 0.88f), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-270f, -132f), new Vector2(520f, 150f));
+            CreatePanelText("EtiquetaObjetivo", objectivePanel.transform, "MISIÓN", 18, new Color(1f, 0.78f, 0.2f), new Vector2(20f, -14f), new Vector2(470f, 28f));
+            Text objective = CreatePanelText("Objetivo", objectivePanel.transform, "Preparando objetivo...", 20, Color.white, new Vector2(20f, -45f), new Vector2(480f, 100f));
             Text prompt = CreateText("Prompt", canvasObject.transform, "", 24, TextAnchor.MiddleCenter, Color.yellow, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 58f), new Vector2(700f, 55f));
             Text message = CreateText("Mensaje", canvasObject.transform, "", 22, TextAnchor.MiddleCenter, Color.white, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 120f), new Vector2(900f, 55f));
-            Text controls = CreateText("Controles", canvasObject.transform, "WASD / Flechas: mover   Mouse: cámara   E: interactuar", 16, TextAnchor.LowerRight, new Color(1f, 1f, 1f, 0.75f), new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-24f, 20f), new Vector2(680f, 35f));
+            CreateText("PuntoDeMira", canvasObject.transform, "+", 30, TextAnchor.MiddleCenter, new Color(1f, 1f, 1f, 0.9f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(40f, 40f));
+            CreateText("Controles", canvasObject.transform, "WASD: mover  |  Mouse: girar cámara  |  E: usar", 15, TextAnchor.LowerRight, new Color(1f, 1f, 1f, 0.75f), new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-260f, 24f), new Vector2(500f, 35f));
 
             GameObject completed = new GameObject("PanelCompletado");
             completed.transform.SetParent(canvasObject.transform, false);
@@ -290,6 +331,41 @@ namespace EnElCamino.Editor
 
             ui.Configure(objective, prompt, message, completed);
             return ui;
+        }
+
+        private static GameObject CreatePanel(string name, Transform parent, Color color, Vector2 anchorMin, Vector2 anchorMax, Vector2 position, Vector2 size)
+        {
+            GameObject panel = new GameObject(name);
+            panel.transform.SetParent(parent, false);
+            Image image = panel.AddComponent<Image>();
+            image.color = color;
+            RectTransform rect = panel.GetComponent<RectTransform>();
+            rect.anchorMin = anchorMin;
+            rect.anchorMax = anchorMax;
+            rect.anchoredPosition = position;
+            rect.sizeDelta = size;
+            return panel;
+        }
+
+        private static Text CreatePanelText(string name, Transform parent, string text, int size, Color color, Vector2 position, Vector2 dimensions)
+        {
+            GameObject textObject = new GameObject(name);
+            textObject.transform.SetParent(parent, false);
+            Text label = textObject.AddComponent<Text>();
+            label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            label.text = text;
+            label.fontSize = size;
+            label.alignment = TextAnchor.UpperLeft;
+            label.color = color;
+            label.horizontalOverflow = HorizontalWrapMode.Wrap;
+            label.verticalOverflow = VerticalWrapMode.Overflow;
+            RectTransform rect = label.rectTransform;
+            rect.anchorMin = new Vector2(0f, 1f);
+            rect.anchorMax = new Vector2(0f, 1f);
+            rect.pivot = new Vector2(0f, 1f);
+            rect.anchoredPosition = position;
+            rect.sizeDelta = dimensions;
+            return label;
         }
 
         private static Text CreateText(string name, Transform parent, string text, int size, TextAnchor alignment, Color color, Vector2 anchorMin, Vector2 anchorMax, Vector2 position, Vector2 dimensions)
@@ -315,7 +391,7 @@ namespace EnElCamino.Editor
         private static void CreatePlayerAndCamera()
         {
             GameObject player = new GameObject("Jugador");
-            player.transform.position = new Vector3(0f, 0.1f, -11.5f);
+            player.transform.position = new Vector3(0f, 0.1f, -14f);
             CharacterController controller = player.AddComponent<CharacterController>();
             controller.height = 1.8f;
             controller.radius = 0.35f;
@@ -334,9 +410,9 @@ namespace EnElCamino.Editor
 
             GameObject cameraObject = new GameObject("Main Camera");
             cameraObject.tag = "MainCamera";
-            cameraObject.transform.position = new Vector3(0f, 6.5f, -20f);
+            cameraObject.transform.position = new Vector3(0f, 2.7f, -20.5f);
             Camera camera = cameraObject.AddComponent<Camera>();
-            camera.fieldOfView = 60f;
+            camera.fieldOfView = 65f;
             ThirdPersonCamera follow = cameraObject.AddComponent<ThirdPersonCamera>();
             follow.SetTarget(player.transform);
         }

@@ -5,7 +5,7 @@ namespace EnElCamino
 {
     public class RaycastInteractor : MonoBehaviour
     {
-        [SerializeField] private float distance = 3f;
+        [SerializeField] private float distance = 4f;
         private Camera mainCamera;
         private IInteractable current;
 

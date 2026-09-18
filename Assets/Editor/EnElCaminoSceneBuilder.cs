@@ -24,6 +24,7 @@ namespace EnElCamino.Editor
             Material red = CreateMaterial("Mat_Red", new Color(0.75f, 0.08f, 0.05f));
             Material green = CreateMaterial("Mat_Green", new Color(0.1f, 0.75f, 0.18f));
             Material blue = CreateMaterial("Mat_Blue", new Color(0.08f, 0.25f, 0.65f));
+            Material tire = CreateMaterial("Mat_Tire", new Color(0.025f, 0.025f, 0.025f));
 
             GameObject fuelCanPrefab = CreateFuelCanPrefab(yellow);
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -33,7 +34,7 @@ namespace EnElCamino.Editor
             GameFlow flow = flowObject.AddComponent<GameFlow>();
 
             CreateLight();
-            CreateWorld(ground, road, wall, roof, metal, yellow, red, green, blue, fuelCanPrefab);
+            CreateWorld(ground, road, wall, roof, metal, yellow, red, green, blue, tire, fuelCanPrefab);
             GameUI ui = CreateUI();
             CreatePlayerAndCamera();
 
@@ -133,20 +134,23 @@ namespace EnElCamino.Editor
             lightObject.transform.rotation = Quaternion.Euler(45f, -35f, 0f);
         }
 
-        private static void CreateWorld(Material ground, Material road, Material wall, Material roof, Material metal, Material yellow, Material red, Material green, Material blue, GameObject fuelCanPrefab)
+        private static void CreateWorld(Material ground, Material road, Material wall, Material roof, Material metal, Material yellow, Material red, Material green, Material blue, Material tire, GameObject fuelCanPrefab)
         {
             GameObject world = new GameObject("EstacionDeServicio");
-            CreateBlock("Terreno", new Vector3(0f, -0.25f, 0f), new Vector3(30f, 0.5f, 30f), ground, world.transform);
-            CreateBlock("Camino", new Vector3(0f, 0.01f, -6f), new Vector3(5f, 0.1f, 22f), road, world.transform);
+            CreateBlock("Terreno", new Vector3(0f, -0.25f, 0f), new Vector3(60f, 0.5f, 50f), ground, world.transform);
+            CreateBlock("Camino", new Vector3(0f, 0.01f, -4f), new Vector3(7f, 0.1f, 44f), road, world.transform);
+            CreateBlock("PlayaEstacionamiento", new Vector3(0f, 0.03f, -1.5f), new Vector3(24f, 0.1f, 13f), metal, world.transform);
 
-            CreateBlock("ParedFondo", new Vector3(0f, 2.8f, 9.5f), new Vector3(10f, 5.6f, 0.4f), wall, world.transform);
-            CreateBlock("ParedIzquierda", new Vector3(-5f, 2.8f, 5.75f), new Vector3(0.4f, 5.6f, 8f), wall, world.transform);
-            CreateBlock("ParedDerecha", new Vector3(5f, 2.8f, 5.75f), new Vector3(0.4f, 5.6f, 8f), wall, world.transform);
-            CreateBlock("FachadaIzquierda", new Vector3(-3.5f, 2.8f, 1.75f), new Vector3(3f, 5.6f, 0.4f), wall, world.transform);
-            CreateBlock("FachadaDerecha", new Vector3(3.5f, 2.8f, 1.75f), new Vector3(3f, 5.6f, 0.4f), wall, world.transform);
-            CreateBlock("TechoEstacion", new Vector3(0f, 5.7f, 5.75f), new Vector3(10.8f, 0.45f, 8.8f), roof, world.transform);
+            CreateBlock("ParedFondo", new Vector3(0f, 2.8f, 15.5f), new Vector3(16f, 5.6f, 0.4f), wall, world.transform);
+            CreateBlock("ParedIzquierda", new Vector3(-8f, 2.8f, 7.25f), new Vector3(0.4f, 5.6f, 16f), wall, world.transform);
+            CreateBlock("ParedDerecha", new Vector3(8f, 2.8f, 7.25f), new Vector3(0.4f, 5.6f, 16f), wall, world.transform);
+            CreateBlock("FachadaIzquierda", new Vector3(-5.75f, 2.8f, -0.75f), new Vector3(4.5f, 5.6f, 0.4f), wall, world.transform);
+            CreateBlock("FachadaDerecha", new Vector3(5.75f, 2.8f, -0.75f), new Vector3(4.5f, 5.6f, 0.4f), wall, world.transform);
+            CreateBlock("TechoEstacion", new Vector3(0f, 5.7f, 7.25f), new Vector3(16.8f, 0.45f, 17.6f), roof, world.transform);
 
-            GameObject generator = CreateBlock("GeneradorAuxiliar", new Vector3(-3.2f, 0.9f, 6.3f), new Vector3(1.4f, 1.8f, 1f), metal, world.transform);
+            CreateWorkshop(world.transform, wall, roof, metal, yellow);
+
+            GameObject generator = CreateBlock("GeneradorAuxiliar", new Vector3(-5.5f, 0.9f, 10.2f), new Vector3(1.6f, 1.8f, 1.2f), metal, world.transform);
             GeneratorInteractable generatorInteractable = generator.AddComponent<GeneratorInteractable>();
             GameObject indicator = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             indicator.name = "IndicadorGenerador";
@@ -166,27 +170,72 @@ namespace EnElCamino.Editor
             generatorLight.enabled = false;
             generatorInteractable.Configure(indicator.GetComponent<Renderer>(), red, green, generatorLight);
 
-            GameObject pump = CreateBlock("Surtidor", new Vector3(3f, 1.2f, 5.3f), new Vector3(1.1f, 2.4f, 1.1f), blue, world.transform);
+            GameObject pump = CreateBlock("Surtidor", new Vector3(4.8f, 1.2f, 8.6f), new Vector3(1.2f, 2.4f, 1.2f), blue, world.transform);
             FuelPumpInteractable fuelPump = pump.AddComponent<FuelPumpInteractable>();
-            GameObject pumpTop = CreateBlock("CabezalSurtidor", new Vector3(3f, 2.55f, 5.3f), new Vector3(1.4f, 0.35f, 1.4f), yellow, pump.transform);
+            CreateBlock("CabezalSurtidor", new Vector3(4.8f, 2.55f, 8.6f), new Vector3(1.5f, 0.35f, 1.5f), yellow, pump.transform);
             GameObject spawnPointObject = new GameObject("PuntoCombustible");
             spawnPointObject.transform.SetParent(pump.transform);
-            spawnPointObject.transform.localPosition = new Vector3(0f, 1.2f, 0.8f);
+            spawnPointObject.transform.localPosition = new Vector3(0f, 1.2f, 0.9f);
             fuelPump.Configure(fuelCanPrefab, spawnPointObject.transform);
 
-            CreateBlock("Auto", new Vector3(0f, 0.55f, -3.7f), new Vector3(2.3f, 0.8f, 4f), red, world.transform);
-            CreateBlock("CapotAuto", new Vector3(0f, 1.05f, -5.0f), new Vector3(2.1f, 0.25f, 1.2f), red, world.transform);
-            CreateBlock("ParabrisasAuto", new Vector3(0f, 1.25f, -3.5f), new Vector3(1.8f, 0.55f, 0.12f), blue, world.transform);
+            CreateCar(world.transform, red, blue, tire);
 
-            CreatePhysicsCrate(new Vector3(1.3f, 0.6f, 7.8f), world.transform, yellow);
-            CreatePhysicsCrate(new Vector3(2.4f, 0.6f, 7.8f), world.transform, yellow);
+            CreatePhysicsCrate(new Vector3(5.8f, 0.6f, 12f), world.transform, yellow);
+            CreatePhysicsCrate(new Vector3(6.9f, 0.6f, 12f), world.transform, yellow);
+            CreatePhysicsCrate(new Vector3(5.8f, 1.7f, 12f), world.transform, yellow);
+
+            CreateBlock("CartelRuta", new Vector3(-12f, 2.3f, -3f), new Vector3(0.35f, 4.6f, 0.35f), metal, world.transform);
+            CreateBlock("CartelRutaPanel", new Vector3(-12f, 4.1f, -3f), new Vector3(4.5f, 1.1f, 0.25f), yellow, world.transform);
+            CreateBlock("PosteLuzIzquierdo", new Vector3(-12f, 3f, 8f), new Vector3(0.3f, 6f, 0.3f), metal, world.transform);
+            CreateBlock("PosteLuzDerecho", new Vector3(12f, 3f, 8f), new Vector3(0.3f, 6f, 0.3f), metal, world.transform);
 
             GameObject exit = new GameObject("SalidaAlCamino");
-            exit.transform.position = new Vector3(0f, 1f, -10f);
+            exit.transform.position = new Vector3(0f, 1f, -21f);
             BoxCollider exitCollider = exit.AddComponent<BoxCollider>();
             exitCollider.isTrigger = true;
-            exitCollider.size = new Vector3(4f, 2f, 1f);
+            exitCollider.size = new Vector3(7f, 2f, 1f);
             exit.AddComponent<ExitTrigger>();
+        }
+
+        private static void CreateWorkshop(Transform parent, Material wall, Material roof, Material metal, Material yellow)
+        {
+            Transform workshop = new GameObject("TallerCerrado").transform;
+            workshop.SetParent(parent);
+            CreateBlock("TallerParedFondo", new Vector3(19f, 2.8f, 14f), new Vector3(10f, 5.6f, 0.4f), wall, workshop);
+            CreateBlock("TallerParedIzquierda", new Vector3(14f, 2.8f, 8f), new Vector3(0.4f, 5.6f, 12f), wall, workshop);
+            CreateBlock("TallerParedDerecha", new Vector3(24f, 2.8f, 8f), new Vector3(0.4f, 5.6f, 12f), wall, workshop);
+            CreateBlock("TallerFachadaIzquierda", new Vector3(16.5f, 2.8f, 2f), new Vector3(4.5f, 5.6f, 0.4f), wall, workshop);
+            CreateBlock("TallerFachadaDerecha", new Vector3(21.5f, 2.8f, 2f), new Vector3(4.5f, 5.6f, 0.4f), wall, workshop);
+            CreateBlock("TallerTecho", new Vector3(19f, 5.7f, 8f), new Vector3(10.8f, 0.45f, 12.8f), roof, workshop);
+            CreateBlock("BancoTaller", new Vector3(19f, 1f, 10.5f), new Vector3(5f, 0.7f, 1.2f), metal, workshop);
+            CreateBlock("CartelTaller", new Vector3(19f, 4.3f, 1.75f), new Vector3(3.8f, 0.8f, 0.25f), yellow, workshop);
+        }
+
+        private static void CreateCar(Transform parent, Material body, Material glass, Material tire)
+        {
+            Transform car = new GameObject("VehiculoConRuedas").transform;
+            car.SetParent(parent);
+            car.position = new Vector3(0f, 0f, -8.5f);
+            CreateBlock("Carroceria", car.position + new Vector3(0f, 0.65f, 0f), new Vector3(3f, 0.9f, 5.2f), body, car);
+            CreateBlock("Capot", car.position + new Vector3(0f, 1.15f, -1.7f), new Vector3(2.7f, 0.25f, 1.5f), body, car);
+            CreateBlock("TechoAuto", car.position + new Vector3(0f, 1.35f, 0.55f), new Vector3(2.45f, 0.25f, 2.1f), body, car);
+            CreateBlock("Parabrisas", car.position + new Vector3(0f, 1.45f, -0.55f), new Vector3(2.25f, 0.6f, 0.12f), glass, car);
+            CreateBlock("Luneta", car.position + new Vector3(0f, 1.45f, 1.65f), new Vector3(2.25f, 0.6f, 0.12f), glass, car);
+            CreateWheel("RuedaDelanteraIzquierda", car, new Vector3(-1.5f, 0.45f, -1.55f), tire);
+            CreateWheel("RuedaDelanteraDerecha", car, new Vector3(1.5f, 0.45f, -1.55f), tire);
+            CreateWheel("RuedaTraseraIzquierda", car, new Vector3(-1.5f, 0.45f, 1.55f), tire);
+            CreateWheel("RuedaTraseraDerecha", car, new Vector3(1.5f, 0.45f, 1.55f), tire);
+        }
+
+        private static void CreateWheel(string name, Transform parent, Vector3 localPosition, Material tire)
+        {
+            GameObject wheel = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            wheel.name = name;
+            wheel.transform.SetParent(parent);
+            wheel.transform.localPosition = localPosition;
+            wheel.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+            wheel.transform.localScale = new Vector3(0.65f, 0.22f, 0.65f);
+            wheel.GetComponent<Renderer>().sharedMaterial = tire;
         }
 
         private static GameObject CreatePhysicsCrate(Vector3 position, Transform parent, Material material)
@@ -266,7 +315,7 @@ namespace EnElCamino.Editor
         private static void CreatePlayerAndCamera()
         {
             GameObject player = new GameObject("Jugador");
-            player.transform.position = new Vector3(0f, 0.1f, -5.5f);
+            player.transform.position = new Vector3(0f, 0.1f, -11.5f);
             CharacterController controller = player.AddComponent<CharacterController>();
             controller.height = 1.8f;
             controller.radius = 0.35f;
@@ -285,7 +334,7 @@ namespace EnElCamino.Editor
 
             GameObject cameraObject = new GameObject("Main Camera");
             cameraObject.tag = "MainCamera";
-            cameraObject.transform.position = new Vector3(0f, 5.5f, -13f);
+            cameraObject.transform.position = new Vector3(0f, 6.5f, -20f);
             Camera camera = cameraObject.AddComponent<Camera>();
             camera.fieldOfView = 60f;
             ThirdPersonCamera follow = cameraObject.AddComponent<ThirdPersonCamera>();

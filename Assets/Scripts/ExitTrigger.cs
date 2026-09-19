@@ -4,10 +4,12 @@ namespace EnElCamino
 {
     public class ExitTrigger : MonoBehaviour
     {
+        [SerializeField] private GameFlow gameFlow;
+
         private void OnTriggerEnter(Collider other)
         {
-            if (other.GetComponent<PlayerController>() != null)
-                GameFlow.Instance?.TryFinish();
+            if (other.GetComponentInParent<CarDriver>() != null)
+                gameFlow.TryFinish();
         }
     }
 }

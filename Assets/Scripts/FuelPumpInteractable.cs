@@ -4,39 +4,39 @@ namespace EnElCamino
 {
     public class FuelPumpInteractable : MonoBehaviour, IInteractable
     {
-        [SerializeField] private GameObject fuelCanPrefab;
-        [SerializeField] private Transform spawnPoint;
+        [SerializeField] private GameFlow gameFlow;
+        [SerializeField] private FuelCan fuelCan;
         private bool used;
 
         public string Prompt
         {
             get
             {
-                if (used) return "Surtidor utilizado";
-                if (GameFlow.Instance != null && !GameFlow.Instance.GeneratorActive) return "Surtidor sin energía";
-                return "[E] Cargar combustible";
+                if (!gameFlow.generatorOn) return "Surtidor sin energía";
+                if (!gameFlow.hasFuelCan) return "Necesitás un bidón";
+                if (used) return "Bidón lleno";
+                return "[E] Llenar bidón";
             }
-        }
-
-        public void Configure(GameObject prefab, Transform point)
-        {
-            fuelCanPrefab = prefab;
-            spawnPoint = point;
         }
 
         public void Interact()
         {
             if (used) return;
-            if (GameFlow.Instance == null || !GameFlow.Instance.GeneratorActive)
+            if (!gameFlow.generatorOn)
             {
-                GameUI.Instance?.ShowMessage("El surtidor necesita energía.");
+                gameFlow.ShowMessage("El surtidor necesita energía.");
+                return;
+            }
+
+            if (!gameFlow.hasFuelCan)
+            {
+                gameFlow.ShowMessage("Necesitás traer el bidón vacío.");
                 return;
             }
 
             used = true;
-            if (fuelCanPrefab != null && spawnPoint != null)
-                Instantiate(fuelCanPrefab, spawnPoint.position, spawnPoint.rotation);
-            GameFlow.Instance.LoadFuel();
+            fuelCan.Fill();
+            gameFlow.FillFuelCan();
         }
     }
 }

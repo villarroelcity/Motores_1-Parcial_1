@@ -4,36 +4,28 @@ namespace EnElCamino
 {
     public class GeneratorInteractable : MonoBehaviour, IInteractable
     {
+        [SerializeField] private GameFlow gameFlow;
         [SerializeField] private Renderer indicator;
-        [SerializeField] private Material offMaterial;
-        [SerializeField] private Material onMaterial;
         [SerializeField] private Light indicatorLight;
-        private bool active;
+        private bool generatorOn;
 
-        public string Prompt => active ? "Generador encendido" : "[E] Encender generador";
-
-        public void Configure(Renderer targetIndicator, Material off, Material on, Light lightSource)
+        public string Prompt
         {
-            indicator = targetIndicator;
-            offMaterial = off;
-            onMaterial = on;
-            indicatorLight = lightSource;
-            ApplyVisuals();
+            get
+            {
+                if (generatorOn) return "Generador encendido";
+                return "[E] Presionar botón rojo";
+            }
         }
 
         public void Interact()
         {
-            if (active) return;
-            active = true;
-            ApplyVisuals();
-            GameFlow.Instance?.ActivateGenerator();
-        }
+            if (generatorOn) return;
 
-        private void ApplyVisuals()
-        {
-            if (indicator != null && (active ? onMaterial : offMaterial) != null)
-                indicator.material = active ? onMaterial : offMaterial;
-            if (indicatorLight != null) indicatorLight.enabled = active;
+            generatorOn = true;
+            indicator.material.color = Color.green;
+            indicatorLight.enabled = true;
+            gameFlow.TurnOnGenerator();
         }
     }
 }

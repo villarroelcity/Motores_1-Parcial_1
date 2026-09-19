@@ -4,76 +4,119 @@ namespace EnElCamino
 {
     public class GameFlow : MonoBehaviour
     {
-        public static GameFlow Instance { get; private set; }
-        public bool GeneratorActive { get; private set; }
-        public bool FuelLoaded { get; private set; }
-        public bool Finished { get; private set; }
+        [SerializeField] private GameUI gameUI;
 
-        [SerializeField] private GameObject generatorMarker;
-        [SerializeField] private GameObject fuelMarker;
-        [SerializeField] private GameObject exitMarker;
-
-        private void Awake()
-        {
-            Instance = this;
-        }
+        public bool generatorOn;
+        public bool hasFuelCan;
+        public bool fuelCanFull;
+        public bool carHasFuel;
+        public bool insideGarage;
+        public bool garageOpen;
+        public bool driving;
+        public bool gameOver;
+        public bool finished;
 
         private void Start()
         {
-            UpdateMarkers();
-            GameUI.Instance?.SetObjective("OBJETIVO ACTUAL  ·  1/3\nENCENDÉ EL GENERADOR\nSeguí el haz amarillo detrás de la estación y presioná [E].");
-            GameUI.Instance?.ShowMessage("MISIÓN: Hacé que la estación vuelva a tener energía.");
+            gameUI.SetObjective("OBJETIVO 1/7\nENCENDÉ EL GENERADOR\nEl botón rojo está fijo en el costado derecho del generador.");
+            gameUI.ShowMessage("La estación está sin energía.");
         }
 
-        public void ConfigureObjectiveMarkers(GameObject generator, GameObject fuel, GameObject exit)
+        public void TurnOnGenerator()
         {
-            generatorMarker = generator;
-            fuelMarker = fuel;
-            exitMarker = exit;
-            UpdateMarkers();
+            if (generatorOn) return;
+
+            generatorOn = true;
+            gameUI.SetObjective("OBJETIVO 2/7\nENTRÁ AL GARAGE\nBuscá una forma de subir al techo del garage.");
+            gameUI.ShowMessage("Generador encendido. El bidón está dentro del garage cerrado.");
         }
 
-        public void ActivateGenerator()
+        public void EnterGarage()
         {
-            if (GeneratorActive) return;
-            GeneratorActive = true;
-            UpdateMarkers();
-            GameUI.Instance?.SetObjective("OBJETIVO ACTUAL  ·  2/3\nCARGÁ COMBUSTIBLE\nSeguí el haz celeste hasta el surtidor y presioná [E].");
-            GameUI.Instance?.ShowMessage("Generador encendido. El surtidor ya tiene energía.");
+            if (insideGarage || gameOver) return;
+
+            insideGarage = true;
+            gameUI.SetObjective("OBJETIVO 3/7\nABRÍ EL PORTÓN\nBajá por la escalera interior y presioná el botón rojo de adentro.");
+            gameUI.ShowMessage("Ya estás adentro. Abrí el portón desde este lado.");
         }
 
-        public void LoadFuel()
+        public void OpenGarage()
         {
-            if (!GeneratorActive || FuelLoaded) return;
-            FuelLoaded = true;
-            UpdateMarkers();
-            GameUI.Instance?.SetObjective("OBJETIVO ACTUAL  ·  3/3\nVOLVÉ AL CAMINO\nSeguí el haz verde hasta la salida de la estación.");
-            GameUI.Instance?.ShowMessage("Combustible cargado. Ya podés continuar el viaje.");
+            if (garageOpen || gameOver) return;
+
+            garageOpen = true;
+            gameUI.SetObjective("OBJETIVO 4/7\nTOMÁ EL BIDÓN VACÍO\nEl bidón está dentro del garage. Acercate y presioná [E].");
+            gameUI.ShowMessage("Portón abierto. Ahora podés tomar el bidón.");
+        }
+
+        public void TakeFuelCan()
+        {
+            if (hasFuelCan) return;
+
+            hasFuelCan = true;
+            gameUI.SetObjective("OBJETIVO 5/7\nLLENÁ EL BIDÓN\nLlevalo al surtidor y presioná [E].");
+            gameUI.ShowMessage("Tenés el bidón vacío. Falta llenarlo.");
+        }
+
+        public void FillFuelCan()
+        {
+            if (fuelCanFull) return;
+
+            fuelCanFull = true;
+            gameUI.SetObjective("OBJETIVO 6/7\nCARGÁ EL AUTO\nLlevá el bidón lleno hasta el auto y presioná [E].");
+            gameUI.ShowMessage("Bidón lleno. Ahora cargá el tanque del auto.");
+        }
+
+        public void FillCar()
+        {
+            if (carHasFuel) return;
+
+            carHasFuel = true;
+            gameUI.SetObjective("OBJETIVO 7/7\nSUBITE AL AUTO\nAcercate al auto y presioná [E] para arrancarlo.");
+            gameUI.ShowMessage("Auto cargado. Subite para salir de la estación.");
+        }
+
+        public void StartDriving()
+        {
+            if (driving || gameOver) return;
+
+            driving = true;
+            gameUI.SetObjective("OBJETIVO 7/7\nLLEGÁ A LA RUTA\nManejá el auto hasta la salida de la estación.");
+            gameUI.ShowMessage("Auto arrancado. Llegá a la ruta antes de que anochezca.");
         }
 
         public void TryFinish()
         {
-            if (Finished) return;
-            if (!FuelLoaded)
+            if (finished || gameOver) return;
+
+            if (!carHasFuel)
             {
-                GameUI.Instance?.ShowMessage("Primero necesitás cargar combustible.");
+                gameUI.ShowMessage("Primero necesitás cargar el auto.");
                 return;
             }
 
-            Finished = true;
-            GameUI.Instance?.ShowCompleted();
+            if (!driving)
+            {
+                gameUI.ShowMessage("Tenés que salir manejando el auto.");
+                return;
+            }
+
+            finished = true;
+            gameUI.ShowCompleted();
         }
 
-        private void UpdateMarkers()
+        public void GameOver()
         {
-            SetMarker(generatorMarker, !GeneratorActive);
-            SetMarker(fuelMarker, GeneratorActive && !FuelLoaded);
-            SetMarker(exitMarker, FuelLoaded && !Finished);
+            if (finished || gameOver) return;
+
+            gameOver = true;
+            gameUI.ShowGameOver();
         }
 
-        private static void SetMarker(GameObject marker, bool visible)
+        public void ShowMessage(string text)
         {
-            if (marker != null) marker.SetActive(visible);
+            gameUI.ShowMessage(text);
         }
+
     }
 }

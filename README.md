@@ -1,8 +1,8 @@
 # En el Camino
 
-Prototipo individual para Motores de Desarrollo 1 – Unity.
+Prototipo individual para Motores de Desarrollo 1 – Unity. - Primera etapa.
 
-El jugador llega casi sin combustible a una estación de servicio rural. Para volver al camino debe explorar el edificio, encender el generador, usar el surtidor y salir por la zona marcada.
+El jugador llega casi sin combustible a una estación de servicio rural abandonada. Para continuar con su viaje debera explorar la estacion de servicioy tratar de encender el generador para suministrar energia para poder hacer tratar de encender el surtidor de combustible. Una vez conseguido ello, deberar encontrar un bidon vacio para poder cargarlo de combustible ya que el auto quedo detenido.
 
 ## Controles
 

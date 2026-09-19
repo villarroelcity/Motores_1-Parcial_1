@@ -12,6 +12,6 @@ El jugador llega casi sin combustible a una estación de servicio rural abandona
 
 ## Escena
 
-La escena principal es `Assets/Scenes/EnElCamino.unity`. El prototipo usa primitivas, un controlador con `CharacterController`, cámara de seguimiento, Raycast, interacción, física, trigger de salida e instanciación de un prefab de combustible.
+La escena principal es `Assets/Scenes/EnElCamino.unity`. El prototipo usa un controlador con `CharacterController`, cámara de seguimiento, Raycast, interacción, física, trigger de salida e instanciación de un prefab de combustible.
 
 El edificio de la estación es un espacio cerrado con paredes y techo. La conducción completa y otras paradas del viaje quedan fuera del alcance de este primer prototipo.

@@ -1,20 +1,29 @@
-# Informe de testing inicial
+# Informe de testing — Segundo Parcial
 
 ## Versión
 
-Prototipo inicial de “En el Camino”.
+Vertical slice de “En el Camino”, rama `parcial-2`.
 
-## Pruebas previstas
+## Pruebas realizadas
 
-- Verificar que el personaje se mueva con WASD o flechas.
-- Verificar que la cámara siga al personaje y pueda orientarse con el mouse.
-- Confirmar que el edificio tenga paredes, techo y colisiones navegables.
-- Intentar usar el surtidor antes de activar el generador y comprobar el mensaje.
-- Activar el generador con `E`, volver al surtidor y cargar combustible.
-- Confirmar que se instancie el prefab de combustible.
-- Entrar al trigger de salida antes y después de cargar combustible.
-- Empujar las cajas para comprobar la colisión física.
+- El proyecto abre en Unity `6000.3.5f2` y la escena `EnElCamino` carga correctamente.
+- El Editor entra y sale de Play Mode sin errores de compilación.
+- El HUD muestra objetivos, mensajes y temporizador al iniciar.
+- Cinemachine genera la cámara de gameplay y mantiene el encuadre del jugador.
+- El flujo de eventos puede avanzar desde el generador hasta el arranque del vehículo.
+- Al iniciar el vehículo se crea `AmenazaIA` y se activa el desafío final.
+- Se verificaron las referencias de UI durante Play Mode.
+- El proyecto registra únicamente un warning externo por conexión ADB a un emulador Android; no pertenece al gameplay.
+
+## Pruebas pendientes
+
+- Completar el recorrido usando teclado y mouse manualmente.
+- Verificar audio en una máquina sin dispositivos Android conectados.
+- Comprobar captura de la amenaza y pantalla de Game Over.
+- Llegar a `SalidaAlCamino` con el vehículo y confirmar victoria.
+- Ejecutar una build Windows o WebGL.
+- Probar la experiencia con el framerate y resolución de entrega.
 
 ## Estado
 
-Este documento registra la matriz de pruebas inicial. Los resultados deben completarse después de probar la escena en el Editor y en una build ejecutable.
+La escena funciona en el Editor y la integración inicial del vertical slice está operativa. La validación de build, audio final y recorrido manual completo queda pendiente.

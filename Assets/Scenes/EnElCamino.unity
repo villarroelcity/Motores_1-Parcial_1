@@ -129,6 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7153599}
   - component: {fileID: 7153598}
+  - component: {fileID: 7153600}
   m_Layer: 0
   m_Name: GameFlow
   m_TagString: Untagged
@@ -173,6 +174,23 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7153600
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7153597}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2202c1fbeba7e414fa4451945d44a0aa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.VerticalSliceDirector
+  gameFlow: {fileID: 0}
+  vehicle: {fileID: 0}
+  exit: {fileID: 0}
+  warningLights: []
+  challengeDuration: 35
 --- !u!1 &11281015
 GameObject:
   m_ObjectHideFlags: 0
@@ -2610,6 +2628,7 @@ GameObject:
   - component: {fileID: 490530028}
   - component: {fileID: 490530027}
   - component: {fileID: 490530026}
+  - component: {fileID: 490530029}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -2702,6 +2721,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &490530029
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 490530025}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bff6624175351741b928dc96283fc71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.CinemachineFollowSetup
+  target: {fileID: 0}
+  distance: 5.5
+  height: 2.4
 --- !u!1 &515322919
 GameObject:
   m_ObjectHideFlags: 0

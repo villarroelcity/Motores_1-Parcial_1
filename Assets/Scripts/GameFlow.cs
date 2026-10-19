@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace EnElCamino
@@ -5,6 +6,17 @@ namespace EnElCamino
     public class GameFlow : MonoBehaviour
     {
         [SerializeField] private GameUI gameUI;
+
+        public event Action GeneratorStarted;
+        public event Action GarageOpened;
+        public event Action FuelCanTaken;
+        public event Action FuelCanFilled;
+        public event Action CarFueled;
+        public event Action DrivingStarted;
+        public event Action GameFinished;
+        public event Action GameLost;
+
+        public GameUI UI => gameUI;
 
         public bool generatorOn;
         public bool hasFuelCan;
@@ -29,6 +41,7 @@ namespace EnElCamino
             generatorOn = true;
             gameUI.SetObjective("OBJETIVO 2/7\nENTRÁ AL GARAGE\nBuscá una forma de subir al techo del garage.");
             gameUI.ShowMessage("Generador encendido. El bidón está dentro del garage cerrado.");
+            GeneratorStarted?.Invoke();
         }
 
         public void EnterGarage()
@@ -47,6 +60,7 @@ namespace EnElCamino
             garageOpen = true;
             gameUI.SetObjective("OBJETIVO 4/7\nTOMÁ EL BIDÓN VACÍO\nEl bidón está dentro del garage. Acercate y presioná [E].");
             gameUI.ShowMessage("Portón abierto. Ahora podés tomar el bidón.");
+            GarageOpened?.Invoke();
         }
 
         public void TakeFuelCan()
@@ -56,6 +70,7 @@ namespace EnElCamino
             hasFuelCan = true;
             gameUI.SetObjective("OBJETIVO 5/7\nLLENÁ EL BIDÓN\nLlevalo al surtidor y presioná [E].");
             gameUI.ShowMessage("Tenés el bidón vacío. Falta llenarlo.");
+            FuelCanTaken?.Invoke();
         }
 
         public void FillFuelCan()
@@ -65,6 +80,7 @@ namespace EnElCamino
             fuelCanFull = true;
             gameUI.SetObjective("OBJETIVO 6/7\nCARGÁ EL AUTO\nLlevá el bidón lleno hasta el auto y presioná [E].");
             gameUI.ShowMessage("Bidón lleno. Ahora cargá el tanque del auto.");
+            FuelCanFilled?.Invoke();
         }
 
         public void FillCar()
@@ -74,6 +90,7 @@ namespace EnElCamino
             carHasFuel = true;
             gameUI.SetObjective("OBJETIVO 7/7\nSUBITE AL AUTO\nAcercate al auto y presioná [E] para arrancarlo.");
             gameUI.ShowMessage("Auto cargado. Subite para salir de la estación.");
+            CarFueled?.Invoke();
         }
 
         public void StartDriving()
@@ -83,6 +100,7 @@ namespace EnElCamino
             driving = true;
             gameUI.SetObjective("OBJETIVO 7/7\nLLEGÁ A LA RUTA\nManejá el auto hasta la salida de la estación.");
             gameUI.ShowMessage("Auto arrancado. Llegá a la ruta antes de que anochezca.");
+            DrivingStarted?.Invoke();
         }
 
         public void TryFinish()
@@ -103,6 +121,7 @@ namespace EnElCamino
 
             finished = true;
             gameUI.ShowCompleted();
+            GameFinished?.Invoke();
         }
 
         public void GameOver()
@@ -111,6 +130,7 @@ namespace EnElCamino
 
             gameOver = true;
             gameUI.ShowGameOver();
+            GameLost?.Invoke();
         }
 
         public void ShowMessage(string text)

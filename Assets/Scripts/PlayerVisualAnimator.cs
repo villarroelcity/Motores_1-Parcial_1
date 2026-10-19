@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace EnElCamino
 {
@@ -27,6 +28,7 @@ namespace EnElCamino
         private Vector3 headRestPosition;
         private Vector3 torsoRestPosition;
         private float walkPhase;
+        private float idlePhase;
         private bool built;
 
         private void Awake()
@@ -46,7 +48,7 @@ namespace EnElCamino
 
             Vector3 horizontalVelocity = controller.velocity;
             horizontalVelocity.y = 0f;
-            bool walking = horizontalVelocity.sqrMagnitude > 0.04f;
+            bool walking = horizontalVelocity.sqrMagnitude > 0.04f || HasMovementInput();
 
             if (walking)
             {
@@ -63,8 +65,18 @@ namespace EnElCamino
             else
             {
                 walkPhase = Mathf.Lerp(walkPhase, 0f, Time.deltaTime * 8f);
+                idlePhase += Time.deltaTime * 1.8f;
                 AnimateIdle();
             }
+        }
+
+        private bool HasMovementInput()
+        {
+            if (Keyboard.current == null) return false;
+            return Keyboard.current.wKey.isPressed || Keyboard.current.aKey.isPressed
+                || Keyboard.current.sKey.isPressed || Keyboard.current.dKey.isPressed
+                || Keyboard.current.upArrowKey.isPressed || Keyboard.current.leftArrowKey.isPressed
+                || Keyboard.current.downArrowKey.isPressed || Keyboard.current.rightArrowKey.isPressed;
         }
 
         private void BuildCharacterVisual()
@@ -200,14 +212,16 @@ namespace EnElCamino
 
         private void AnimateIdle()
         {
-            leftLeg.localRotation = Quaternion.Slerp(leftLeg.localRotation, Quaternion.identity, Time.deltaTime * 8f);
-            rightLeg.localRotation = Quaternion.Slerp(rightLeg.localRotation, Quaternion.identity, Time.deltaTime * 8f);
-            leftArm.localRotation = Quaternion.Slerp(leftArm.localRotation, Quaternion.Euler(0f, 0f, -7f), Time.deltaTime * 8f);
-            rightArm.localRotation = Quaternion.Slerp(rightArm.localRotation, Quaternion.Euler(0f, 0f, 7f), Time.deltaTime * 8f);
+            float breathing = Mathf.Sin(idlePhase) * 0.025f;
+            float weightShift = Mathf.Sin(idlePhase * 0.5f) * 2.5f;
+            leftLeg.localRotation = Quaternion.Slerp(leftLeg.localRotation, Quaternion.Euler(0f, 0f, weightShift), Time.deltaTime * 8f);
+            rightLeg.localRotation = Quaternion.Slerp(rightLeg.localRotation, Quaternion.Euler(0f, 0f, weightShift), Time.deltaTime * 8f);
+            leftArm.localRotation = Quaternion.Slerp(leftArm.localRotation, Quaternion.Euler(breathing * 18f, 0f, -7f), Time.deltaTime * 8f);
+            rightArm.localRotation = Quaternion.Slerp(rightArm.localRotation, Quaternion.Euler(-breathing * 18f, 0f, 7f), Time.deltaTime * 8f);
             leftFoot.localRotation = Quaternion.Slerp(leftFoot.localRotation, Quaternion.identity, Time.deltaTime * 8f);
             rightFoot.localRotation = Quaternion.Slerp(rightFoot.localRotation, Quaternion.identity, Time.deltaTime * 8f);
-            torso.localPosition = Vector3.Lerp(torso.localPosition, torsoRestPosition, Time.deltaTime * 8f);
-            head.localPosition = Vector3.Lerp(head.localPosition, headRestPosition, Time.deltaTime * 8f);
+            torso.localPosition = Vector3.Lerp(torso.localPosition, torsoRestPosition + Vector3.up * breathing, Time.deltaTime * 8f);
+            head.localPosition = Vector3.Lerp(head.localPosition, headRestPosition + Vector3.up * breathing * 1.2f, Time.deltaTime * 8f);
         }
 
         private void PlayFootstep()

@@ -1,0 +1,25 @@
+# Se conserva localmente el paquete completo para futuras selecciones,
+# pero el repositorio versiona solo los modelos usados por esta escena.
+*
+!.gitignore
+!README.md
+!CarKit/
+!CarKit/License.txt
+!CarKit/Models/
+!CarKit/Models/FBX format/
+!CarKit/Models/FBX format/Textures/
+!CarKit/Models/FBX format/Textures/colormap.png
+!CarKit/Models/FBX format/sedan.fbx
+!CityKitRoads/
+!CityKitRoads/License.txt
+!CityKitRoads/Models/
+!CityKitRoads/Models/FBX format/
+!CityKitRoads/Models/FBX format/Textures/
+!CityKitRoads/Models/FBX format/Textures/colormap.png
+!CityKitRoads/Models/FBX format/light-curved.fbx
+!NatureKit/
+!NatureKit/License.txt
+!NatureKit/Models/
+!NatureKit/Models/FBX format/
+!NatureKit/Models/FBX format/tree_oak.fbx
+!NatureKit/Models/FBX format/tree_pineTallA.fbx

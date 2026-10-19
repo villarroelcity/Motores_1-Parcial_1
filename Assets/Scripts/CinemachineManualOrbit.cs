@@ -8,7 +8,7 @@ namespace EnElCamino
     {
         [SerializeField] private Transform target;
         [SerializeField] private float sensitivity = 0.035f;
-        [SerializeField] private float maximumMouseDelta = 20f;
+        [SerializeField] private float maximumMouseDelta = 8f;
         [SerializeField] private float minPitch = -12f;
         [SerializeField] private float maxPitch = 32f;
 

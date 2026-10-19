@@ -22,7 +22,7 @@ namespace EnElCamino.Editor
             ConfigureGeneratorTexture();
             ConfigureTelemetryAndLighting();
             FixNegativeTerrainScale();
-            GenerateEnviroGrass();
+            RemoveGeneratedGrass();
             RemoveVoicePlayback();
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             EditorSceneManager.SaveOpenScenes();
@@ -33,8 +33,11 @@ namespace EnElCamino.Editor
         {
             Transform sign = GameObject.Find("EstacionDeServicio/CartelRuta")?.transform;
             Vector3 signPosition = sign != null ? sign.position : new Vector3(-42.39f, 2.3f, -127.89f);
-            Vector3 stop = new Vector3(signPosition.x, 0.55f, signPosition.z - 4f);
-            EnsurePoint("AutoEntradaRuta", stop + Vector3.back * 70f, Quaternion.identity);
+            Transform legacyCar = FindTransformIncludingInactive("Legacy_VehiculoConRuedas");
+            float roadX = legacyCar != null ? legacyCar.position.x : signPosition.x;
+            float roadStartZ = legacyCar != null ? legacyCar.position.z : signPosition.z - 74f;
+            Vector3 stop = new Vector3(roadX, 0.55f, signPosition.z - 4f);
+            EnsurePoint("AutoEntradaRuta", new Vector3(roadX, 0.55f, roadStartZ), Quaternion.identity);
             EnsurePoint("AutoParadaRuta", stop, Quaternion.identity);
             EnsurePoint("PuntoBajadaAuto", stop + Vector3.right * 2.4f, Quaternion.identity);
         }
@@ -158,7 +161,7 @@ namespace EnElCamino.Editor
             Light enviroLight = enviroSun != null ? enviroSun.GetComponent<Light>() : null;
             if (enviroLight != null)
             {
-                enviroLight.intensity = 0.75f;
+                enviroLight.intensity = 0.32f;
                 enviroLight.shadows = LightShadows.Soft;
                 EditorUtility.SetDirty(enviroLight);
             }
@@ -254,6 +257,8 @@ namespace EnElCamino.Editor
             Transform existing = station.transform.Find("EnviroVegetation/Generated_EnviroGrass");
             if (existing != null) Object.DestroyImmediate(existing.gameObject);
 
+            return;
+
             GameObject parent = station.transform.Find("EnviroVegetation")?.gameObject;
             if (parent == null) { parent = new GameObject("EnviroVegetation"); parent.transform.SetParent(station.transform); }
             GameObject grass = new GameObject("Generated_EnviroGrass");
@@ -275,6 +280,15 @@ namespace EnElCamino.Editor
             MeshFilter filter = grass.AddComponent<MeshFilter>(); filter.sharedMesh = mesh;
             MeshRenderer renderer = grass.AddComponent<MeshRenderer>(); renderer.sharedMaterial = GetGrassMaterial();
             EditorUtility.SetDirty(mesh);
+        }
+
+        private static void RemoveGeneratedGrass()
+        {
+            GameObject station = GameObject.Find("EstacionDeServicio");
+            Transform existing = station != null ? station.transform.Find("EnviroVegetation/Generated_EnviroGrass") : null;
+            if (existing != null) Object.DestroyImmediate(existing.gameObject);
+            Transform vegetation = station != null ? station.transform.Find("EnviroVegetation") : null;
+            if (vegetation != null && vegetation.childCount == 0) Object.DestroyImmediate(vegetation.gameObject);
         }
 
         private static void AddGrassCross(System.Collections.Generic.List<Vector3> vertices, System.Collections.Generic.List<int> triangles, ref int index, Vector3 c, float h)
@@ -316,6 +330,15 @@ namespace EnElCamino.Editor
             if (point == null) point = new GameObject(name);
             point.transform.SetPositionAndRotation(position, rotation);
             return point.transform;
+        }
+
+        private static Transform FindTransformIncludingInactive(string objectName)
+        {
+            foreach (Transform transform in Resources.FindObjectsOfTypeAll<Transform>())
+            {
+                if (transform.name == objectName && transform.gameObject.scene.IsValid()) return transform;
+            }
+            return null;
         }
 
         private static AudioClip LoadClip(string path) => AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/" + path);

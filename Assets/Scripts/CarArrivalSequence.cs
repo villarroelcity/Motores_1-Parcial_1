@@ -41,11 +41,12 @@ namespace EnElCamino
             if (player != null)
             {
                 originalPlayerParent = player.transform.parent;
-                player.transform.SetParent(transform, true);
-                player.transform.localPosition = new Vector3(0f, 1.15f, -0.35f);
-                player.transform.localRotation = Quaternion.identity;
-                player.SetActive(true);
+                player.transform.SetParent(null, true);
+                player.SetActive(false);
             }
+
+            CinemachineFollowSetup cameraFollow = FindFirstObjectByType<CinemachineFollowSetup>();
+            if (cameraFollow != null) cameraFollow.SetTarget(transform);
 
             if (vehicleBody != null)
             {
@@ -113,7 +114,7 @@ namespace EnElCamino
                 gameFlow.ShowMessage("El auto se detuvo en la ruta. Bajá y acercate a la estación abandonada.");
             }
 
-            CinemachineFollowSetup cameraFollow = FindFirstObjectByType<CinemachineFollowSetup>();
+            cameraFollow = FindFirstObjectByType<CinemachineFollowSetup>();
             if (cameraFollow != null && player != null)
                 cameraFollow.SetTarget(player.transform);
         }

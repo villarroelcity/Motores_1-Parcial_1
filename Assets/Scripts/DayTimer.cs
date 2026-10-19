@@ -14,12 +14,15 @@ namespace EnElCamino
         private float timeLeft;
         private float startTime;
         private float lastSkyProgress = -1f;
+        private Light enviroSun;
 
         private void Start()
         {
             timeLeft = duration;
             startTime = Time.realtimeSinceStartup;
             if (skyboxMaterial == null) skyboxMaterial = RenderSettings.skybox;
+            GameObject enviro = GameObject.Find("Enviro 3/Sun/Moon Directional Light");
+            if (enviro != null) enviroSun = enviro.GetComponent<Light>();
         }
 
         private void Update()
@@ -30,6 +33,8 @@ namespace EnElCamino
             float progress = 1f - timeLeft / duration;
             if (controlLegacyLighting && sun != null)
                 sun.intensity = Mathf.Lerp(1.1f, 0.05f, progress);
+            if (!controlLegacyLighting && enviroSun != null)
+                enviroSun.intensity = Mathf.Min(enviroSun.intensity, 0.32f);
 
             if (controlLegacyLighting)
                 RenderSettings.ambientLight = Color.Lerp(new Color(0.55f, 0.55f, 0.55f), new Color(0.02f, 0.02f, 0.06f), progress);

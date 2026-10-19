@@ -130,6 +130,7 @@ GameObject:
   - component: {fileID: 7153599}
   - component: {fileID: 7153598}
   - component: {fileID: 7153600}
+  - component: {fileID: 7153601}
   m_Layer: 0
   m_Name: GameFlow
   m_TagString: Untagged
@@ -191,6 +192,27 @@ MonoBehaviour:
   exit: {fileID: 0}
   warningLights: []
   challengeDuration: 35
+--- !u!114 &7153601
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7153597}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 460d97cb8adbe2946b9e4dbc8bd93b2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.GameplayAudioController
+  ambientClip: {fileID: 8300000, guid: 94b96caf429a3ac4598bf31740a6b5a6, type: 3}
+  explorationMusic: {fileID: 8300000, guid: ed6c8ae61e622b2458030bea459f2a6d, type: 3}
+  tensionMusic: {fileID: 8300000, guid: 0afe6418982beeb45916db25b9d4a2d8, type: 3}
+  generatorStart: {fileID: 8300000, guid: 673bf2b187e09f745bab3787f3676c4f, type: 3}
+  garageOpen: {fileID: 8300000, guid: f8aeaaec2e331204f8eee5c14498ff9b, type: 3}
+  pumpSound: {fileID: 8300000, guid: dff8a7b9c6395e744bb4a60940df05c9, type: 3}
+  motorStart: {fileID: 8300000, guid: aba467c8e0a52c44d9253766a169a659, type: 3}
+  victory: {fileID: 8300000, guid: 2c9b863f04bacd544bf4fdbdbc23bc1c, type: 3}
+  gameOver: {fileID: 8300000, guid: bfc7cd398c9d0aa48a452a81b5821f38, type: 3}
 --- !u!1 &11281015
 GameObject:
   m_ObjectHideFlags: 0
@@ -2629,6 +2651,7 @@ GameObject:
   - component: {fileID: 490530027}
   - component: {fileID: 490530026}
   - component: {fileID: 490530029}
+  - component: {fileID: 490530030}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -2734,8 +2757,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.CinemachineFollowSetup
   target: {fileID: 0}
+  vehicle: {fileID: 0}
   distance: 5.5
   height: 2.4
+--- !u!81 &490530030
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 490530025}
+  m_Enabled: 1
 --- !u!1 &515322919
 GameObject:
   m_ObjectHideFlags: 0

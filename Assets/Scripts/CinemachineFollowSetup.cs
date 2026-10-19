@@ -9,6 +9,7 @@ namespace EnElCamino
     public class CinemachineFollowSetup : MonoBehaviour
     {
         [SerializeField] private Transform target;
+        [SerializeField] private Transform vehicle;
         [SerializeField] private float distance = 4.2f;
         [SerializeField] private float height = 1.9f;
 
@@ -20,6 +21,12 @@ namespace EnElCamino
             {
                 GameObject player = GameObject.Find("Jugador");
                 if (player != null) target = player.transform;
+            }
+
+            if (vehicle == null)
+            {
+                GameObject car = GameObject.Find("VehiculoConRuedas");
+                if (car != null) vehicle = car.transform;
             }
 
             ThirdPersonCamera legacyCamera = GetComponent<ThirdPersonCamera>();
@@ -43,7 +50,22 @@ namespace EnElCamino
             follow.CameraSide = 0.5f;
             follow.CameraDistance = distance;
 
-            rig.AddComponent<CinemachineInputAxisController>();
+            CinemachineManualOrbit orbit = rig.AddComponent<CinemachineManualOrbit>();
+            orbit.Configure(target, 0.035f);
+        }
+
+        private void Update()
+        {
+            GameFlow flow = FindFirstObjectByType<GameFlow>();
+            if (flow != null && flow.driving && vehicle != null && gameplayCamera != null)
+                SetTarget(vehicle);
+        }
+
+        public void SetTarget(Transform newTarget)
+        {
+            if (newTarget == null || gameplayCamera == null) return;
+            gameplayCamera.Follow = newTarget;
+            gameplayCamera.LookAt = newTarget;
         }
     }
 }

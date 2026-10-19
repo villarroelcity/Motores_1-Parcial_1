@@ -170,6 +170,7 @@ namespace EnElCamino
 
         private void CreateAmbientAudio()
         {
+            if (GetComponent<GameplayAudioController>() != null) return;
             ambientSource = gameObject.AddComponent<AudioSource>();
             ambientSource.loop = true;
             ambientSource.playOnAwake = true;

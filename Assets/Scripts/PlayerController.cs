@@ -9,19 +9,29 @@ namespace EnElCamino
         [SerializeField] private float speed = 4.5f;
         [SerializeField] private float gravity = -18f;
         [SerializeField] private float turnSpeed = 12f;
+        [SerializeField] private float fallDeathHeight = -3f;
 
         private CharacterController controller;
         private Vector3 verticalVelocity;
         private Camera mainCamera;
+        private GameFlow gameFlow;
 
         private void Awake()
         {
             controller = GetComponent<CharacterController>();
             mainCamera = Camera.main;
+            gameFlow = FindFirstObjectByType<GameFlow>();
         }
 
         private void Update()
         {
+            if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
+            if (gameFlow != null && !gameFlow.finished && !gameFlow.gameOver && transform.position.y <= fallDeathHeight)
+            {
+                gameFlow.GameOver();
+                return;
+            }
+
             Vector2 input = ReadMovement();
             Vector3 direction = new Vector3(input.x, 0f, input.y);
 

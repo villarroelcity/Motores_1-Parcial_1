@@ -50,7 +50,7 @@ namespace EnElCamino
 
         public void ShowGameOver()
         {
-            finalText.text = "SE HIZO DE NOCHE\nGAME OVER";
+            finalText.text = "GAME OVER";
             completedPanel.SetActive(true);
             HidePrompt();
             messageText.gameObject.SetActive(false);

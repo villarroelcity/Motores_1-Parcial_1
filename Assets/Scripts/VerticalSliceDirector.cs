@@ -121,7 +121,6 @@ namespace EnElCamino
         {
             challengeActive = false;
             StopThreat();
-            PlayTone(880f, 0.25f, 0.2f);
             EmitFeedback(Color.green, 80);
         }
 
@@ -129,7 +128,6 @@ namespace EnElCamino
         {
             challengeActive = false;
             StopThreat();
-            PlayTone(80f, 0.7f, 0.25f);
         }
 
         private void SpawnThreat()

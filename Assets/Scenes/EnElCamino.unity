@@ -5665,6 +5665,7 @@ MonoBehaviour:
   speed: 4.5
   gravity: -18
   turnSpeed: 12
+  fallDeathHeight: -3
 --- !u!143 &1262591745
 CharacterController:
   m_ObjectHideFlags: 0

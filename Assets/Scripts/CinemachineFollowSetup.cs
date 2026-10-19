@@ -51,7 +51,16 @@ namespace EnElCamino
             follow.CameraDistance = distance;
 
             CinemachineManualOrbit orbit = rig.AddComponent<CinemachineManualOrbit>();
-            orbit.Configure(target, 0.035f);
+            orbit.Configure(target, 0.008f);
+
+            CinemachineDeoccluder deoccluder = rig.AddComponent<CinemachineDeoccluder>();
+            deoccluder.CollideAgainst = ~0;
+            deoccluder.IgnoreTag = string.Empty;
+            deoccluder.AvoidObstacles.Enabled = true;
+            deoccluder.AvoidObstacles.CameraRadius = 0.25f;
+            deoccluder.AvoidObstacles.Strategy = CinemachineDeoccluder.ObstacleAvoidance.ResolutionStrategy.PullCameraForward;
+            deoccluder.AvoidObstacles.Damping = 0.25f;
+            deoccluder.AvoidObstacles.DampingWhenOccluded = 0.1f;
         }
 
         private void Update()

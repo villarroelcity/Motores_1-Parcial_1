@@ -8,6 +8,7 @@ namespace EnElCamino
     {
         [SerializeField] private Transform target;
         [SerializeField] private float sensitivity = 0.035f;
+        [SerializeField] private float maximumMouseDelta = 20f;
         [SerializeField] private float minPitch = -12f;
         [SerializeField] private float maxPitch = 32f;
 
@@ -32,6 +33,7 @@ namespace EnElCamino
             if (Cursor.lockState != CursorLockMode.Locked) return;
 
             Vector2 delta = Mouse.current.delta.ReadValue();
+            delta = Vector2.ClampMagnitude(delta, maximumMouseDelta);
             yaw += delta.x * sensitivity;
             pitch = Mathf.Clamp(pitch - delta.y * sensitivity, minPitch, maxPitch);
             transform.rotation = Quaternion.Euler(pitch, yaw, 0f);

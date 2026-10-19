@@ -90,7 +90,23 @@ namespace EnElCamino
             PlayMusic(tensionMusic);
         }
 
-        private void OnGameFinished() => PlayEffect(victory);
-        private void OnGameLost() => PlayEffect(gameOver);
+        private void OnGameFinished()
+        {
+            StopAllGameplayAudio();
+            PlayEffect(victory);
+        }
+
+        private void OnGameLost()
+        {
+            StopAllGameplayAudio();
+            PlayEffect(gameOver);
+        }
+
+        private void StopAllGameplayAudio()
+        {
+            if (ambientSource != null) ambientSource.Stop();
+            if (musicSource != null) musicSource.Stop();
+            if (effectsSource != null) effectsSource.Stop();
+        }
     }
 }

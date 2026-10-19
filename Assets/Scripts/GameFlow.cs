@@ -36,6 +36,7 @@ namespace EnElCamino
 
         private void Start()
         {
+            AudioListener.pause = false;
             if (gameOverSource == null) gameOverSource = FindSource("GameOverSource");
             if (victorySource == null) victorySource = FindSource("VictorySource");
             gameUI.SetObjective("OBJETIVO 1/7\nENCENDÉ EL GENERADOR\nEl botón rojo está fijo en el costado derecho del generador.");
@@ -136,7 +137,7 @@ namespace EnElCamino
             finished = true;
             StopAllGameplayAudio(victorySource);
             StopTensionMusic();
-            if (victorySource != null) victorySource.Play();
+            PlayOutcomeSound(victorySource);
             gameUI.ShowCompleted();
             GameFinished?.Invoke();
         }
@@ -148,7 +149,7 @@ namespace EnElCamino
             gameOver = true;
             StopAllGameplayAudio(gameOverSource);
             StopTensionMusic();
-            if (gameOverSource != null) gameOverSource.Play();
+            PlayOutcomeSound(gameOverSource);
             gameUI.ShowGameOver();
             GameLost?.Invoke();
         }
@@ -161,6 +162,17 @@ namespace EnElCamino
                 if (source == null || source == keepSource) continue;
                 source.Stop();
             }
+        }
+
+        private static void PlayOutcomeSound(AudioSource outcomeSource)
+        {
+            // Freeze every future AudioSource too, including PlayClipAtPoint-created sources.
+            AudioListener.pause = true;
+            if (outcomeSource == null) return;
+
+            outcomeSource.ignoreListenerPause = true;
+            outcomeSource.Stop();
+            outcomeSource.Play();
         }
 
         private static void StopTensionMusic()

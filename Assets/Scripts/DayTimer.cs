@@ -10,6 +10,7 @@ namespace EnElCamino
         [SerializeField] private Text timerText;
         [SerializeField] private float duration = 120f;
         [SerializeField] private Material skyboxMaterial;
+        [SerializeField] private bool controlLegacyLighting = true;
         private float timeLeft;
         private float startTime;
         private float lastSkyProgress = -1f;
@@ -27,10 +28,13 @@ namespace EnElCamino
 
             timeLeft = duration - (Time.realtimeSinceStartup - startTime);
             float progress = 1f - timeLeft / duration;
-            sun.intensity = Mathf.Lerp(1.1f, 0.05f, progress);
-            RenderSettings.ambientLight = Color.Lerp(new Color(0.55f, 0.55f, 0.55f), new Color(0.02f, 0.02f, 0.06f), progress);
+            if (controlLegacyLighting && sun != null)
+                sun.intensity = Mathf.Lerp(1.1f, 0.05f, progress);
 
-            if (skyboxMaterial != null && skyboxMaterial.HasProperty("_SkyTint"))
+            if (controlLegacyLighting)
+                RenderSettings.ambientLight = Color.Lerp(new Color(0.55f, 0.55f, 0.55f), new Color(0.02f, 0.02f, 0.06f), progress);
+
+            if (controlLegacyLighting && skyboxMaterial != null && skyboxMaterial.HasProperty("_SkyTint"))
             {
                 skyboxMaterial.SetColor("_SkyTint", Color.Lerp(new Color(0.48f, 0.56f, 0.72f), new Color(0.035f, 0.045f, 0.12f), progress));
                 skyboxMaterial.SetColor("_GroundColor", Color.Lerp(new Color(0.32f, 0.34f, 0.38f), new Color(0.006f, 0.008f, 0.02f), progress));

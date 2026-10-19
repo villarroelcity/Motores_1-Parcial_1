@@ -8,7 +8,6 @@ namespace EnElCamino
         [SerializeField] private GameUI gameUI;
         [SerializeField] private AudioSource gameOverSource;
         [SerializeField] private AudioSource victorySource;
-        [SerializeField] private VoiceNarration voiceNarration;
 
         public event Action GeneratorStarted;
         public event Action GarageOpened;
@@ -39,8 +38,6 @@ namespace EnElCamino
         {
             if (gameOverSource == null) gameOverSource = FindSource("GameOverSource");
             if (victorySource == null) victorySource = FindSource("VictorySource");
-            if (voiceNarration == null) voiceNarration = FindFirstObjectByType<VoiceNarration>();
-            voiceNarration?.PlayFirst(5);
             gameUI.SetObjective("OBJETIVO 1/7\nENCENDÉ EL GENERADOR\nEl botón rojo está fijo en el costado derecho del generador.");
             gameUI.ShowMessage("La estación está sin energía.");
         }

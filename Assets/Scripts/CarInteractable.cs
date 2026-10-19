@@ -18,6 +18,7 @@ namespace EnElCamino
         {
             get
             {
+                if (carDriver != null && !carDriver.IsReady) return "El auto está llegando...";
                 if (used) return "[E] Subir al auto";
                 if (!gameFlow.fuelCanFull) return "Falta llenar el bidón";
                 return "[E] Cargar tanque del auto";

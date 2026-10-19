@@ -41,6 +41,20 @@ sysinfo.txt
 *.aab
 *.unitypackage
 
+# Third-party Asset Store packages are installed locally and must not be redistributed.
+/Assets/Vehicle Physics Pro/
+/Assets/Vehicle Physics Pro.meta
+/Assets/Enviro 3 - Sky and Weather/
+/Assets/Enviro 3 - Sky and Weather.meta
+/Assets/Temp/
+/Assets/Temp.meta
+/Assets/ThirdParty/ExternalModels/*.zip
+/Assets/ThirdParty/ExternalModels/*.zip.meta
+/Assets/ThirdParty/ExternalModels/Ghost/
+/Assets/ThirdParty/ExternalModels/Ghost.meta
+/Assets/ThirdParty/ExternalModels/GhostGltf/lowpolyghost/*.blend
+/Assets/ThirdParty/ExternalModels/GhostGltf/lowpolyghost/*.blend.meta
+
 # OS generated files
 .DS_Store
 Thumbs.db

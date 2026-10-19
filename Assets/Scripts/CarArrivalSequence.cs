@@ -19,11 +19,14 @@ namespace EnElCamino
 
         private CarDriver carDriver;
         private Rigidbody vehicleBody;
+        private Transform originalPlayerParent;
+        private Behaviour vppController;
 
         private void Awake()
         {
             carDriver = GetComponent<CarDriver>();
             vehicleBody = GetComponent<Rigidbody>();
+            vppController = GetComponent("VPVehicleController") as Behaviour;
         }
 
         private void Start()
@@ -35,16 +38,34 @@ namespace EnElCamino
         {
             carDriver.SetVehicleReady(false);
             if (gameFlow != null) gameFlow.movementLocked = true;
-            if (player != null) player.SetActive(false);
-
-            if (arrivalStart != null)
-                transform.SetPositionAndRotation(arrivalStart.position, arrivalStart.rotation);
+            if (player != null)
+            {
+                originalPlayerParent = player.transform.parent;
+                player.transform.SetParent(transform, true);
+                player.transform.localPosition = new Vector3(0f, 1.15f, -0.35f);
+                player.transform.localRotation = Quaternion.identity;
+                player.SetActive(true);
+            }
 
             if (vehicleBody != null)
             {
-                vehicleBody.isKinematic = true;
                 vehicleBody.linearVelocity = Vector3.zero;
                 vehicleBody.angularVelocity = Vector3.zero;
+                vehicleBody.isKinematic = true;
+                vehicleBody.detectCollisions = false;
+            }
+            if (vppController != null) vppController.enabled = false;
+
+            if (arrivalStart != null)
+            {
+                if (vehicleBody != null)
+                {
+                    transform.SetPositionAndRotation(arrivalStart.position, arrivalStart.rotation);
+                }
+                else
+                {
+                    transform.SetPositionAndRotation(arrivalStart.position, arrivalStart.rotation);
+                }
             }
 
             Vector3 startPosition = transform.position;
@@ -58,20 +79,28 @@ namespace EnElCamino
                 elapsed += Time.deltaTime;
                 float t = Mathf.Clamp01(elapsed / Mathf.Max(0.1f, duration));
                 t = t * t * (3f - 2f * t);
-                transform.SetPositionAndRotation(Vector3.Lerp(startPosition, targetPosition, t), Quaternion.Slerp(startRotation, targetRotation, t));
+                Vector3 nextPosition = Vector3.Lerp(startPosition, targetPosition, t);
+                Quaternion nextRotation = Quaternion.Slerp(startRotation, targetRotation, t);
+                transform.SetPositionAndRotation(nextPosition, nextRotation);
                 yield return null;
             }
 
-            transform.SetPositionAndRotation(targetPosition, targetRotation);
+            if (vehicleBody != null)
+            {
+                transform.SetPositionAndRotation(targetPosition, targetRotation);
+                vehicleBody.detectCollisions = true;
+            }
             if (vehicleBody != null)
             {
                 vehicleBody.isKinematic = false;
                 vehicleBody.linearVelocity = Vector3.zero;
                 vehicleBody.angularVelocity = Vector3.zero;
             }
+            if (vppController != null) vppController.enabled = true;
 
             if (player != null)
             {
+                player.transform.SetParent(originalPlayerParent, true);
                 if (exitPoint != null)
                     player.transform.SetPositionAndRotation(exitPoint.position, exitPoint.rotation);
                 player.SetActive(true);

@@ -11,6 +11,7 @@ namespace EnElCamino.Editor
         private const string EnviroPrefabPath = "Assets/Enviro 3 - Sky and Weather/Enviro 3.prefab";
         private const string MaterialPath = "Assets/Materials/GeneratorBody_Textured.mat";
         private const string TexturePath = "Assets/Materials/GeneratorBody_Textured.asset";
+        private const string GrassMaterialPath = "Assets/Materials/EnviroGrass_Generated.mat";
 
         [MenuItem("Parcial 2/Integrar Vehicle Physics Pro y Enviro 3")]
         public static void Apply()
@@ -19,6 +20,9 @@ namespace EnElCamino.Editor
             IntegrateVehicle();
             IntegrateEnviro();
             ConfigureGeneratorTexture();
+            ConfigureTelemetryAndLighting();
+            FixNegativeTerrainScale();
+            GenerateEnviroGrass();
             RemoveVoicePlayback();
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             EditorSceneManager.SaveOpenScenes();
@@ -27,9 +31,12 @@ namespace EnElCamino.Editor
 
         private static void SceneSetup()
         {
-            EnsurePoint("AutoEntradaRuta", new Vector3(0f, 0.55f, -90f), Quaternion.identity);
-            EnsurePoint("AutoParadaRuta", new Vector3(0f, 0.55f, -32f), Quaternion.identity);
-            EnsurePoint("PuntoBajadaAuto", new Vector3(2.2f, 0.1f, -32f), Quaternion.identity);
+            Transform sign = GameObject.Find("EstacionDeServicio/CartelRuta")?.transform;
+            Vector3 signPosition = sign != null ? sign.position : new Vector3(-42.39f, 2.3f, -127.89f);
+            Vector3 stop = new Vector3(signPosition.x, 0.55f, signPosition.z - 4f);
+            EnsurePoint("AutoEntradaRuta", stop + Vector3.back * 70f, Quaternion.identity);
+            EnsurePoint("AutoParadaRuta", stop, Quaternion.identity);
+            EnsurePoint("PuntoBajadaAuto", stop + Vector3.right * 2.4f, Quaternion.identity);
         }
 
         private static void IntegrateVehicle()
@@ -105,6 +112,13 @@ namespace EnElCamino.Editor
             SetReference(arrival, "exitPoint", GameObject.Find("PuntoBajadaAuto")?.transform);
             SetValue(arrival, "duration", 7f);
 
+            Component telemetry = car.GetComponent("VPTelemetry");
+            if (telemetry is Behaviour telemetryBehaviour)
+            {
+                telemetryBehaviour.enabled = false;
+                EditorUtility.SetDirty(telemetryBehaviour);
+            }
+
             SetReference(GameObject.Find("GameFlow")?.GetComponent<VerticalSliceDirector>(), "vehicle", car.transform);
             SetReference(GameObject.Find("Main Camera")?.GetComponent<CinemachineFollowSetup>(), "vehicle", car.transform);
             SetReference(GameObject.Find("Jugador")?.GetComponent<RaycastInteractor>(), "car", interactable);
@@ -135,6 +149,19 @@ namespace EnElCamino.Editor
 
             DayTimer dayTimer = GameObject.Find("RelojDelDia")?.GetComponent<DayTimer>();
             SetValue(dayTimer, "controlLegacyLighting", false);
+            SetValue(dayTimer, "duration", 180f);
+
+            GameObject legacySun = GameObject.Find("Sun");
+            if (legacySun != null) legacySun.SetActive(false);
+
+            Transform enviroSun = enviro.transform.Find("Sun/Moon Directional Light");
+            Light enviroLight = enviroSun != null ? enviroSun.GetComponent<Light>() : null;
+            if (enviroLight != null)
+            {
+                enviroLight.intensity = 0.75f;
+                enviroLight.shadows = LightShadows.Soft;
+                EditorUtility.SetDirty(enviroLight);
+            }
         }
 
         private static void ConfigureGeneratorTexture()
@@ -157,7 +184,7 @@ namespace EnElCamino.Editor
                 AssetDatabase.CreateAsset(texture, TexturePath);
             }
 
-            Shader shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+            Shader shader = Shader.Find("Standard") ?? Shader.Find("Universal Render Pipeline/Lit");
             Material material = AssetDatabase.LoadAssetAtPath<Material>(MaterialPath);
             if (material == null)
             {
@@ -175,9 +202,106 @@ namespace EnElCamino.Editor
 
             foreach (MeshRenderer renderer in generator.GetComponentsInChildren<MeshRenderer>(true))
             {
-                if (renderer.gameObject.name.Contains("Generated_PortableGenerator"))
-                    renderer.sharedMaterial = material;
+                renderer.sharedMaterial = material;
             }
+        }
+
+        private static void ConfigureTelemetryAndLighting()
+        {
+            GameObject car = GameObject.Find("EstacionDeServicio/VehiculoConRuedas");
+            Component telemetry = car != null ? car.GetComponent("VPTelemetry") : null;
+            if (telemetry is Behaviour behaviour)
+            {
+                behaviour.enabled = false;
+                EditorUtility.SetDirty(behaviour);
+            }
+
+            GameObject station = GameObject.Find("EstacionDeServicio");
+            if (station == null) return;
+            foreach (MeshRenderer renderer in station.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                string objectName = renderer.gameObject.name.ToLowerInvariant();
+                if (!objectName.Contains("terreno") && !objectName.Contains("camino") && !objectName.Contains("ruta") && !objectName.Contains("playa")) continue;
+                Material source = renderer.sharedMaterial;
+                if (source == null) continue;
+                Material matte = new Material(source) { name = source.name + "_Matte" };
+                if (matte.HasProperty("_Metallic")) matte.SetFloat("_Metallic", 0f);
+                if (matte.HasProperty("_Smoothness")) matte.SetFloat("_Smoothness", 0.18f);
+                renderer.sharedMaterial = matte;
+            }
+        }
+
+        private static void FixNegativeTerrainScale()
+        {
+            GameObject terrain = GameObject.Find("EstacionDeServicio/Terreno");
+            if (terrain == null) return;
+            Vector3 scale = terrain.transform.localScale;
+            terrain.transform.localScale = new Vector3(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z));
+            BoxCollider box = terrain.GetComponent<BoxCollider>();
+            if (box != null)
+            {
+                Vector3 size = box.size;
+                box.size = new Vector3(Mathf.Abs(size.x), Mathf.Abs(size.y), Mathf.Abs(size.z));
+                EditorUtility.SetDirty(box);
+            }
+            EditorUtility.SetDirty(terrain.transform);
+        }
+
+        private static void GenerateEnviroGrass()
+        {
+            GameObject station = GameObject.Find("EstacionDeServicio");
+            if (station == null) return;
+            Transform existing = station.transform.Find("EnviroVegetation/Generated_EnviroGrass");
+            if (existing != null) Object.DestroyImmediate(existing.gameObject);
+
+            GameObject parent = station.transform.Find("EnviroVegetation")?.gameObject;
+            if (parent == null) { parent = new GameObject("EnviroVegetation"); parent.transform.SetParent(station.transform); }
+            GameObject grass = new GameObject("Generated_EnviroGrass");
+            grass.transform.SetParent(parent.transform);
+
+            Mesh mesh = new Mesh { name = "EnviroGrassGeneratedMesh" };
+            var vertices = new System.Collections.Generic.List<Vector3>();
+            var triangles = new System.Collections.Generic.List<int>();
+            int index = 0;
+            for (int x = -35; x <= 35; x += 3)
+            for (int z = -155; z <= -55; z += 4)
+            {
+                if ((x * 17 + z * 7) % 11 == 0) continue;
+                float height = 0.35f + Mathf.Abs((x * 13 + z * 3) % 10) * 0.025f;
+                Vector3 center = new Vector3(x + 0.35f * Mathf.Sin(z), 0.04f, z);
+                AddGrassCross(vertices, triangles, ref index, center, height);
+            }
+            mesh.SetVertices(vertices); mesh.SetTriangles(triangles, 0); mesh.RecalculateNormals();
+            MeshFilter filter = grass.AddComponent<MeshFilter>(); filter.sharedMesh = mesh;
+            MeshRenderer renderer = grass.AddComponent<MeshRenderer>(); renderer.sharedMaterial = GetGrassMaterial();
+            EditorUtility.SetDirty(mesh);
+        }
+
+        private static void AddGrassCross(System.Collections.Generic.List<Vector3> vertices, System.Collections.Generic.List<int> triangles, ref int index, Vector3 c, float h)
+        {
+            float w = 0.22f;
+            Vector3[] points = { c + new Vector3(-w, 0, 0), c + new Vector3(w, 0, 0), c + new Vector3(w * 0.5f, h, 0), c + new Vector3(-w * 0.5f, h, 0), c + new Vector3(0, 0, -w), c + new Vector3(0, 0, w), c + new Vector3(0, h, w * 0.5f), c + new Vector3(0, h, -w * 0.5f) };
+            vertices.AddRange(points);
+            for (int i = 0; i < 2; i++) { int o = index + i * 4; triangles.AddRange(new[] { o, o + 1, o + 2, o + 2, o + 3, o }); }
+            index += 8;
+        }
+
+        private static Material GetGrassMaterial()
+        {
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(GrassMaterialPath);
+            if (material == null)
+            {
+                Shader shader = Shader.Find("Standard") ?? Shader.Find("Universal Render Pipeline/Lit");
+                material = new Material(shader) { name = "EnviroGrass_Generated" };
+                AssetDatabase.CreateAsset(material, GrassMaterialPath);
+            }
+            Shader standard = Shader.Find("Standard");
+            if (standard != null && material.shader != standard) material.shader = standard;
+            if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", new Color(0.12f, 0.34f, 0.055f));
+            if (material.HasProperty("_Color")) material.SetColor("_Color", new Color(0.12f, 0.34f, 0.055f));
+            if (material.HasProperty("_Metallic")) material.SetFloat("_Metallic", 0f);
+            if (material.HasProperty("_Smoothness")) material.SetFloat("_Smoothness", 0.9f);
+            return material;
         }
 
         private static void RemoveVoicePlayback()

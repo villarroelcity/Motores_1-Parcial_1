@@ -1,12 +1,20 @@
 using UnityEngine;
+using System.Collections;
 
 namespace EnElCamino
 {
+    [RequireComponent(typeof(AudioSource))]
     public class FuelPumpInteractable : MonoBehaviour, IInteractable
     {
         [SerializeField] private GameFlow gameFlow;
         [SerializeField] private FuelCan fuelCan;
+        [SerializeField] private AudioClip pumpSound;
+        [SerializeField] private Vector2 pitchVariation = new Vector2(0.97f, 1.03f);
+        [SerializeField] private Vector2 volumeVariation = new Vector2(0.95f, 1f);
+        private AudioSource audioSource;
         private bool used;
+
+        private void Awake() => audioSource = GetComponent<AudioSource>();
 
         public string Prompt
         {
@@ -34,9 +42,25 @@ namespace EnElCamino
                 return;
             }
 
+            StartCoroutine(FillSequence());
+        }
+
+        private IEnumerator FillSequence()
+        {
             used = true;
+            gameFlow.fueling = true;
+
+            if (pumpSound != null)
+            {
+                audioSource.pitch = Random.Range(pitchVariation.x, pitchVariation.y);
+                audioSource.volume = Random.Range(volumeVariation.x, volumeVariation.y);
+                audioSource.PlayOneShot(pumpSound);
+                yield return new WaitForSeconds(pumpSound.length);
+            }
+
             fuelCan.Fill();
             gameFlow.FillFuelCan();
+            gameFlow.fueling = false;
         }
     }
 }

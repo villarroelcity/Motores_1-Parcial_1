@@ -10,7 +10,7 @@ namespace EnElCamino
         [SerializeField] private float height = 1.9f;
         [SerializeField] private float lookHeight = 1.1f;
         [SerializeField] private float lookAhead = 3.5f;
-        [SerializeField] private float sensitivity = 0.08f;
+        [SerializeField] private float sensitivity = 0.025f;
         [SerializeField] private float followSpeed = 12f;
         private float yaw;
         private float pitch = 12f;
@@ -45,8 +45,9 @@ namespace EnElCamino
             if (Mouse.current != null)
             {
                 Vector2 mouse = Mouse.current.delta.ReadValue();
-                yaw += mouse.x * sensitivity;
-                pitch -= mouse.y * sensitivity;
+                float controlledSensitivity = Mathf.Clamp(sensitivity, 0.005f, 0.04f);
+                yaw += mouse.x * controlledSensitivity;
+                pitch -= mouse.y * controlledSensitivity;
                 pitch = Mathf.Clamp(pitch, -10f, 35f);
             }
 

@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 
 namespace EnElCamino
 {
+    [RequireComponent(typeof(AudioSource))]
     public class CarDriver : MonoBehaviour
     {
         [SerializeField] private GameFlow gameFlow;
@@ -10,13 +11,20 @@ namespace EnElCamino
         [SerializeField] private ThirdPersonCamera cameraFollow;
         [SerializeField] private float speed = 7f;
         [SerializeField] private float turnSpeed = 75f;
+        [SerializeField] private AudioClip accelerationSound;
+        [SerializeField] private AudioClip engineLoopSound;
+        private AudioSource audioSource;
         private bool driving;
+        private bool engineLoopPlaying;
+
+        private void Awake() => audioSource = GetComponent<AudioSource>();
 
         public void EnterCar()
         {
             if (driving || !gameFlow.carHasFuel || gameFlow.gameOver) return;
 
             driving = true;
+            if (engineLoopSound == null) engineLoopSound = accelerationSound;
             player.SetActive(false);
             cameraFollow.SetTarget(transform);
             gameFlow.StartDriving();
@@ -24,7 +32,12 @@ namespace EnElCamino
 
         private void Update()
         {
-            if (!driving || gameFlow.gameOver || gameFlow.finished) return;
+            if (!driving) return;
+            if (gameFlow.gameOver || gameFlow.finished)
+            {
+                StopEngineLoop();
+                return;
+            }
             if (Keyboard.current == null) return;
 
             float forward = 0f;
@@ -37,6 +50,26 @@ namespace EnElCamino
 
             transform.Rotate(0f, turn * turnSpeed * Time.deltaTime, 0f);
             transform.Translate(Vector3.forward * forward * speed * Time.deltaTime);
+
+            if (forward != 0f && !engineLoopPlaying && engineLoopSound != null)
+            {
+                engineLoopPlaying = true;
+                audioSource.clip = engineLoopSound;
+                audioSource.loop = true;
+                audioSource.Play();
+            }
+            else if (forward == 0f)
+            {
+                StopEngineLoop();
+            }
+        }
+
+        private void StopEngineLoop()
+        {
+            if (!engineLoopPlaying) return;
+            engineLoopPlaying = false;
+            audioSource.loop = false;
+            audioSource.Stop();
         }
     }
 }

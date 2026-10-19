@@ -6,6 +6,9 @@ namespace EnElCamino
     public class GameFlow : MonoBehaviour
     {
         [SerializeField] private GameUI gameUI;
+        [SerializeField] private AudioSource gameOverSource;
+        [SerializeField] private AudioSource victorySource;
+        [SerializeField] private VoiceNarration voiceNarration;
 
         public event Action GeneratorStarted;
         public event Action GarageOpened;
@@ -25,13 +28,24 @@ namespace EnElCamino
         public bool insideGarage;
         public bool garageOpen;
         public bool driving;
+        public bool fueling;
         public bool gameOver;
         public bool finished;
 
         private void Start()
         {
+            if (gameOverSource == null) gameOverSource = FindSource("GameOverSource");
+            if (victorySource == null) victorySource = FindSource("VictorySource");
+            if (voiceNarration == null) voiceNarration = FindFirstObjectByType<VoiceNarration>();
+            voiceNarration?.PlayFirst(5);
             gameUI.SetObjective("OBJETIVO 1/7\nENCENDÉ EL GENERADOR\nEl botón rojo está fijo en el costado derecho del generador.");
             gameUI.ShowMessage("La estación está sin energía.");
+        }
+
+        private static AudioSource FindSource(string objectName)
+        {
+            GameObject sourceObject = GameObject.Find(objectName);
+            return sourceObject != null ? sourceObject.GetComponent<AudioSource>() : null;
         }
 
         public void TurnOnGenerator()
@@ -120,6 +134,9 @@ namespace EnElCamino
             }
 
             finished = true;
+            StopAllGameplayAudio(victorySource);
+            StopTensionMusic();
+            if (victorySource != null) victorySource.Play();
             gameUI.ShowCompleted();
             GameFinished?.Invoke();
         }
@@ -129,8 +146,27 @@ namespace EnElCamino
             if (finished || gameOver) return;
 
             gameOver = true;
+            StopAllGameplayAudio(gameOverSource);
+            StopTensionMusic();
+            if (gameOverSource != null) gameOverSource.Play();
             gameUI.ShowGameOver();
             GameLost?.Invoke();
+        }
+
+        private static void StopAllGameplayAudio(AudioSource keepSource)
+        {
+            AudioSource[] allSources = FindObjectsByType<AudioSource>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            foreach (AudioSource source in allSources)
+            {
+                if (source == null || source == keepSource) continue;
+                source.Stop();
+            }
+        }
+
+        private static void StopTensionMusic()
+        {
+            AdaptiveMusicController adaptiveMusic = FindFirstObjectByType<AdaptiveMusicController>();
+            if (adaptiveMusic != null) adaptiveMusic.StopMusic();
         }
 
         public void ShowMessage(string text)

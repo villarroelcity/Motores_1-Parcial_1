@@ -89,10 +89,16 @@ namespace EnElCamino.Editor
             if (vehicle == null) return;
 
             HideMeshRenderers(vehicle);
+            for (int i = vehicle.transform.childCount - 1; i >= 0; i--)
+            {
+                Transform child = vehicle.transform.GetChild(i);
+                if (child.name == "Generated_Car_Kenney_Sedan") Object.DestroyImmediate(child.gameObject);
+            }
             string sedanPath = "Assets/ThirdParty/Kenney/CarKit/Models/FBX format/sedan.fbx";
             GameObject car = CreateModel("Generated_Car_Kenney_Sedan", sedanPath, vehicle.transform, Vector3.zero, 1.55f);
             if (car == null) return;
 
+            car.transform.localPosition = Vector3.zero;
             car.transform.localRotation = Quaternion.identity;
             AlignModelToGround(car, 0.04f);
         }

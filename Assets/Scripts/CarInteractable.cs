@@ -2,12 +2,17 @@ using UnityEngine;
 
 namespace EnElCamino
 {
+    [RequireComponent(typeof(AudioSource))]
     public class CarInteractable : MonoBehaviour, IInteractable
     {
         [SerializeField] private GameFlow gameFlow;
         [SerializeField] private FuelCan fuelCan;
         [SerializeField] private CarDriver carDriver;
+        [SerializeField] private AudioClip startSound;
+        private AudioSource audioSource;
         private bool used;
+
+        private void Awake() => audioSource = GetComponent<AudioSource>();
 
         public string Prompt
         {
@@ -23,6 +28,8 @@ namespace EnElCamino
         {
             if (used)
             {
+                if (gameFlow.gameOver || gameFlow.finished) return;
+                if (startSound != null) audioSource.PlayOneShot(startSound);
                 carDriver.EnterCar();
                 return;
             }

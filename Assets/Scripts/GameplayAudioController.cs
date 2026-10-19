@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Audio;
 
 namespace EnElCamino
 {
@@ -6,30 +7,24 @@ namespace EnElCamino
     public class GameplayAudioController : MonoBehaviour
     {
         [SerializeField] private AudioClip ambientClip;
-        [SerializeField] private AudioClip explorationMusic;
-        [SerializeField] private AudioClip tensionMusic;
-        [SerializeField] private AudioClip generatorStart;
         [SerializeField] private AudioClip garageOpen;
-        [SerializeField] private AudioClip pumpSound;
-        [SerializeField] private AudioClip motorStart;
-        [SerializeField] private AudioClip victory;
-        [SerializeField] private AudioClip gameOver;
+        [SerializeField] private AudioMixer mixer;
 
         private GameFlow flow;
         private AudioSource ambientSource;
         private AudioSource musicSource;
         private AudioSource effectsSource;
+        private AdaptiveMusicController adaptiveMusic;
 
         private void Awake()
         {
             flow = GetComponent<GameFlow>();
             ambientSource = CreateSource("AmbientAudio", true, 0.45f);
-            musicSource = CreateSource("MusicAudio", true, 0.30f);
+            adaptiveMusic = FindFirstObjectByType<AdaptiveMusicController>();
             effectsSource = CreateSource("EffectsAudio", false, 0.75f);
 
             ambientSource.clip = ambientClip;
             if (ambientClip != null) ambientSource.Play();
-            PlayMusic(explorationMusic);
         }
 
         private void OnEnable()
@@ -64,15 +59,8 @@ namespace EnElCamino
             source.playOnAwake = false;
             source.spatialBlend = 0f;
             source.volume = volume;
+            source.outputAudioMixerGroup = FindGroup(sourceName.Contains("Ambient") ? "Ambience" : "SFX");
             return source;
-        }
-
-        private void PlayMusic(AudioClip clip)
-        {
-            if (musicSource == null || clip == null) return;
-            musicSource.Stop();
-            musicSource.clip = clip;
-            musicSource.Play();
         }
 
         private void PlayEffect(AudioClip clip)
@@ -80,33 +68,31 @@ namespace EnElCamino
             if (effectsSource != null && clip != null) effectsSource.PlayOneShot(clip);
         }
 
-        private void OnGeneratorStarted() => PlayEffect(generatorStart);
+        private void OnGeneratorStarted() { }
         private void OnGarageOpened() => PlayEffect(garageOpen);
-        private void OnFuelCanFilled() => PlayEffect(pumpSound);
+        private void OnFuelCanFilled() { }
 
         private void OnDrivingStarted()
         {
-            PlayEffect(motorStart);
-            PlayMusic(tensionMusic);
+            adaptiveMusic?.EnterTension();
         }
 
-        private void OnGameFinished()
-        {
-            StopAllGameplayAudio();
-            PlayEffect(victory);
-        }
+        private void OnGameFinished() { }
 
-        private void OnGameLost()
-        {
-            StopAllGameplayAudio();
-            PlayEffect(gameOver);
-        }
+        private void OnGameLost() { }
 
         private void StopAllGameplayAudio()
         {
             if (ambientSource != null) ambientSource.Stop();
             if (musicSource != null) musicSource.Stop();
             if (effectsSource != null) effectsSource.Stop();
+        }
+
+        private AudioMixerGroup FindGroup(string groupName)
+        {
+            if (mixer == null) return null;
+            AudioMixerGroup[] groups = mixer.FindMatchingGroups("Master/" + groupName);
+            return groups.Length > 0 ? groups[0] : null;
         }
     }
 }

@@ -2,12 +2,36 @@ using UnityEngine;
 
 namespace EnElCamino
 {
+    [RequireComponent(typeof(AudioSource))]
     public class GeneratorInteractable : MonoBehaviour, IInteractable
     {
         [SerializeField] private GameFlow gameFlow;
         [SerializeField] private Renderer indicator;
         [SerializeField] private Light indicatorLight;
+        [SerializeField] private AudioClip switchSound;
+        [SerializeField] private AudioClip generatorStartSound;
+        [SerializeField] private AudioClip generatorMotorLoop;
+        [SerializeField] private AudioSource motorAudioSource;
+        private AudioSource audioSource;
         private bool generatorOn;
+
+        private void Awake()
+        {
+            audioSource = GetComponent<AudioSource>();
+            if (motorAudioSource == null)
+            {
+                Transform motorTransform = transform.Find("GeneratorMotorAudio");
+                if (motorTransform != null) motorAudioSource = motorTransform.GetComponent<AudioSource>();
+            }
+        }
+
+        private AudioSource MotorSource => motorAudioSource != null ? motorAudioSource : audioSource;
+
+        private void Update()
+        {
+            if (generatorOn && gameFlow != null && (gameFlow.gameOver || gameFlow.finished))
+                StopGeneratorAudio();
+        }
 
         public string Prompt
         {
@@ -23,9 +47,34 @@ namespace EnElCamino
             if (generatorOn) return;
 
             generatorOn = true;
+            if (switchSound != null) audioSource.PlayOneShot(switchSound);
+            if (generatorStartSound != null)
+            {
+                MotorSource.PlayOneShot(generatorStartSound);
+                Invoke(nameof(StartGeneratorMotor), generatorStartSound.length);
+            }
             indicator.material.color = Color.green;
             indicatorLight.enabled = true;
             gameFlow.TurnOnGenerator();
+        }
+
+        private void StartGeneratorMotor()
+        {
+            if (!generatorOn || gameFlow == null || gameFlow.gameOver || gameFlow.finished || generatorMotorLoop == null) return;
+            AudioSource motorSource = MotorSource;
+            motorSource.clip = generatorMotorLoop;
+            motorSource.loop = true;
+            motorSource.Play();
+        }
+
+        private void StopGeneratorAudio()
+        {
+            CancelInvoke(nameof(StartGeneratorMotor));
+            audioSource.loop = false;
+            audioSource.Stop();
+            AudioSource motorSource = MotorSource;
+            motorSource.loop = false;
+            motorSource.Stop();
         }
     }
 }

@@ -8,7 +8,7 @@ namespace EnElCamino
     {
         [SerializeField] private float speed = 4.5f;
         [SerializeField] private float gravity = -18f;
-        [SerializeField] private float turnSpeed = 12f;
+        [SerializeField] private float turnDegreesPerSecond = 90f;
         [SerializeField] private float fallDeathHeight = -3f;
 
         private CharacterController controller;
@@ -32,6 +32,8 @@ namespace EnElCamino
                 return;
             }
 
+            if (gameFlow != null && gameFlow.fueling) return;
+
             Vector2 input = ReadMovement();
             Vector3 direction = new Vector3(input.x, 0f, input.y);
 
@@ -44,7 +46,8 @@ namespace EnElCamino
                 forward.Normalize();
                 right.Normalize();
                 Vector3 worldDirection = (forward * direction.z + right * direction.x).normalized;
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(worldDirection), turnSpeed * Time.deltaTime);
+                Quaternion desiredRotation = Quaternion.LookRotation(worldDirection);
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, desiredRotation, turnDegreesPerSecond * Time.deltaTime);
                 controller.Move(worldDirection * speed * Time.deltaTime);
             }
 

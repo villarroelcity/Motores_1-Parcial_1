@@ -6,6 +6,7 @@ namespace EnElCamino
     /// Builds a simple character silhouette and animates the limbs procedurally.
     /// Footsteps are emitted when the feet cross their contact phase.
     /// </summary>
+    [ExecuteAlways]
     public class PlayerVisualAnimator : MonoBehaviour
     {
         [SerializeField] private float walkCycleSpeed = 8f;
@@ -23,7 +24,6 @@ namespace EnElCamino
         private AudioSource footstepSource;
         private AudioClip footstepClip;
         private float walkPhase;
-        private float lastFootSign;
         private Vector3 idleHeadPosition;
         private bool built;
 
@@ -33,9 +33,14 @@ namespace EnElCamino
             BuildCharacterVisual();
         }
 
+        private void OnEnable()
+        {
+            if (!built) BuildCharacterVisual();
+        }
+
         private void Update()
         {
-            if (!built || controller == null) return;
+            if (!Application.isPlaying || !built || controller == null) return;
 
             Vector3 horizontalVelocity = controller.velocity;
             horizontalVelocity.y = 0f;
@@ -52,7 +57,6 @@ namespace EnElCamino
                 float currentSign = Mathf.Sign(Mathf.Sin(walkPhase));
                 if (previousSign != 0f && currentSign != 0f && previousSign != currentSign)
                     PlayFootstep();
-                lastFootSign = currentSign;
             }
             else
             {
@@ -81,11 +85,14 @@ namespace EnElCamino
             head = CreateLimb("Cabeza", PrimitiveType.Sphere, transform, new Vector3(0f, 1.86f, 0f), new Vector3(0.32f, 0.32f, 0.32f), bodyMaterial);
             idleHeadPosition = head.localPosition;
 
-            footstepSource = gameObject.AddComponent<AudioSource>();
-            footstepSource.playOnAwake = false;
-            footstepSource.spatialBlend = 0.35f;
-            footstepSource.volume = stepVolume;
-            footstepClip = CreateFootstepClip();
+            if (Application.isPlaying)
+            {
+                footstepSource = gameObject.AddComponent<AudioSource>();
+                footstepSource.playOnAwake = false;
+                footstepSource.spatialBlend = 0.35f;
+                footstepSource.volume = stepVolume;
+                footstepClip = CreateFootstepClip();
+            }
             built = true;
         }
 
@@ -98,7 +105,11 @@ namespace EnElCamino
             limb.transform.localScale = localScale;
 
             Collider collider = limb.GetComponent<Collider>();
-            if (collider != null) Destroy(collider);
+            if (collider != null)
+            {
+                if (Application.isPlaying) Destroy(collider);
+                else DestroyImmediate(collider);
+            }
 
             Renderer renderer = limb.GetComponent<Renderer>();
             if (renderer != null && material != null) renderer.sharedMaterial = material;

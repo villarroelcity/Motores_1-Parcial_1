@@ -12,6 +12,7 @@ namespace EnElCamino
         [SerializeField] private GameFlow gameFlow;
         [SerializeField] private Transform vehicle;
         [SerializeField] private Transform exit;
+        [SerializeField] private GameObject threatPrefab;
         [SerializeField] private Light[] warningLights;
         [SerializeField] private float challengeDuration = 35f;
 
@@ -134,15 +135,31 @@ namespace EnElCamino
         {
             if (threat != null || vehicle == null) return;
 
-            GameObject enemy = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            GameObject enemy = threatPrefab != null
+                ? Instantiate(threatPrefab)
+                : GameObject.CreatePrimitive(PrimitiveType.Capsule);
             enemy.name = "AmenazaIA";
             enemy.transform.position = vehicle.position - vehicle.forward * 12f + vehicle.right * 3f;
-            enemy.transform.localScale = new Vector3(0.8f, 1.4f, 0.8f);
-            Renderer renderer = enemy.GetComponent<Renderer>();
-            if (renderer != null) renderer.material.color = new Color(0.55f, 0.02f, 0.02f);
+            enemy.transform.localScale = threatPrefab != null ? Vector3.one * 0.55f : new Vector3(0.8f, 1.4f, 0.8f);
+            if (threatPrefab == null)
+            {
+                Renderer renderer = enemy.GetComponent<Renderer>();
+                if (renderer != null) renderer.material.color = new Color(0.55f, 0.02f, 0.02f);
+            }
+
+            AlignThreatToGround(enemy);
 
             threat = enemy.AddComponent<StationThreatAI>();
             threat.Configure(vehicle, gameFlow, exit);
+        }
+
+        private static void AlignThreatToGround(GameObject enemy)
+        {
+            Renderer[] renderers = enemy.GetComponentsInChildren<Renderer>(true);
+            if (renderers.Length == 0) return;
+            Bounds bounds = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
+            enemy.transform.position += Vector3.up * (0.02f - bounds.min.y);
         }
 
         private void StopThreat()

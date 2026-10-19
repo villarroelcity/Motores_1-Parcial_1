@@ -167,6 +167,9 @@ MonoBehaviour:
   garageOpen: 0
   driving: 0
   fueling: 0
+  movementLocked: 0
+  exteriorLadderCarried: 0
+  exteriorLadderPlaced: 0
   gameOver: 0
   finished: 0
 --- !u!4 &7153599
@@ -199,6 +202,7 @@ MonoBehaviour:
   gameFlow: {fileID: 0}
   vehicle: {fileID: 0}
   exit: {fileID: 0}
+  threatPrefab: {fileID: 7449782648777001352, guid: d195d78751f44af48b3af52354d36591, type: 3}
   warningLights: []
   challengeDuration: 35
 --- !u!114 &7153601
@@ -440,6 +444,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 16379817}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &40120108
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 40120109}
+  m_Layer: 0
+  m_Name: PuntoColocacionEscalera
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &40120109
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 40120108}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.20022303, y: 0, z: 0, w: 0.9797504}
+  m_LocalPosition: {x: 19, y: 3.65, z: 8}
+  m_LocalScale: {x: 1, y: 1.32, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &47399381
 GameObject:
   m_ObjectHideFlags: 0
@@ -1131,11 +1166,11 @@ AudioSource:
   m_GameObject: {fileID: 143399323}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: -4653378065340114371, guid: c59ce946207622c4ead36e65cf15c523, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
-  m_PlayOnAwake: 1
-  m_Volume: 1
+  m_PlayOnAwake: 0
+  m_Volume: 0.45
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -1143,10 +1178,10 @@ AudioSource:
   SpatializePostEffects: 0
   Priority: 128
   DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
+  MinDistance: 1.5
+  MaxDistance: 16
   Pan2D: 0
-  rolloffMode: 0
+  rolloffMode: 1
   BypassEffects: 0
   BypassListenerEffects: 0
   BypassReverbZones: 0
@@ -1179,7 +1214,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -1548,7 +1583,8 @@ Transform:
   m_LocalPosition: {x: 21, y: 0.6, z: 10}
   m_LocalScale: {x: 0.45, y: 0.6, z: 0.28}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1185034028}
   m_Father: {fileID: 670144095}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &284828476
@@ -1558,7 +1594,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 284828474}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -3196,6 +3232,7 @@ MonoBehaviour:
   vehicle: {fileID: 0}
   distance: 5.5
   height: 2.4
+  mouseSensitivity: 0.025
 --- !u!81 &490530030
 AudioListener:
   m_ObjectHideFlags: 0
@@ -4314,6 +4351,7 @@ Transform:
   - {fileID: 1855485573}
   - {fileID: 284828475}
   - {fileID: 1654939574}
+  - {fileID: 1969458113}
   m_Father: {fileID: 1650284231}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &674237192
@@ -5605,6 +5643,37 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c032e8702a162b44ebce13a37a0729ea, type: 3}
+--- !u!1 &855554880
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 855554881}
+  m_Layer: 0
+  m_Name: PuntoEscaleraTecho
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &855554881
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 855554880}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0.13571563, w: -0.99074787}
+  m_LocalPosition: {x: 16.55, y: 6.85, z: 8.05}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &866083136
 GameObject:
   m_ObjectHideFlags: 0
@@ -5792,6 +5861,80 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
+--- !u!1001 &956298419
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1335971415}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 578e8ba7be2c13d48a903349e13bf428, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.70334136
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 578e8ba7be2c13d48a903349e13bf428, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.53583676
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 578e8ba7be2c13d48a903349e13bf428, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.2269336
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 578e8ba7be2c13d48a903349e13bf428, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 578e8ba7be2c13d48a903349e13bf428, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.3483582
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 578e8ba7be2c13d48a903349e13bf428, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 578e8ba7be2c13d48a903349e13bf428, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 578e8ba7be2c13d48a903349e13bf428, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 578e8ba7be2c13d48a903349e13bf428, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 578e8ba7be2c13d48a903349e13bf428, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 578e8ba7be2c13d48a903349e13bf428, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 578e8ba7be2c13d48a903349e13bf428, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 578e8ba7be2c13d48a903349e13bf428, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 578e8ba7be2c13d48a903349e13bf428, type: 3}
+      propertyPath: m_Name
+      value: Generated_PortableGenerator_CC0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 578e8ba7be2c13d48a903349e13bf428, type: 3}
+--- !u!4 &956298420 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 578e8ba7be2c13d48a903349e13bf428, type: 3}
+  m_PrefabInstance: {fileID: 956298419}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &970045126
 GameObject:
   m_ObjectHideFlags: 0
@@ -7840,6 +7983,80 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1164789329}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1001 &1185034027
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 284828475}
+    m_Modifications:
+    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 4.5267415
+      objectReference: {fileID: 0}
+    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2.5946276
+      objectReference: {fileID: 0}
+    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 8.503438
+      objectReference: {fileID: 0}
+    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.9999998
+      objectReference: {fileID: 0}
+    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8771091787928289351, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
+      propertyPath: m_Name
+      value: Generated_FuelCanister_CC0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: -4161369568681901532, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
+--- !u!4 &1185034028 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
+  m_PrefabInstance: {fileID: 1185034027}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1188236591
 GameObject:
   m_ObjectHideFlags: 0
@@ -8309,6 +8526,7 @@ MonoBehaviour:
   generatorButton: {fileID: 143399328}
   exteriorLadder: {fileID: 1701382744}
   interiorLadder: {fileID: 1855485574}
+  ladderPlacement: {fileID: 1654939576}
   garageDoor: {fileID: 104564684}
   fuelCan: {fileID: 284828479}
   fuelPump: {fileID: 406157878}
@@ -8867,6 +9085,7 @@ Transform:
   - {fileID: 143399324}
   - {fileID: 1012924241}
   - {fileID: 1427562273}
+  - {fileID: 956298420}
   m_Father: {fileID: 1650284231}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &1335971417
@@ -8876,7 +9095,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1335971414}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -9405,7 +9624,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.32
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -9413,10 +9632,10 @@ AudioSource:
   SpatializePostEffects: 0
   Priority: 128
   DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
+  MinDistance: 2
+  MaxDistance: 20
   Pan2D: 0
-  rolloffMode: 0
+  rolloffMode: 1
   BypassEffects: 0
   BypassListenerEffects: 0
   BypassReverbZones: 0
@@ -9449,7 +9668,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -10838,6 +11057,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1654939574}
   - component: {fileID: 1654939575}
+  - component: {fileID: 1654939576}
   m_Layer: 0
   m_Name: ProteccionHueco
   m_TagString: Untagged
@@ -10875,12 +11095,26 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 2.2, y: 0.4, z: 2.2}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1654939576
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1654939573}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3ed9bff9ffb27c4ca43fd318b196b4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.LadderPlacementInteractable
+  gameFlow: {fileID: 7153598}
+  exteriorLadder: {fileID: 1701382744}
 --- !u!1 &1689324145
 GameObject:
   m_ObjectHideFlags: 0
@@ -11028,6 +11262,13 @@ MonoBehaviour:
   destination: {fileID: 1062265423}
   entersGarage: 0
   promptText: '[E] Subir por la escalera exterior'
+  portableExterior: 1
+  roofLadderPoint: {fileID: 855554881}
+  lowerDestination: {fileID: 333591356}
+  climbDuration: 1.8
+  descendDuration: 1.25
+  carriedLocalPosition: {x: 0.55, y: 0.85, z: 0.45}
+  carriedLocalEulerAngles: {x: 0, y: 0, z: 90}
 --- !u!1 &1702270965
 GameObject:
   m_ObjectHideFlags: 0
@@ -11693,7 +11934,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1855485573
 Transform:
   m_ObjectHideFlags: 0
@@ -11734,6 +11975,13 @@ MonoBehaviour:
   destination: {fileID: 333591356}
   entersGarage: 1
   promptText: '[E] Bajar por la escalera interior'
+  portableExterior: 0
+  roofLadderPoint: {fileID: 0}
+  lowerDestination: {fileID: 0}
+  climbDuration: 1.6
+  descendDuration: 1.2
+  carriedLocalPosition: {x: 0.55, y: 0.85, z: 0.45}
+  carriedLocalEulerAngles: {x: 0, y: 0, z: 90}
 --- !u!1 &1875936467
 GameObject:
   m_ObjectHideFlags: 0
@@ -12553,6 +12801,73 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1969458112
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1969458113}
+  - component: {fileID: 1969458115}
+  - component: {fileID: 1969458114}
+  m_Layer: 0
+  m_Name: HoyoTechoCaida
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1969458113
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1969458112}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 19, y: 4.05, z: 8}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 670144095}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1969458114
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1969458112}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa5154a60ffa46b4ca6f0ad88b26ee53, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.RoofHoleFallTrigger
+  gameFlow: {fileID: 7153598}
+--- !u!65 &1969458115
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1969458112}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.35, y: 3.2, z: 1.35}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1976761296
 GameObject:
   m_ObjectHideFlags: 0
@@ -13950,3 +14265,5 @@ SceneRoots:
   - {fileID: 1739859943}
   - {fileID: 766119092}
   - {fileID: 1120866016}
+  - {fileID: 855554881}
+  - {fileID: 40120109}

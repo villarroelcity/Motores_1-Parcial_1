@@ -98,10 +98,13 @@ namespace EnElCamino.Editor
             GameObject generator = GameObject.Find("GeneradorAuxiliar");
             if (generator == null) return;
 
-            AudioSource buttonSource = ConfigureSource(EnsureAudioSource(generator), sfxGroup, false, false, 1f);
-            GameObject motorObject = EnsureObject("GeneratorMotorAudio", generator.transform);
-            AudioSource motorSource = ConfigureSource(EnsureAudioSource(motorObject), sfxGroup, false, false, 1f);
             GeneratorInteractable interactable = generator.GetComponentInChildren<GeneratorInteractable>(true);
+            GameObject buttonObject = interactable != null ? interactable.gameObject : generator;
+            AudioSource buttonSource = ConfigureSource(EnsureAudioSource(buttonObject), sfxGroup, false, false, 0.45f);
+            Configure3DAudio(buttonSource, 1.5f, 16f);
+            GameObject motorObject = EnsureObject("GeneratorMotorAudio", generator.transform);
+            AudioSource motorSource = ConfigureSource(EnsureAudioSource(motorObject), sfxGroup, false, false, 0.32f);
+            Configure3DAudio(motorSource, 2f, 20f);
             if (interactable == null) return;
 
             SetReference(interactable, "switchSound", LoadClip("SFX/switch_electricidad.mp3"));
@@ -146,6 +149,15 @@ namespace EnElCamino.Editor
             source.spatialBlend = 0f;
             source.volume = volume;
             return source;
+        }
+
+        private static void Configure3DAudio(AudioSource source, float minDistance, float maxDistance)
+        {
+            if (source == null) return;
+            source.spatialBlend = 1f;
+            source.rolloffMode = AudioRolloffMode.Linear;
+            source.minDistance = minDistance;
+            source.maxDistance = maxDistance;
         }
 
         private static GameObject EnsureObject(string name, Transform parent = null)

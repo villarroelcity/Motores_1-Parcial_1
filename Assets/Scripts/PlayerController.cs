@@ -32,7 +32,7 @@ namespace EnElCamino
                 return;
             }
 
-            if (gameFlow != null && gameFlow.fueling) return;
+            if (gameFlow != null && (gameFlow.fueling || gameFlow.movementLocked)) return;
 
             Vector2 input = ReadMovement();
             Vector3 direction = new Vector3(input.x, 0f, input.y);

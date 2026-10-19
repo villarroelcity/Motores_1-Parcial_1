@@ -7,18 +7,29 @@ namespace EnElCamino
     public class CinemachineManualOrbit : MonoBehaviour
     {
         [SerializeField] private Transform target;
-        [SerializeField] private float sensitivity = 0.035f;
-        [SerializeField] private float maximumMouseDelta = 8f;
+        [SerializeField] private float sensitivity = 0.025f;
+        [SerializeField] private float maximumMouseDelta = 12f;
         [SerializeField] private float minPitch = -12f;
         [SerializeField] private float maxPitch = 32f;
 
         private float yaw;
         private float pitch = 12f;
 
+        private void Start()
+        {
+            LockCursor();
+        }
+
         public void Configure(Transform orbitTarget, float mouseSensitivity)
         {
             target = orbitTarget;
             sensitivity = mouseSensitivity;
+            if (target != null) yaw = target.eulerAngles.y;
+        }
+
+        public void SetTarget(Transform orbitTarget)
+        {
+            target = orbitTarget;
             if (target != null) yaw = target.eulerAngles.y;
         }
 
@@ -37,6 +48,12 @@ namespace EnElCamino
             yaw += delta.x * sensitivity;
             pitch = Mathf.Clamp(pitch - delta.y * sensitivity, minPitch, maxPitch);
             transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
+        }
+
+        private static void LockCursor()
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
         }
     }
 }

@@ -14,6 +14,8 @@ namespace EnElCamino
         [SerializeField] private float height = 1.9f;
 
         private CinemachineCamera gameplayCamera;
+        private CinemachineManualOrbit manualOrbit;
+        [SerializeField] private float mouseSensitivity = 0.025f;
 
         private void Awake()
         {
@@ -50,8 +52,8 @@ namespace EnElCamino
             follow.CameraSide = 0.5f;
             follow.CameraDistance = distance;
 
-            CinemachineManualOrbit orbit = rig.AddComponent<CinemachineManualOrbit>();
-            orbit.Configure(target, 0.0015f);
+            manualOrbit = rig.AddComponent<CinemachineManualOrbit>();
+            manualOrbit.Configure(target, mouseSensitivity);
         }
 
         private void Update()
@@ -66,6 +68,7 @@ namespace EnElCamino
             if (newTarget == null || gameplayCamera == null) return;
             gameplayCamera.Follow = newTarget;
             gameplayCamera.LookAt = newTarget;
+            manualOrbit?.SetTarget(newTarget);
         }
     }
 }

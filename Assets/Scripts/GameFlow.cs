@@ -29,6 +29,9 @@ namespace EnElCamino
         public bool garageOpen;
         public bool driving;
         public bool fueling;
+        public bool movementLocked;
+        public bool exteriorLadderCarried;
+        public bool exteriorLadderPlaced;
         public bool gameOver;
         public bool finished;
 

@@ -10,6 +10,7 @@ namespace EnElCamino
         [SerializeField] private GeneratorInteractable generatorButton;
         [SerializeField] private LadderInteractable exteriorLadder;
         [SerializeField] private LadderInteractable interiorLadder;
+        [SerializeField] private LadderPlacementInteractable ladderPlacement;
         [SerializeField] private GarageDoorInteractable garageDoor;
         [SerializeField] private FuelCan fuelCan;
         [SerializeField] private FuelPumpInteractable fuelPump;
@@ -33,6 +34,12 @@ namespace EnElCamino
                 return;
             }
 
+            if (gameFlow.movementLocked)
+            {
+                gameUI.HidePrompt();
+                return;
+            }
+
             current = FindInteractable();
             if (current == null)
             {
@@ -48,8 +55,8 @@ namespace EnElCamino
         private IInteractable FindInteractable()
         {
             if (IsNear(generatorButton)) return generatorButton;
-            if (IsNear(exteriorLadder, ladderInteractionDistance)) return exteriorLadder;
-            if (IsNear(interiorLadder, ladderInteractionDistance)) return interiorLadder;
+            if (ladderPlacement != null && ladderPlacement.CanInteract && IsNear(ladderPlacement, ladderInteractionDistance)) return ladderPlacement;
+            if (exteriorLadder != null && !exteriorLadder.IsCarried && IsNear(exteriorLadder, ladderInteractionDistance)) return exteriorLadder;
             if (IsNear(garageDoor)) return garageDoor;
             if (!fuelCan.IsTaken() && IsNear(fuelCan)) return fuelCan;
             if (IsNear(fuelPump)) return fuelPump;

@@ -30,6 +30,7 @@ namespace EnElCamino
         private float walkPhase;
         private float idlePhase;
         private bool built;
+        private bool climbing;
 
         private void Awake()
         {
@@ -45,6 +46,13 @@ namespace EnElCamino
         private void Update()
         {
             if (!Application.isPlaying || !built || controller == null) return;
+
+            if (climbing)
+            {
+                walkPhase += Time.deltaTime * walkCycleSpeed * 0.8f;
+                AnimateClimb();
+                return;
+            }
 
             Vector3 horizontalVelocity = controller.velocity;
             horizontalVelocity.y = 0f;
@@ -222,6 +230,25 @@ namespace EnElCamino
             rightFoot.localRotation = Quaternion.Slerp(rightFoot.localRotation, Quaternion.identity, Time.deltaTime * 8f);
             torso.localPosition = Vector3.Lerp(torso.localPosition, torsoRestPosition + Vector3.up * breathing, Time.deltaTime * 8f);
             head.localPosition = Vector3.Lerp(head.localPosition, headRestPosition + Vector3.up * breathing * 1.2f, Time.deltaTime * 8f);
+        }
+
+        public void SetClimbing(bool value)
+        {
+            climbing = value;
+            if (!value) walkPhase = 0f;
+        }
+
+        private void AnimateClimb()
+        {
+            float swing = Mathf.Sin(walkPhase) * 34f;
+            leftArm.localRotation = Quaternion.Euler(-swing, 0f, -12f);
+            rightArm.localRotation = Quaternion.Euler(swing, 0f, 12f);
+            leftLeg.localRotation = Quaternion.Euler(swing * 0.45f, 0f, 0f);
+            rightLeg.localRotation = Quaternion.Euler(-swing * 0.45f, 0f, 0f);
+            leftFoot.localRotation = Quaternion.Euler(-swing * 0.2f, 0f, 0f);
+            rightFoot.localRotation = Quaternion.Euler(swing * 0.2f, 0f, 0f);
+            torso.localPosition = torsoRestPosition + Vector3.up * (Mathf.Abs(Mathf.Sin(walkPhase * 2f)) * 0.018f);
+            head.localPosition = headRestPosition + Vector3.up * (Mathf.Abs(Mathf.Sin(walkPhase * 2f)) * 0.025f);
         }
 
         private void PlayFootstep()

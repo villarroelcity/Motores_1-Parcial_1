@@ -54,6 +54,7 @@ namespace EnElCamino
         {
             if (!generatorOn || fuelCanFull || gameOver || finished) return;
             generatorFuelRemaining -= Time.deltaTime;
+            if (gameUI != null) gameUI.SetGeneratorFuelTime(generatorFuelRemaining);
             if (generatorFuelRemaining <= 0f)
             {
                 ShowMessage("El generador se quedó sin combustible antes de llenar el bidón.");
@@ -80,6 +81,7 @@ namespace EnElCamino
             generatorFuelRemaining = generatorFuelSeconds;
             if (gameUI != null)
             {
+                gameUI.SetGeneratorFuelTime(generatorFuelRemaining);
                 gameUI.SetObjective("OBJETIVO 3/8\nCONECTÁ EL GENERADOR\nUsá la caja eléctrica para darle energía a la estación.");
                 gameUI.ShowMessage("Tenés 60 segundos de combustible. Conectalo a la caja eléctrica, abrí el portón y llená el bidón.");
             }
@@ -149,6 +151,7 @@ namespace EnElCamino
             fuelCanFull = true;
             if (gameUI != null)
             {
+                gameUI.HideGeneratorFuelTime();
                 gameUI.SetObjective("OBJETIVO 7/8\nCARGÁ EL AUTO\nLlevá el bidón lleno hasta el auto y presioná [E].");
                 gameUI.ShowMessage("Bidón lleno. Ahora cargá el tanque del auto.");
             }

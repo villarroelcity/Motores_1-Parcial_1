@@ -324,8 +324,8 @@ namespace EnElCamino.Editor
             collider.size = new Vector3(1.15f, 1.45f, 0.65f);
             collider.enabled = true;
 
-            Material cabinet = CreateMaterial("Assets/Materials/PowerBox_Cabinet.mat", new Color(0.19f, 0.23f, 0.25f), 0.55f);
-            Material door = CreateMaterial("Assets/Materials/PowerBox_Door.mat", new Color(0.68f, 0.71f, 0.69f), 0.35f);
+            Material cabinet = CreateMaterial("Assets/Materials/PowerBox_Cabinet.mat", new Color(0.78f, 0.81f, 0.79f), 0.08f);
+            Material door = CreateMaterial("Assets/Materials/PowerBox_Door.mat", new Color(0.88f, 0.9f, 0.87f), 0.05f);
             Material dark = CreateMaterial("Assets/Materials/PowerBox_Details.mat", new Color(0.075f, 0.09f, 0.095f), 0.2f);
             Material danger = CreateMaterial("Assets/Materials/PowerBox_Warning.mat", new Color(0.9f, 0.16f, 0.045f), 0.15f);
             Material cableMaterial = CreateMaterial("Assets/Materials/PowerCable_Black.mat", new Color(0.025f, 0.03f, 0.033f), 0f);
@@ -424,7 +424,7 @@ namespace EnElCamino.Editor
             if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", color);
             if (material.HasProperty("_Color")) material.color = color;
             if (material.HasProperty("_Metallic")) material.SetFloat("_Metallic", metallic);
-            if (material.HasProperty("_Smoothness")) material.SetFloat("_Smoothness", 0.35f);
+            if (material.HasProperty("_Smoothness")) material.SetFloat("_Smoothness", 0.18f);
             if (path.EndsWith("PowerBox_Door.mat") || path.EndsWith("PowerBox_Cabinet.mat"))
             {
                 Texture2D enamel = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Materials/PowerBox_Enamel_Albedo.png");
@@ -433,7 +433,7 @@ namespace EnElCamino.Editor
                     if (material.HasProperty("_BaseMap"))
                     {
                         material.SetTexture("_BaseMap", enamel);
-                        material.SetTextureScale("_BaseMap", Vector2.one * 2f);
+                        material.SetTextureScale("_BaseMap", Vector2.one);
                     }
                     if (material.HasProperty("_MainTex")) material.SetTexture("_MainTex", enamel);
                 }

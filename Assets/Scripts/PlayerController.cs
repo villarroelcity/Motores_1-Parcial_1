@@ -7,6 +7,7 @@ namespace EnElCamino
     public class PlayerController : MonoBehaviour
     {
         [SerializeField] private float speed = 4.5f;
+        [SerializeField] private float sprintMultiplier = 1.65f;
         [SerializeField] private float gravity = -18f;
         [SerializeField] private float turnDegreesPerSecond = 90f;
         [SerializeField] private float fallDeathHeight = -3f;
@@ -63,7 +64,10 @@ namespace EnElCamino
                 Vector3 worldDirection = (forward * direction.z + right * direction.x).normalized;
                 Quaternion desiredRotation = Quaternion.LookRotation(worldDirection);
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, desiredRotation, turnDegreesPerSecond * Time.deltaTime);
-                controller.Move(worldDirection * speed * Time.deltaTime);
+                bool sprinting = Keyboard.current != null &&
+                                 (Keyboard.current.leftShiftKey.isPressed || Keyboard.current.rightShiftKey.isPressed);
+                float movementSpeed = speed * (sprinting ? sprintMultiplier : 1f);
+                controller.Move(worldDirection * movementSpeed * Time.deltaTime);
             }
 
             verticalVelocity.y += gravity * Time.deltaTime;

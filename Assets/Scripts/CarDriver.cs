@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VehiclePhysics;
@@ -20,6 +22,15 @@ namespace EnElCamino
         private float starterUntil;
         private float throttleInput;
         private float steerInput;
+        private readonly List<StartupAudioVolume> startupAudioVolumes = new List<StartupAudioVolume>();
+        private float restoreStartupAudioAt = -1f;
+
+        private struct StartupAudioVolume
+        {
+            public Component audioComponent;
+            public FieldInfo volumeField;
+            public float originalVolume;
+        }
 
         public bool IsReady => vehicleReady;
         public bool EngineRequested => engineRequested;
@@ -37,6 +48,16 @@ namespace EnElCamino
             foreach (VPAudio audio in GetComponentsInChildren<VPAudio>(true))
             {
                 audio.enabled = true;
+                FieldInfo startupVolume = audio.GetType().GetField("engineStartupVolume", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                if (startupVolume != null && startupVolume.FieldType == typeof(float))
+                {
+                    startupAudioVolumes.Add(new StartupAudioVolume
+                    {
+                        audioComponent = audio,
+                        volumeField = startupVolume,
+                        originalVolume = (float)startupVolume.GetValue(audio)
+                    });
+                }
                 foreach (AudioSource source in audio.GetComponentsInChildren<AudioSource>(true))
                 {
                     source.enabled = true;
@@ -68,6 +89,9 @@ namespace EnElCamino
 
         private void Update()
         {
+            if (restoreStartupAudioAt >= 0f && Time.time >= restoreStartupAudioAt)
+                RestoreStartupAudioVolume();
+
             if (gameFlow != null && (gameFlow.gameOver || gameFlow.finished))
             {
                 StopEngineAudio();
@@ -109,9 +133,18 @@ namespace EnElCamino
 
         public void StartEngineAudio(bool playStartSound)
         {
-            // VPAudio plays the Sport Coupe's original clips from real RPM/load.
-            if (playStartSound && !engineRequested) starterUntil = Time.time + 1.4f;
-            else if (!playStartSound) starterUntil = 0f;
+            if (!engineRequested)
+            {
+                // VPP needs a short starter-key pulse to transition from off to running.
+                // On the intro the car is already moving, so silence only the starter clip,
+                // then let VPP's original RPM-driven engine audio play normally.
+                starterUntil = Time.time + 1.25f;
+                if (!playStartSound)
+                {
+                    SetStartupAudioVolume(0f);
+                    restoreStartupAudioAt = starterUntil + 0.1f;
+                }
+            }
             engineRequested = true;
         }
 
@@ -120,6 +153,25 @@ namespace EnElCamino
             engineRequested = false;
             throttleInput = 0f;
             steerInput = 0f;
+        }
+
+        private void SetStartupAudioVolume(float volume)
+        {
+            foreach (StartupAudioVolume entry in startupAudioVolumes)
+            {
+                if (entry.audioComponent != null && entry.volumeField != null)
+                    entry.volumeField.SetValue(entry.audioComponent, volume);
+            }
+        }
+
+        private void RestoreStartupAudioVolume()
+        {
+            foreach (StartupAudioVolume entry in startupAudioVolumes)
+            {
+                if (entry.audioComponent != null && entry.volumeField != null)
+                    entry.volumeField.SetValue(entry.audioComponent, entry.originalVolume);
+            }
+            restoreStartupAudioAt = -1f;
         }
     }
 }

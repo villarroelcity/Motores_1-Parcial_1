@@ -15,6 +15,7 @@
 
 - Se quitaron las escenas demo, guía, perfil de postprocesado, modelo de colina y materiales de suelo que pertenecían exclusivamente a la demostración de Fuel Pump 3D.
 - Se eliminaron nueve herramientas de editor de una sola ejecución que cambiaban la escena, materiales, audio, portón o surtidor al abrir Unity. Estos cambios ya están guardados en la escena; mantener las herramientas hacía que una prueba pudiera alterar otra.
+- Se retiraron el auto y árboles de Kenney, junto con un bidón y un interruptor alternativos sin referencias. Se conserva el poste curvo de Kenney porque está instanciado en la escena.
 - Se mantiene `DaylightStandbySetup` porque su única responsabilidad es mostrar una hora diurna estable cuando la escena está detenida en el editor.
 
 ## Dependencias no versionadas

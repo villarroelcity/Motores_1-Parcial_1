@@ -285,7 +285,20 @@ namespace EnElCamino
             if (streetLightsRoot == null) return;
             foreach (Light streetLight in streetLightsRoot.GetComponentsInChildren<Light>(true))
             {
-                if (streetLight != null) streetLight.enabled = powered;
+                if (streetLight == null) continue;
+
+                if (powered)
+                {
+                    // Some generated posts are disabled as prefab instances,
+                    // not just as Light components. Reactivate that post when
+                    // the station receives power.
+                    Transform post = streetLight.transform;
+                    while (post.parent != null && post.parent != streetLightsRoot)
+                        post = post.parent;
+                    post.gameObject.SetActive(true);
+                }
+
+                streetLight.enabled = powered;
             }
         }
 

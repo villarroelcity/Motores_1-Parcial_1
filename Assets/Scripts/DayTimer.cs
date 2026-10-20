@@ -32,6 +32,11 @@ namespace EnElCamino
                 if (candidate.name.Contains("Sun/Moon")) { enviroSun = candidate; break; }
             }
             EnsureEnviroClock();
+            if (timerText != null)
+            {
+                timerText.enabled = true;
+                if (!timerText.gameObject.activeSelf) timerText.gameObject.SetActive(true);
+            }
         }
 
         private void Update()
@@ -69,8 +74,13 @@ namespace EnElCamino
                 }
             }
 
-            int seconds = Mathf.CeilToInt(timeLeft);
-            if (timerText != null) timerText.text = "TIEMPO RESTANTE\n" + seconds / 60 + ":" + (seconds % 60).ToString("00");
+            int seconds = Mathf.Max(0, Mathf.CeilToInt(timeLeft));
+            if (timerText != null)
+            {
+                timerText.enabled = true;
+                if (!timerText.gameObject.activeSelf) timerText.gameObject.SetActive(true);
+                timerText.text = "TIEMPO RESTANTE\n" + seconds / 60 + ":" + (seconds % 60).ToString("00");
+            }
 
             if (timeLeft <= 0f) gameFlow.GameOver();
         }

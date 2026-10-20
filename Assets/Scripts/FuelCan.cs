@@ -7,7 +7,13 @@ namespace EnElCamino
         [SerializeField] private GameFlow gameFlow;
         [SerializeField] private Renderer fuelCanRenderer;
         [SerializeField] private Transform player;
+        [SerializeField] private float groundClearance = 0.025f;
         private bool taken;
+
+        private void Start()
+        {
+            if (!taken) PlaceOnGround();
+        }
 
         public string Prompt
         {
@@ -52,7 +58,7 @@ namespace EnElCamino
 
         public void Fill()
         {
-            fuelCanRenderer.material.color = Color.green;
+            if (fuelCanRenderer != null) fuelCanRenderer.material.color = Color.green;
         }
 
         public bool IsTaken()
@@ -63,6 +69,39 @@ namespace EnElCamino
         public void Use()
         {
             gameObject.SetActive(false);
+        }
+
+        private void PlaceOnGround()
+        {
+            Bounds visualBounds = default;
+            bool hasVisualBounds = false;
+            foreach (Renderer candidate in GetComponentsInChildren<Renderer>(true))
+            {
+                if (candidate == null || !candidate.enabled || !candidate.gameObject.activeInHierarchy) continue;
+                if (!hasVisualBounds)
+                {
+                    visualBounds = candidate.bounds;
+                    hasVisualBounds = true;
+                }
+                else visualBounds.Encapsulate(candidate.bounds);
+            }
+
+            if (!hasVisualBounds) return;
+
+            Vector3 rayOrigin = new Vector3(visualBounds.center.x, visualBounds.max.y + 2f, visualBounds.center.z);
+            RaycastHit[] hits = Physics.RaycastAll(rayOrigin, Vector3.down, 30f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            float groundY = float.NegativeInfinity;
+            foreach (RaycastHit hit in hits)
+            {
+                Transform hitTransform = hit.collider != null ? hit.collider.transform : null;
+                if (hitTransform == null || hitTransform == transform || hitTransform.IsChildOf(transform)) continue;
+                if (hit.point.y > groundY) groundY = hit.point.y;
+            }
+
+            if (float.IsNegativeInfinity(groundY)) return;
+            Vector3 position = transform.position;
+            position.y += groundY + groundClearance - visualBounds.min.y;
+            transform.position = position;
         }
     }
 }

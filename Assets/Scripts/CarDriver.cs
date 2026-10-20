@@ -22,6 +22,7 @@ namespace EnElCamino
         private float starterUntil;
         private float throttleInput;
         private float steerInput;
+        private bool automaticTransmissionConfigured;
         private readonly List<StartupAudioVolume> startupAudioVolumes = new List<StartupAudioVolume>();
         private float restoreStartupAudioAt = -1f;
 
@@ -40,6 +41,7 @@ namespace EnElCamino
             if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
             vehicleController = GetComponent<VPVehicleController>();
             if (vehicleController == null) return;
+            vehicleController.gearbox.type = Gearbox.Type.Automatic;
             // The new Input System writes the VPP bus directly. The legacy input
             // reader would otherwise overwrite these controls every physics step.
             VPStandardInput legacyInput = GetComponent<VPStandardInput>();
@@ -114,7 +116,21 @@ namespace EnElCamino
 
         private void FixedUpdate()
         {
-            if (vehicleController == null || !vehicleController.initialized) return;
+            if (vehicleController == null) return;
+            if (!vehicleController.initialized)
+            {
+                // Apply before VPP initialization as well: this project car prefab
+                // is authored with a manual gearbox, but gameplay requires automatic.
+                vehicleController.gearbox.type = Gearbox.Type.Automatic;
+                return;
+            }
+
+            if (!automaticTransmissionConfigured)
+            {
+                vehicleController.gearbox.type = Gearbox.Type.Automatic;
+                automaticTransmissionConfigured = true;
+            }
+
             int[] input = vehicleController.data.Get(Channel.Input);
             bool stopped = gameFlow != null && (gameFlow.gameOver || gameFlow.finished);
             bool engineOn = engineRequested && !stopped;
@@ -126,9 +142,11 @@ namespace EnElCamino
             input[InputData.Throttle] = engineOn ? Mathf.RoundToInt(throttle * 10000f) : 0;
             input[InputData.Brake] = (!driving && vehicleReady) || stopped ? 10000 : 0;
             input[InputData.Handbrake] = !driving && vehicleReady ? 10000 : 0;
-            input[InputData.Clutch] = driving ? 0 : 10000;
-            input[InputData.ManualGear] = driving ? (reversing ? -1 : 1) : 0;
-            input[InputData.AutomaticGear] = driving ? (reversing ? 2 : 4) : 3;
+            input[InputData.Clutch] = 0;
+            input[InputData.ManualGear] = 0;
+            // VPP automatic modes: P=1 while parked, R=2 in reverse, N=3 for the
+            // scripted arrival, and D=4 for forward driving (with auto-shifting).
+            input[InputData.AutomaticGear] = driving ? (reversing ? 2 : 4) : vehicleReady ? 1 : 3;
         }
 
         public void StartEngineAudio(bool playStartSound)

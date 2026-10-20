@@ -11,8 +11,10 @@ namespace EnElCamino
         [SerializeField] private string promptText;
         [SerializeField] private bool portableExterior;
         [SerializeField] private Transform lowerDestination;
-        [SerializeField] private float hangPause = 0.65f;
-        [SerializeField] private float dropDuration = 1.45f;
+        [SerializeField] private float hangPause = 0.3f;
+        [SerializeField] private float edgeStandOff = 0.45f;
+        [SerializeField] private float hangLowering = 2.1f;
+        [SerializeField] private float dropGravity = 18f;
 
         private enum ClimbState { Ground, AtRoof, Descending, Inside }
         private ClimbState climbState = ClimbState.Ground;
@@ -102,54 +104,82 @@ namespace EnElCamino
 
             Vector3 startPosition = player.position;
             Quaternion startRotation = player.rotation;
-            Vector3 atHolePosition = new Vector3(holePoint.position.x, startPosition.y, holePoint.position.z);
-            Vector3 endPosition = lowerDestination != null
-                ? lowerDestination.position
-                : new Vector3(atHolePosition.x, startPosition.y - 4.5f, atHolePosition.z);
-            Quaternion endRotation = lowerDestination != null ? lowerDestination.rotation : startRotation;
+            Vector3 outward = startPosition - holePoint.position;
+            outward.y = 0f;
+            if (outward.sqrMagnitude < 0.001f) outward = player.forward;
+            outward.y = 0f;
+            outward.Normalize();
 
-            // Step to the opening, hang briefly by both arms, release, then descend slowly.
+            // Find the nearest rim along the player's approach direction. Never move
+            // the character to the center of the opening: the hands must reach its edge.
+            Collider holeCollider = holePoint.GetComponent<Collider>();
+            Vector3 extents = holeCollider != null ? holeCollider.bounds.extents : Vector3.one * 0.8f;
+            float xToRim = Mathf.Abs(outward.x) > 0.001f ? extents.x / Mathf.Abs(outward.x) : float.PositiveInfinity;
+            float zToRim = Mathf.Abs(outward.z) > 0.001f ? extents.z / Mathf.Abs(outward.z) : float.PositiveInfinity;
+            float distanceToRim = Mathf.Min(xToRim, zToRim);
+            if (float.IsInfinity(distanceToRim)) distanceToRim = 0f;
+
+            Vector3 rimPosition = holePoint.position + outward * distanceToRim;
+            Vector3 edgePosition = rimPosition + outward * edgeStandOff;
+            edgePosition.y = startPosition.y;
+            Vector3 hangPosition = rimPosition - outward * 0.12f;
+            hangPosition.y = startPosition.y - hangLowering;
+            Quaternion faceOpening = Quaternion.LookRotation(-outward, Vector3.up);
+
+            // Walk only to the near edge, rotate toward the opening, then lower the
+            // body until the raised hands are level with the roof rim.
             float approachElapsed = 0f;
-            const float approachDuration = 0.45f;
+            const float approachDuration = 0.38f;
             while (approachElapsed < approachDuration)
             {
                 approachElapsed += Time.deltaTime;
                 float t = Mathf.Clamp01(approachElapsed / approachDuration);
-                player.position = Vector3.Lerp(startPosition, atHolePosition, t * t * (3f - 2f * t));
+                float eased = t * t * (3f - 2f * t);
+                player.SetPositionAndRotation(
+                    Vector3.Lerp(startPosition, edgePosition, eased),
+                    Quaternion.Slerp(startRotation, faceOpening, eased));
                 yield return null;
             }
-            player.position = atHolePosition;
-            yield return new WaitForSeconds(hangPause);
+            player.SetPositionAndRotation(edgePosition, faceOpening);
 
-            Vector3 hangingPosition = atHolePosition + Vector3.down * 0.24f;
-            const float hangTransition = 0.22f;
+            const float hangTransitionDuration = 0.42f;
             float hangElapsed = 0f;
-            while (hangElapsed < hangTransition)
+            while (hangElapsed < hangTransitionDuration)
             {
                 hangElapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(hangElapsed / hangTransition);
-                player.position = Vector3.Lerp(atHolePosition, hangingPosition, t);
+                float t = Mathf.Clamp01(hangElapsed / hangTransitionDuration);
+                float eased = t * t * (3f - 2f * t);
+                player.position = Vector3.Lerp(edgePosition, hangPosition, eased);
                 yield return null;
             }
+            player.position = hangPosition;
+            yield return new WaitForSeconds(Mathf.Clamp(hangPause, 0f, 0.45f));
+
             if (animator != null)
             {
                 animator.SetHanging(false);
                 animator.SetFalling(true);
             }
 
-            float elapsed = 0f;
-            while (elapsed < dropDuration)
+            float landingY = lowerDestination != null
+                ? lowerDestination.position.y
+                : holePoint.position.y - 4.5f;
+            landingY = Mathf.Min(landingY, hangPosition.y - 0.1f);
+            Vector3 landingPosition = new Vector3(hangPosition.x, landingY, hangPosition.z);
+            float verticalSpeed = 0f;
+
+            // A short, accelerating free fall replaces the old slow interpolation,
+            // which made the player float. Keep X/Z at the edge; don't funnel to center.
+            while (player.position.y > landingY + 0.001f)
             {
-                elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / Mathf.Max(0.01f, dropDuration));
-                float eased = t * t * (3f - 2f * t);
-                player.SetPositionAndRotation(
-                    Vector3.Lerp(hangingPosition, endPosition, eased),
-                    Quaternion.Slerp(startRotation, endRotation, eased));
+                verticalSpeed += Mathf.Max(1f, dropGravity) * Time.deltaTime;
+                Vector3 position = player.position;
+                position.y = Mathf.Max(landingY, position.y - verticalSpeed * Time.deltaTime);
+                player.position = position;
                 yield return null;
             }
 
-            player.SetPositionAndRotation(endPosition, endRotation);
+            player.SetPositionAndRotation(landingPosition, faceOpening);
 
             if (controller != null) controller.enabled = true;
             if (playerController != null) playerController.SetControlledRoofDescent(false);

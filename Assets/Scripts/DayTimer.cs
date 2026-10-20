@@ -21,8 +21,10 @@ namespace EnElCamino
             timeLeft = duration;
             startTime = Time.realtimeSinceStartup;
             if (skyboxMaterial == null) skyboxMaterial = RenderSettings.skybox;
-            GameObject enviro = GameObject.Find("Enviro 3/Sun/Moon Directional Light");
-            if (enviro != null) enviroSun = enviro.GetComponent<Light>();
+            foreach (Light candidate in Resources.FindObjectsOfTypeAll<Light>())
+            {
+                if (candidate.name.Contains("Sun/Moon")) { enviroSun = candidate; break; }
+            }
         }
 
         private void Update()
@@ -55,6 +57,12 @@ namespace EnElCamino
             timerText.text = "TIEMPO RESTANTE\n" + seconds / 60 + ":" + (seconds % 60).ToString("00");
 
             if (timeLeft <= 0f) gameFlow.GameOver();
+        }
+
+        private void LateUpdate()
+        {
+            if (!controlLegacyLighting && enviroSun != null)
+                enviroSun.intensity = Mathf.Min(enviroSun.intensity, 0.32f);
         }
     }
 }

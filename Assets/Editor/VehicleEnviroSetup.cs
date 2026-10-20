@@ -12,6 +12,8 @@ namespace EnElCamino.Editor
         private const string MaterialPath = "Assets/Materials/GeneratorBody_Textured.mat";
         private const string TexturePath = "Assets/Materials/GeneratorBody_Textured.asset";
         private const string GrassMaterialPath = "Assets/Materials/EnviroGrass_Generated.mat";
+        private const string GrassTexturePath = "Assets/Enviro 3 - Sky and Weather/Sample/Textures/Grass004_1K_Color.png";
+        private const string GrassNormalPath = "Assets/Enviro 3 - Sky and Weather/Sample/Textures/Grass004_1K_NormalDX.png";
 
         [MenuItem("Parcial 2/Integrar Vehicle Physics Pro y Enviro 3")]
         public static void Apply()
@@ -23,6 +25,8 @@ namespace EnElCamino.Editor
             ConfigureTelemetryAndLighting();
             FixNegativeTerrainScale();
             RemoveGeneratedGrass();
+            ConfigureEnviroGroundTexture();
+            AddEnviroVegetation();
             RemoveVoicePlayback();
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             EditorSceneManager.SaveOpenScenes();
@@ -157,11 +161,10 @@ namespace EnElCamino.Editor
             GameObject legacySun = GameObject.Find("Sun");
             if (legacySun != null) legacySun.SetActive(false);
 
-            Transform enviroSun = enviro.transform.Find("Sun/Moon Directional Light");
-            Light enviroLight = enviroSun != null ? enviroSun.GetComponent<Light>() : null;
+            Light enviroLight = FindChildLight(enviro, "Sun/Moon Directional Light");
             if (enviroLight != null)
             {
-                enviroLight.intensity = 0.32f;
+                enviroLight.intensity = 0.22f;
                 enviroLight.shadows = LightShadows.Soft;
                 EditorUtility.SetDirty(enviroLight);
             }
@@ -230,8 +233,74 @@ namespace EnElCamino.Editor
                 Material matte = new Material(source) { name = source.name + "_Matte" };
                 if (matte.HasProperty("_Metallic")) matte.SetFloat("_Metallic", 0f);
                 if (matte.HasProperty("_Smoothness")) matte.SetFloat("_Smoothness", 0.18f);
+                if (matte.HasProperty("_Glossiness")) matte.SetFloat("_Glossiness", 0f);
+                if (matte.HasProperty("_SpecColor")) matte.SetColor("_SpecColor", Color.black);
                 renderer.sharedMaterial = matte;
             }
+        }
+
+        private static void ConfigureEnviroGroundTexture()
+        {
+            GameObject terrain = GameObject.Find("EstacionDeServicio/Terreno");
+            MeshRenderer renderer = terrain != null ? terrain.GetComponent<MeshRenderer>() : null;
+            Texture2D grassTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(GrassTexturePath);
+            Texture2D grassNormal = AssetDatabase.LoadAssetAtPath<Texture2D>(GrassNormalPath);
+            if (renderer == null || grassTexture == null) return;
+
+            Shader shader = Shader.Find("Standard") ?? Shader.Find("Universal Render Pipeline/Lit");
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(GrassMaterialPath);
+            if (material == null)
+            {
+                material = new Material(shader) { name = "EnviroGrass_Ground" };
+                AssetDatabase.CreateAsset(material, GrassMaterialPath);
+            }
+            if (material.HasProperty("_MainTex")) material.SetTexture("_MainTex", grassTexture);
+            if (material.HasProperty("_BaseMap")) material.SetTexture("_BaseMap", grassTexture);
+            if (material.HasProperty("_BumpMap") && grassNormal != null) material.SetTexture("_BumpMap", grassNormal);
+            if (material.HasProperty("_Color")) material.SetColor("_Color", new Color(0.68f, 0.75f, 0.62f));
+            if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", new Color(0.68f, 0.75f, 0.62f));
+            if (material.HasProperty("_Metallic")) material.SetFloat("_Metallic", 0f);
+            if (material.HasProperty("_Glossiness")) material.SetFloat("_Glossiness", 0f);
+            if (material.HasProperty("_Smoothness")) material.SetFloat("_Smoothness", 0f);
+            material.mainTextureScale = new Vector2(80f, 80f);
+            EditorUtility.SetDirty(material);
+            renderer.sharedMaterial = material;
+        }
+
+        private static void AddEnviroVegetation()
+        {
+            GameObject station = GameObject.Find("EstacionDeServicio");
+            Transform nature = station != null ? station.transform.Find("Art_Environment/Nature") : null;
+            Transform oak = nature != null ? nature.Find("Generated_Tree_Oak_Right") : null;
+            Transform pine = nature != null ? nature.Find("Generated_Tree_Pine_Right") : null;
+            if (station == null || (oak == null && pine == null)) return;
+
+            Transform vegetation = station.transform.Find("EnviroVegetation");
+            if (vegetation == null)
+            {
+                GameObject root = new GameObject("EnviroVegetation");
+                root.transform.SetParent(station.transform);
+                vegetation = root.transform;
+            }
+            for (int i = vegetation.childCount - 1; i >= 0; i--)
+                if (vegetation.GetChild(i).name.StartsWith("EnviroTree_")) Object.DestroyImmediate(vegetation.GetChild(i).gameObject);
+
+            Vector3[] positions = { new Vector3(18f, 0f, 42f), new Vector3(46f, 0f, 42f), new Vector3(18f, 0f, -10f), new Vector3(48f, 0f, -10f), new Vector3(4f, 0f, 25f), new Vector3(60f, 0f, 25f) };
+            for (int i = 0; i < positions.Length; i++)
+            {
+                Transform source = (i % 2 == 0 ? oak : pine) ?? oak ?? pine;
+                GameObject copy = Object.Instantiate(source.gameObject, vegetation);
+                copy.name = "EnviroTree_" + i.ToString("00");
+                copy.transform.SetPositionAndRotation(positions[i], source.rotation);
+                copy.transform.localScale = source.lossyScale;
+            }
+        }
+
+        private static Light FindChildLight(GameObject root, string name)
+        {
+            foreach (Light light in root.GetComponentsInChildren<Light>(true))
+                if (light.name == name || light.name.Contains("Sun/Moon")) return light;
+            return null;
         }
 
         private static void FixNegativeTerrainScale()

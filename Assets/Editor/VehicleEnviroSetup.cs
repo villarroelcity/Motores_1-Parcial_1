@@ -27,6 +27,8 @@ namespace EnElCamino.Editor
             RemoveGeneratedGrass();
             ConfigureEnviroGroundTexture();
             AddEnviroVegetation();
+            ConfigureEnviroAudio();
+            ReplaceFuelCanVisual();
             RemoveVoicePlayback();
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             EditorSceneManager.SaveOpenScenes();
@@ -197,6 +199,7 @@ namespace EnElCamino.Editor
                 material = new Material(shader) { name = "GeneratorBody_Textured" };
                 AssetDatabase.CreateAsset(material, MaterialPath);
             }
+            if (Shader.Find("Standard") != null) material.shader = Shader.Find("Standard");
 
             if (material.HasProperty("_BaseMap")) material.SetTexture("_BaseMap", texture);
             if (material.HasProperty("_MainTex")) material.SetTexture("_MainTex", texture);
@@ -301,6 +304,37 @@ namespace EnElCamino.Editor
             foreach (Light light in root.GetComponentsInChildren<Light>(true))
                 if (light.name == name || light.name.Contains("Sun/Moon")) return light;
             return null;
+        }
+
+        private static void ConfigureEnviroAudio()
+        {
+            GameObject enviro = GameObject.Find("Enviro 3");
+            if (enviro == null) return;
+            foreach (AudioSource source in enviro.GetComponentsInChildren<AudioSource>(true))
+            {
+                source.volume = Mathf.Min(source.volume, 0.12f);
+                EditorUtility.SetDirty(source);
+            }
+        }
+
+        private static void ReplaceFuelCanVisual()
+        {
+            Transform fuelCanTransform = FindTransformIncludingInactive("BidonCombustible");
+            GameObject fuelCan = fuelCanTransform != null ? fuelCanTransform.gameObject : null;
+            GameObject visualPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/FuelCan.prefab");
+            if (fuelCan == null || visualPrefab == null) return;
+
+            Transform oldVisual = fuelCan.transform.Find("Generated_FuelCanister_CC0");
+            if (oldVisual != null) oldVisual.gameObject.SetActive(false);
+            Transform existing = fuelCan.transform.Find("PlasticFuelCan_Visual");
+            if (existing != null) Object.DestroyImmediate(existing.gameObject);
+
+            GameObject visual = PrefabUtility.InstantiatePrefab(visualPrefab, fuelCan.transform) as GameObject;
+            if (visual == null) return;
+            visual.name = "PlasticFuelCan_Visual";
+            visual.transform.localPosition = Vector3.zero;
+            visual.transform.localRotation = Quaternion.identity;
+            visual.transform.localScale = new Vector3(0.7f, 0.75f, 0.7f);
         }
 
         private static void FixNegativeTerrainScale()
@@ -410,7 +444,12 @@ namespace EnElCamino.Editor
             return null;
         }
 
-        private static AudioClip LoadClip(string path) => AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/" + path);
+        private static AudioClip LoadClip(string path)
+        {
+            AudioClip clip = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/" + path);
+            if (clip != null) return clip;
+            return AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/" + path);
+        }
 
         private static void SetReference(Object target, string field, Object value)
         {

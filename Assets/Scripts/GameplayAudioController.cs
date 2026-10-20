@@ -19,7 +19,7 @@ namespace EnElCamino
         private void Awake()
         {
             flow = GetComponent<GameFlow>();
-            ambientSource = CreateSource("AmbientAudio", true, 0.45f);
+            ambientSource = CreateSource("AmbientAudio", true, 0.12f);
             adaptiveMusic = FindFirstObjectByType<AdaptiveMusicController>();
             effectsSource = CreateSource("EffectsAudio", false, 0.75f);
 

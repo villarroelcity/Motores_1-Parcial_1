@@ -57,7 +57,7 @@ namespace EnElCamino
                     return;
                 }
 
-                StartCoroutine(ClimbExterior());
+                ClimbExteriorInstant();
             }
             else if (portableState == PortableState.AtRoof)
             {
@@ -69,23 +69,18 @@ namespace EnElCamino
             }
         }
 
-        private IEnumerator ClimbExterior()
+        private void ClimbExteriorInstant()
         {
             portableState = PortableState.Carried;
             gameFlow.movementLocked = true;
-            SetClimbingAnimation(true);
             CharacterController controller = player.GetComponent<CharacterController>();
             if (controller != null) controller.enabled = false;
 
-            Vector3 start = player.position;
-            Quaternion startRotation = player.rotation;
-            Vector3 end = destination != null ? destination.position : start;
-            Quaternion endRotation = destination != null ? destination.rotation : startRotation;
-
-            yield return AnimatePlayer(start, startRotation, end, endRotation, climbDuration);
+            Vector3 end = destination != null ? destination.position : player.position;
+            Quaternion endRotation = destination != null ? destination.rotation : player.rotation;
+            player.SetPositionAndRotation(end, endRotation);
 
             if (controller != null) controller.enabled = true;
-            SetClimbingAnimation(false);
             gameFlow.movementLocked = false;
             portableState = PortableState.AtRoof;
             gameFlow.exteriorLadderCarried = false;
@@ -129,8 +124,14 @@ namespace EnElCamino
 
         private void StartMovement(Transform target, bool notifyGarage)
         {
-            if (target == null || movementRoutine != null) return;
-            movementRoutine = StartCoroutine(AnimateToDestination(target, notifyGarage));
+            if (target == null) return;
+            gameFlow.movementLocked = true;
+            CharacterController controller = player.GetComponent<CharacterController>();
+            if (controller != null) controller.enabled = false;
+            player.SetPositionAndRotation(target.position, target.rotation);
+            if (controller != null) controller.enabled = true;
+            gameFlow.movementLocked = false;
+            if (notifyGarage || entersGarage) gameFlow.EnterGarage();
         }
 
         private IEnumerator AnimateToDestination(Transform target, bool notifyGarage)

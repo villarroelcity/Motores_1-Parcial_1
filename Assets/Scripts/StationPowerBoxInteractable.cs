@@ -13,8 +13,22 @@ namespace EnElCamino
             if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
             if (statusLight == null) statusLight = transform.Find("LuzEstado")?.GetComponent<Renderer>();
             if (cableVisual == null) cableVisual = GetComponent<StationPowerCableVisual>();
+            if (gameFlow != null)
+            {
+                gameFlow.GeneratorFuelDepleted += RefreshAfterPowerLoss;
+                gameFlow.GameLost += RefreshAfterPowerLoss;
+                gameFlow.GameFinished += RefreshAfterPowerLoss;
+            }
             RestorePlayModeControls();
             RefreshVisualState();
+        }
+
+        private void OnDestroy()
+        {
+            if (gameFlow == null) return;
+            gameFlow.GeneratorFuelDepleted -= RefreshAfterPowerLoss;
+            gameFlow.GameLost -= RefreshAfterPowerLoss;
+            gameFlow.GameFinished -= RefreshAfterPowerLoss;
         }
 
         private void Start()
@@ -109,6 +123,12 @@ namespace EnElCamino
             if (breaker != null)
                 breaker.localRotation = Quaternion.Euler(0f, 0f,
                     gameFlow != null && gameFlow.stationPowerConnected ? -24f : 24f);
+        }
+
+        private void RefreshAfterPowerLoss()
+        {
+            if (cableVisual != null) cableVisual.SetConnected(false);
+            RefreshVisualState();
         }
     }
 }

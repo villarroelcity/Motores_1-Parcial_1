@@ -69,19 +69,31 @@ namespace EnElCamino
         private void SetNativeControls(bool enabled)
         {
             if (nativeInput == null) return;
-            // The VPP component remains available on the vehicle prefab, but this
-            // gameplay controller is the only writer to VPP's input data bus. If
-            // both writers run at once, the raw axis and the game input fight each
-            // other and the car appears to slide sideways.
             nativeInput.externalThrottle = 0f;
             nativeInput.externalBrake = 0f;
             nativeInput.externalHandbrake = 0f;
             nativeInput.externalSteer = 0f;
             nativeInput.externalClutch = 0f;
             nativeInput.lockBrakesOnEnable = false;
-            nativeInput.enabled = false;
+            nativeInput.throttleAndBrakeMode = VPStandardInput.ThrottleAndBrakeMode.AutoForwardAndReverse;
+            nativeInput.brakeOnThrottleBackwards = true;
+            nativeInput.progressiveSteerMode = true;
+            nativeInput.movementRate = 0.35f;
+            nativeInput.autoCenterRate = 1f;
+            nativeInput.disableGearShiftInputs = true;
+            nativeInput.enabled = enabled;
 
-            if (!enabled || vehicleController == null || !vehicleController.initialized) return;
+            if (!enabled)
+            {
+                nativeInput.externalIgnition = VPStandardInput.IgnitionKey.Off;
+                return;
+            }
+
+            nativeInput.externalIgnition = engineRequested
+                ? Time.time < starterUntil ? VPStandardInput.IgnitionKey.Start : VPStandardInput.IgnitionKey.AccOn
+                : VPStandardInput.IgnitionKey.Off;
+
+            if (vehicleController == null || !vehicleController.initialized) return;
 
             int[] input = vehicleController.data.Get(Channel.Input);
             input[InputData.Brake] = 0;
@@ -95,7 +107,9 @@ namespace EnElCamino
         {
             arrivalControl = true;
             introFullThrottle = false;
-            SetNativeControls(true);
+            // The arrival is still scripted until the car reaches its stop.
+            // VPP native input is enabled only after the player enters the car.
+            SetNativeControls(false);
         }
 
         public void EndFuelCutoffControl()
@@ -217,6 +231,19 @@ namespace EnElCamino
             steerInput = 0f;
             brakeInput = 0f;
             if ((!driving && !arrivalControl) || Keyboard.current == null) return;
+            if (driving)
+            {
+                // Once the player enters, VPP's own Standard Input component is
+                // the sole owner of steering, throttle, braking and automatic
+                // gear selection.  Do not write a second competing input bus.
+                if (nativeInput != null)
+                {
+                    nativeInput.externalIgnition = engineRequested
+                        ? Time.time < starterUntil ? VPStandardInput.IgnitionKey.Start : VPStandardInput.IgnitionKey.AccOn
+                        : VPStandardInput.IgnitionKey.Off;
+                }
+                return;
+            }
             if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) throttleInput = 1f;
             if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) throttleInput = -1f;
             if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) steerInput = -1f;
@@ -274,6 +301,9 @@ namespace EnElCamino
                 }
                 introEngine.allowedFuelRatio = fuelRatio;
             }
+
+            if (driving && nativeInput != null && nativeInput.enabled)
+                return;
 
             int[] input = vehicleController.data.Get(Channel.Input);
             bool stopped = gameFlow != null && (gameFlow.gameOver || gameFlow.finished);

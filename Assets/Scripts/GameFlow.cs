@@ -9,6 +9,7 @@ namespace EnElCamino
         [SerializeField] private AudioSource gameOverSource;
         [SerializeField] private AudioSource victorySource;
         [SerializeField] private float generatorFuelSeconds = 60f;
+        [SerializeField] private Transform streetLightsRoot;
 
         public event Action GeneratorStarted;
         public event Action GeneratorFuelDepleted;
@@ -44,6 +45,8 @@ namespace EnElCamino
             if (gameUI == null) gameUI = FindFirstObjectByType<GameUI>();
             if (gameOverSource == null) gameOverSource = FindSource("GameOverSource");
             if (victorySource == null) victorySource = FindSource("VictorySource");
+            stationPowerConnected = false;
+            SetStreetLights(false);
             if (gameUI != null)
             {
                 gameUI.SetObjective("OBJETIVO 1/8\nSUBÍ AL TECHO Y BAJÁ POR EL HUECO\nAcercate al borde, colgate y descendé lentamente al taller.");
@@ -53,18 +56,29 @@ namespace EnElCamino
 
         private void Update()
         {
-            if (!generatorOn || fuelCanFull || gameOver || finished) return;
+            if (!generatorOn || gameOver || finished) return;
             generatorFuelRemaining = Mathf.Max(0f, generatorFuelRemaining - Time.deltaTime);
-            if (gameUI != null) gameUI.SetGeneratorFuelTime(generatorFuelRemaining);
+            // The HUD is intentionally hidden after filling the can, but the
+            // generator keeps consuming fuel internally until it reaches zero.
+            if (gameUI != null && !fuelCanFull) gameUI.SetGeneratorFuelTime(generatorFuelRemaining);
             if (generatorFuelRemaining <= 0f)
             {
                 // Stop the generator state before raising the outcome. This gives every
                 // dependent system (including the looped engine sound) one explicit
                 // shutdown signal instead of relying on the global audio pause.
                 generatorOn = false;
+                stationPowerConnected = false;
+                SetStreetLights(false);
                 GeneratorFuelDepleted?.Invoke();
-                ShowMessage("El generador se quedó sin combustible antes de llenar el bidón.");
-                GameOver();
+                if (!fuelCanFull)
+                {
+                    ShowMessage("El generador se quedó sin combustible antes de llenar el bidón.");
+                    GameOver();
+                }
+                else
+                {
+                    ShowMessage("El generador se quedó sin combustible. La estación quedó sin electricidad.");
+                }
             }
         }
 
@@ -85,6 +99,8 @@ namespace EnElCamino
 
             generatorOn = true;
             generatorFuelRemaining = generatorFuelSeconds;
+            stationPowerConnected = false;
+            SetStreetLights(false);
             if (gameUI != null)
             {
                 gameUI.SetGeneratorFuelTime(generatorFuelRemaining);
@@ -99,6 +115,7 @@ namespace EnElCamino
         {
             if (stationPowerConnected || gameOver || finished || !generatorOn || !insideGarage) return;
             stationPowerConnected = true;
+            SetStreetLights(true);
             if (gameUI != null)
             {
                 gameUI.SetObjective("OBJETIVO 4/8\nABRÍ EL PORTÓN\nUsá el interruptor junto al portón.");
@@ -207,6 +224,8 @@ namespace EnElCamino
             }
 
             finished = true;
+            stationPowerConnected = false;
+            SetStreetLights(false);
             StopAllGameplayAudio(victorySource);
             StopTensionMusic();
             PlayOutcomeSound(victorySource);
@@ -219,6 +238,8 @@ namespace EnElCamino
             if (finished || gameOver) return;
 
             gameOver = true;
+            stationPowerConnected = false;
+            SetStreetLights(false);
             StopAllGameplayAudio(gameOverSource);
             StopTensionMusic();
             PlayOutcomeSound(gameOverSource);
@@ -251,6 +272,21 @@ namespace EnElCamino
         {
             AdaptiveMusicController adaptiveMusic = FindFirstObjectByType<AdaptiveMusicController>();
             if (adaptiveMusic != null) adaptiveMusic.StopMusic();
+        }
+
+        private void SetStreetLights(bool powered)
+        {
+            if (streetLightsRoot == null)
+            {
+                GameObject lightsObject = GameObject.Find("StreetLights");
+                if (lightsObject != null) streetLightsRoot = lightsObject.transform;
+            }
+
+            if (streetLightsRoot == null) return;
+            foreach (Light streetLight in streetLightsRoot.GetComponentsInChildren<Light>(true))
+            {
+                if (streetLight != null) streetLight.enabled = powered;
+            }
         }
 
         public void ShowMessage(string text)

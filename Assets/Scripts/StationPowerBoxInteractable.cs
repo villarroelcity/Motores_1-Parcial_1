@@ -127,7 +127,8 @@ namespace EnElCamino
 
         private void RefreshAfterPowerLoss()
         {
-            if (cableVisual != null) cableVisual.SetConnected(false);
+            // El agotamiento del generador corta la electricidad, pero no
+            // desenchufa físicamente el cable: debe seguir conectado a la caja.
             RefreshVisualState();
         }
     }

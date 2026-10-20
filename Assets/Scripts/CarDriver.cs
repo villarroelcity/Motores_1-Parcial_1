@@ -230,20 +230,42 @@ namespace EnElCamino
             throttleInput = 0f;
             steerInput = 0f;
             brakeInput = 0f;
-            if ((!driving && !arrivalControl) || Keyboard.current == null) return;
+            if (!driving && !arrivalControl) return;
             if (driving)
             {
-                // Once the player enters, VPP's own Standard Input component is
-                // the sole owner of steering, throttle, braking and automatic
-                // gear selection.  Do not write a second competing input bus.
+                Keyboard keyboard = Keyboard.current;
+                bool hasKeyboard = keyboard != null;
+                bool forward = hasKeyboard &&
+                    (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed);
+                bool reverse = hasKeyboard &&
+                    (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed);
+                float steer = 0f;
+                if (hasKeyboard)
+                {
+                    if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed) steer -= 1f;
+                    if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed) steer += 1f;
+                }
+
+                // Vehicle Physics Pro remains the only system writing the vehicle
+                // input bus. We only provide its external controls here, avoiding
+                // the old competing transform/bus writes that made the car rotate
+                // on its center and left the visual wheels out of sync.
                 if (nativeInput != null)
                 {
+                    nativeInput.externalSteer = steer;
+                    nativeInput.externalThrottle = forward ? 1f : 0f;
+                    // With AutoForwardAndReverse, VPP selects reverse from this
+                    // brake request once the vehicle is stopped.
+                    nativeInput.externalBrake = reverse ? 1f : 0f;
+                    nativeInput.externalHandbrake = hasKeyboard && keyboard.spaceKey.isPressed ? 1f : 0f;
+                    nativeInput.externalClutch = 0f;
                     nativeInput.externalIgnition = engineRequested
                         ? Time.time < starterUntil ? VPStandardInput.IgnitionKey.Start : VPStandardInput.IgnitionKey.AccOn
                         : VPStandardInput.IgnitionKey.Off;
                 }
                 return;
             }
+            if (Keyboard.current == null) return;
             if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) throttleInput = 1f;
             if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) throttleInput = -1f;
             if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) steerInput = -1f;

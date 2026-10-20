@@ -29,10 +29,174 @@ namespace EnElCamino.Editor
             if (!scene.IsValid() || !scene.isLoaded || scene.name != "EnElCamino") return;
             GameObject gate = FindSceneObject(scene, "InterruptorPorton");
             GameObject existingBox = FindSceneObject(scene, "CajaElectricaEstacion");
+            bool appearanceChanged = existingBox != null && RepairPowerBoxAppearance(existingBox, scene);
+            if (appearanceChanged)
+            {
+                AssetDatabase.SaveAssets();
+                EditorSceneManager.MarkSceneDirty(scene);
+                EditorSceneManager.SaveScene(scene);
+            }
             if (existingBox != null && existingBox.transform.Find("TableroFrontal") != null &&
                 existingBox.GetComponent<StationPowerCableVisual>() != null && gate != null &&
                 gate.transform.Find("TeclaPared_JarlanPerez_Texturada") != null && PowerBoxHasTexture()) return;
             Apply();
+        }
+
+        private static bool RepairPowerBoxAppearance(GameObject powerBox, Scene scene)
+        {
+            Shader compatibleShader = GetLitShader();
+            if (compatibleShader == null) return false;
+
+            bool changed = false;
+            Texture2D enamel = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Materials/PowerBox_Enamel_Albedo.png");
+            Material cabinet = RepairMaterial("Assets/Materials/PowerBox_Cabinet.mat", compatibleShader, enamel, ref changed);
+            Material door = RepairMaterial("Assets/Materials/PowerBox_Door.mat", compatibleShader, enamel, ref changed);
+            Material details = RepairMaterial("Assets/Materials/PowerBox_Details.mat", compatibleShader, null, ref changed);
+            Material warning = RepairMaterial("Assets/Materials/PowerBox_Warning.mat", compatibleShader, null, ref changed);
+            Material cableMaterial = RepairMaterial("Assets/Materials/PowerCable_Black.mat", compatibleShader, null, ref changed);
+
+            changed |= AssignMaterial(powerBox.transform, "Gabinete", cabinet);
+            changed |= AssignMaterial(powerBox.transform, "TableroFrontal", door);
+            changed |= AssignMaterial(powerBox.transform, "MarcoSuperior", details);
+            changed |= AssignMaterial(powerBox.transform, "InterruptorGeneral", details);
+            changed |= AssignMaterial(powerBox.transform, "TomaIndustrial", details);
+            changed |= AssignMaterial(powerBox.transform, "IndicadorTension", warning);
+            changed |= AssignMaterial(powerBox.transform, "LlaveTermica", warning);
+
+            TextMesh boardLabel = powerBox.transform.Find("RótuloCaja")?.GetComponent<TextMesh>();
+            if (boardLabel != null && !Mathf.Approximately(boardLabel.characterSize, 0.022f))
+            {
+                boardLabel.characterSize = 0.022f;
+                boardLabel.fontSize = 48;
+                EditorUtility.SetDirty(boardLabel);
+                changed = true;
+            }
+            TextMesh outletLabel = powerBox.transform.Find("RótuloToma")?.GetComponent<TextMesh>();
+            if (outletLabel != null && !Mathf.Approximately(outletLabel.characterSize, 0.018f))
+            {
+                outletLabel.characterSize = 0.018f;
+                outletLabel.fontSize = 48;
+                EditorUtility.SetDirty(outletLabel);
+                changed = true;
+            }
+
+            StationPowerCableVisual cableVisual = powerBox.GetComponent<StationPowerCableVisual>();
+            LineRenderer cable = powerBox.transform.Find("CableGeneradorEstacion")?.GetComponent<LineRenderer>();
+            if (cable != null && cableMaterial != null && cable.sharedMaterial != cableMaterial)
+            {
+                cable.sharedMaterial = cableMaterial;
+                EditorUtility.SetDirty(cable);
+                changed = true;
+            }
+
+            GameObject wallObject = FindSceneObject(scene, "TallerParedFondo");
+            Transform socket = powerBox.transform.Find("EntradaCable");
+            if (cableVisual != null && wallObject != null && socket != null)
+            {
+                Transform passThrough = powerBox.transform.Find("PasacablePared");
+                if (passThrough == null)
+                {
+                    GameObject sleeve = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                    sleeve.name = "PasacablePared";
+                    Undo.RegisterCreatedObjectUndo(sleeve, "Agregar pasacable del tablero");
+                    sleeve.transform.SetParent(powerBox.transform, true);
+                    passThrough = sleeve.transform;
+
+                    Transform wall = wallObject.transform;
+                    Vector3 normal = wall.forward.normalized;
+                    Vector3 centerOnWall = socket.position + normal * Vector3.Dot(wall.position - socket.position, normal);
+                    BoxCollider sleeveWallCollider = wallObject.GetComponent<BoxCollider>();
+                    float thickness = sleeveWallCollider != null
+                        ? sleeveWallCollider.size.z * wall.lossyScale.z
+                        : wall.lossyScale.z;
+                    passThrough.SetPositionAndRotation(centerOnWall, Quaternion.FromToRotation(Vector3.up, normal));
+                    passThrough.localScale = new Vector3(0.14f, thickness * 0.5f + 0.08f, 0.14f);
+
+                    Collider sleeveCollider = sleeve.GetComponent<Collider>();
+                    if (sleeveCollider != null) Object.DestroyImmediate(sleeveCollider);
+                    Renderer sleeveRenderer = sleeve.GetComponent<Renderer>();
+                    if (sleeveRenderer != null && details != null) sleeveRenderer.sharedMaterial = details;
+                    changed = true;
+                }
+
+                if (!HasReference(cableVisual, "wallPassThrough", passThrough))
+                {
+                    Set(cableVisual, "wallPassThrough", passThrough);
+                    changed = true;
+                }
+                BoxCollider wallCollider = wallObject.GetComponent<BoxCollider>();
+                float wallThickness = wallCollider != null
+                    ? wallCollider.size.z * wallObject.transform.lossyScale.z
+                    : wallObject.transform.lossyScale.z;
+                if (!HasFloatValue(cableVisual, "wallThickness", wallThickness))
+                {
+                    SetValue(cableVisual, "wallThickness", wallThickness);
+                    changed = true;
+                }
+            }
+
+            return changed;
+        }
+
+        private static Material RepairMaterial(string path, Shader shader, Texture2D texture, ref bool changed)
+        {
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material == null) return null;
+            if (material.shader != shader)
+            {
+                material.shader = shader;
+                EditorUtility.SetDirty(material);
+                changed = true;
+            }
+            if (texture != null)
+            {
+                if (material.HasProperty("_MainTex") && material.GetTexture("_MainTex") != texture)
+                {
+                    material.SetTexture("_MainTex", texture);
+                    material.SetTextureScale("_MainTex", Vector2.one);
+                    EditorUtility.SetDirty(material);
+                    changed = true;
+                }
+                if (material.HasProperty("_BaseMap") && material.GetTexture("_BaseMap") != texture)
+                {
+                    material.SetTexture("_BaseMap", texture);
+                    material.SetTextureScale("_BaseMap", Vector2.one);
+                    EditorUtility.SetDirty(material);
+                    changed = true;
+                }
+            }
+            return material;
+        }
+
+        private static Shader GetLitShader()
+        {
+            // This project uses Unity's built-in renderer; URP-only shaders render magenta here.
+            return Shader.Find("Standard") ?? Shader.Find("Universal Render Pipeline/Lit");
+        }
+
+        private static bool AssignMaterial(Transform root, string childName, Material material)
+        {
+            if (root == null || material == null) return false;
+            Renderer renderer = root.Find(childName)?.GetComponent<Renderer>();
+            if (renderer == null || renderer.sharedMaterial == material) return false;
+            renderer.sharedMaterial = material;
+            EditorUtility.SetDirty(renderer);
+            return true;
+        }
+
+        private static bool HasReference(Object target, string fieldName, Object expected)
+        {
+            if (target == null) return false;
+            var field = target.GetType().GetField(fieldName, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            return field != null && (field.GetValue(target) as Object) == expected;
+        }
+
+        private static bool HasFloatValue(Object target, string fieldName, float expected)
+        {
+            if (target == null) return false;
+            var field = target.GetType().GetField(fieldName, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            return field != null && field.FieldType == typeof(float) &&
+                   Mathf.Approximately((float)field.GetValue(target), expected);
         }
 
         public static void Apply()
@@ -417,10 +581,11 @@ namespace EnElCamino.Editor
             Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
             if (material == null)
             {
-                Shader shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+                Shader shader = GetLitShader();
                 material = new Material(shader) { name = System.IO.Path.GetFileNameWithoutExtension(path) };
                 AssetDatabase.CreateAsset(material, path);
             }
+            else if (material.shader != GetLitShader()) material.shader = GetLitShader();
             if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", color);
             if (material.HasProperty("_Color")) material.color = color;
             if (material.HasProperty("_Metallic")) material.SetFloat("_Metallic", metallic);
@@ -452,7 +617,7 @@ namespace EnElCamino.Editor
         private static void ApplyMaterial(Renderer renderer, Color color, float metallic)
         {
             if (renderer == null) return;
-            Shader shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+            Shader shader = GetLitShader();
             Material material = new Material(shader);
             if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", color);
             if (material.HasProperty("_Color")) material.color = color;

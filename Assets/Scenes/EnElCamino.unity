@@ -10933,12 +10933,12 @@ TextMesh:
 
     ELECTRICO'
   m_OffsetZ: 0
-  m_CharacterSize: 0.055
+  m_CharacterSize: 0.022
   m_LineSpacing: 1
   m_Anchor: 4
   m_Alignment: 1
   m_TabSize: 4
-  m_FontSize: 72
+  m_FontSize: 48
   m_FontStyle: 0
   m_RichText: 1
   m_Font: {fileID: 0}
@@ -13099,12 +13099,12 @@ TextMesh:
   m_GameObject: {fileID: 1745238861}
   m_Text: 220 V
   m_OffsetZ: 0
-  m_CharacterSize: 0.045
+  m_CharacterSize: 0.018
   m_LineSpacing: 1
   m_Anchor: 4
   m_Alignment: 1
   m_TabSize: 4
-  m_FontSize: 72
+  m_FontSize: 48
   m_FontStyle: 0
   m_RichText: 1
   m_Font: {fileID: 0}

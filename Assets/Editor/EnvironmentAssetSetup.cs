@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace EnElCamino.Editor
 {
@@ -10,6 +11,32 @@ namespace EnElCamino.Editor
     {
         private const string EnvironmentRootName = "Art_Environment";
         private const string GeneratedPrefix = "Generated_";
+
+        [InitializeOnLoadMethod]
+        private static void ScheduleFuelPumpRepair()
+        {
+            EditorApplication.delayCall += ApplyFuelPumpRepairIfNeeded;
+        }
+
+        private static void ApplyFuelPumpRepairIfNeeded()
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+            Scene scene = EditorSceneManager.GetActiveScene();
+            if (!scene.IsValid() || !scene.isLoaded || scene.name != "EnElCamino") return;
+            GameObject station = GameObject.Find("EstacionDeServicio");
+            GameObject pump = GameObject.Find("Surtidor");
+            if (station == null || pump == null) return;
+            Transform installed = pump.transform.Find("Generated_FuelPump_Visual");
+            if (installed != null && installed.GetComponentInChildren<Renderer>(true) != null &&
+                PrefabUtility.GetCorrespondingObjectFromSource(installed.gameObject) != null) return;
+
+            Transform environment = GetOrCreateChild(station.transform, EnvironmentRootName);
+            Transform gasStation = GetOrCreateChild(environment, "GasStation");
+            AddFuelPumpVisual(gasStation);
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            Debug.Log("Surtidor actualizado con el prefab Fuel Pump 3D, alineado al piso y conservando su interacción.");
+        }
 
         [MenuItem("Tools/Environment/Apply Kenney Environment")]
         public static void Apply()
@@ -106,42 +133,42 @@ namespace EnElCamino.Editor
         private static void AddFuelPumpVisual(Transform parent)
         {
             GameObject oldPump = GameObject.Find("Surtidor");
-            Vector3 position = oldPump != null ? oldPump.transform.position : new Vector3(4.8f, 1.2f, 8.6f);
-            position.y = 0f;
-            if (oldPump != null) HideMeshRenderers(oldPump);
+            if (oldPump == null) return;
+            HideMeshRenderers(oldPump);
 
-            GameObject root = new GameObject("Generated_FuelPump_Visual");
-            root.transform.SetParent(parent, false);
-            root.transform.position = position;
-
-            Material metal = LoadMaterial("Assets/Materials/Mat_Metal.mat");
-            Material yellow = LoadMaterial("Assets/Materials/Mat_Yellow.mat");
-            Material red = LoadMaterial("Assets/Materials/Mat_Red.mat");
-            Material dark = LoadMaterial("Assets/Materials/Mat_Eyes.mat");
-
-            CreatePrimitivePart("PumpBody", PrimitiveType.Cube, root.transform, new Vector3(0f, 1.05f, 0f), new Vector3(1.35f, 2.1f, 0.78f), metal);
-            CreatePrimitivePart("PumpTop", PrimitiveType.Cylinder, root.transform, new Vector3(0f, 2.22f, 0f), new Vector3(0.72f, 0.22f, 0.72f), yellow);
-            CreatePrimitivePart("PumpFace", PrimitiveType.Cube, root.transform, new Vector3(0f, 1.55f, -0.405f), new Vector3(0.88f, 0.62f, 0.035f), dark);
-            CreatePrimitivePart("PumpStripe", PrimitiveType.Cube, root.transform, new Vector3(0f, 1.05f, -0.405f), new Vector3(1.05f, 0.13f, 0.04f), red);
-            CreatePrimitivePart("PumpBase", PrimitiveType.Cube, root.transform, new Vector3(0f, 0.1f, 0f), new Vector3(1.55f, 0.2f, 0.92f), yellow);
-
-            GameObject hose = new GameObject("PumpHose");
-            hose.transform.SetParent(root.transform, false);
-            LineRenderer line = hose.AddComponent<LineRenderer>();
-            line.positionCount = 4;
-            line.useWorldSpace = false;
-            line.startWidth = 0.045f;
-            line.endWidth = 0.055f;
-            line.material = new Material(Shader.Find("Sprites/Default")) { color = Color.black };
-            line.SetPositions(new[]
+            Transform existing = parent.Find("Generated_FuelPump_Visual");
+            if (existing != null) Object.DestroyImmediate(existing.gameObject);
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/FuelPump3D/Prefabs/Fuel Pump 3D.prefab");
+            if (prefab == null)
             {
-                new Vector3(0.48f, 1.7f, -0.33f),
-                new Vector3(0.62f, 1.25f, -0.34f),
-                new Vector3(0.5f, 0.75f, -0.35f),
-                new Vector3(0.34f, 0.9f, -0.38f)
-            });
+                Debug.LogError("No se encontró Assets/FuelPump3D/Prefabs/Fuel Pump 3D.prefab.");
+                return;
+            }
 
-            CreatePrimitivePart("Nozzle", PrimitiveType.Capsule, root.transform, new Vector3(0.34f, 0.92f, -0.38f), new Vector3(0.09f, 0.22f, 0.09f), yellow);
+            GameObject model = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+            model.name = "Generated_FuelPump_Visual";
+            model.transform.SetParent(oldPump.transform, false);
+            model.transform.localPosition = Vector3.zero;
+            model.transform.localRotation = Quaternion.identity;
+            model.transform.localScale = Vector3.one;
+            foreach (Rigidbody body in model.GetComponentsInChildren<Rigidbody>(true)) Object.DestroyImmediate(body);
+            foreach (Collider collider in model.GetComponentsInChildren<Collider>(true)) Object.DestroyImmediate(collider);
+
+            // The prefab's mesh pivot is several metres above its base; align by renderer bounds,
+            // not by the imported root pivot. Keep the existing gameplay collider and interaction.
+            Renderer[] renderers = model.GetComponentsInChildren<Renderer>(true);
+            if (renderers.Length == 0) return;
+            Bounds bounds = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
+            float targetHeight = 2.2f;
+            model.transform.localScale = Vector3.one * Mathf.Clamp(targetHeight / Mathf.Max(0.01f, bounds.size.y), 0.02f, 2f);
+            renderers = model.GetComponentsInChildren<Renderer>(true);
+            bounds = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
+            Collider oldCollider = oldPump.GetComponent<Collider>();
+            float groundY = oldCollider != null ? oldCollider.bounds.min.y : 0f;
+            model.transform.position += new Vector3(oldPump.transform.position.x, groundY, oldPump.transform.position.z) -
+                                        new Vector3(bounds.center.x, bounds.min.y, bounds.center.z);
         }
 
         private static void ConfigureSkybox()

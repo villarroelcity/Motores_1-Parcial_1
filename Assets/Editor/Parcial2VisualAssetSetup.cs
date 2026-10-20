@@ -10,7 +10,6 @@ namespace EnElCamino.Editor
     {
         private const string ModelRoot = "Assets/ThirdParty/ExternalModels/";
 
-        [MenuItem("Parcial 2/Aplicar modelos y escalera animada")]
         public static void Apply()
         {
             SetupGeneratorVisual();
@@ -20,7 +19,16 @@ namespace EnElCamino.Editor
 
             EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
             AssetDatabase.SaveAssets();
-            Debug.Log("Parcial2VisualAssetSetup: modelos 3D, fantasma y escalera animada configurados.");
+            Debug.Log("Parcial2VisualAssetSetup: modelos 3D y flujo de escalera configurados.");
+        }
+
+        public static void ApplyLadderFlowOnly()
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+            SetupLadderFlow();
+            EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+            EditorSceneManager.SaveOpenScenes();
+            Debug.Log("Parcial2VisualAssetSetup: bajada controlada y condición de caída actualizadas.");
         }
 
         private static void SetupGeneratorVisual()
@@ -62,8 +70,6 @@ namespace EnElCamino.Editor
             GameObject holeObject = GameObject.Find("ProteccionHueco");
             if (flow == null || playerObject == null || exteriorObject == null || holeObject == null) return;
 
-            Transform roofPoint = EnsurePoint("PuntoEscaleraTecho", new Vector3(16.55f, 6.85f, 8.05f), new Vector3(0f, 0f, 344.4f), Vector3.one);
-            Transform placementPoint = EnsurePoint("PuntoColocacionEscalera", new Vector3(19f, 3.65f, 8f), new Vector3(23.1f, 0f, 0f), new Vector3(1f, 1.32f, 1f));
             Transform topDestination = GameObject.Find("PuntoArribaTaller")?.transform;
             Transform lowerDestination = GameObject.Find("PuntoPisoTaller")?.transform;
 
@@ -71,12 +77,11 @@ namespace EnElCamino.Editor
             SetReference(exterior, "gameFlow", flow);
             SetReference(exterior, "player", playerObject.transform);
             SetReference(exterior, "destination", topDestination);
-            SetReference(exterior, "roofLadderPoint", roofPoint);
             SetReference(exterior, "lowerDestination", lowerDestination);
             SetBool(exterior, "portableExterior", true);
             SetString(exterior, "promptText", "[E] Subir por la escalera exterior");
-            SetFloat(exterior, "climbDuration", 1.8f);
-            SetFloat(exterior, "descendDuration", 1.25f);
+            SetFloat(exterior, "hangPause", 0.65f);
+            SetFloat(exterior, "dropDuration", 1.45f);
 
             LadderPlacementInteractable placement = holeObject.GetComponent<LadderPlacementInteractable>();
             if (placement == null) placement = holeObject.AddComponent<LadderPlacementInteractable>();
@@ -137,20 +142,6 @@ namespace EnElCamino.Editor
             Bounds bounds = renderers[0].bounds;
             for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
             return bounds;
-        }
-
-        private static Transform EnsurePoint(string name, Vector3 position, Vector3 euler, Vector3 scale)
-        {
-            GameObject point = GameObject.Find(name);
-            if (point == null)
-            {
-                point = new GameObject(name);
-                SceneManager.MoveGameObjectToScene(point, SceneManager.GetActiveScene());
-            }
-            point.transform.position = position;
-            point.transform.eulerAngles = euler;
-            point.transform.localScale = scale;
-            return point.transform;
         }
 
         private static GameObject EnsureChild(string name, Transform parent)

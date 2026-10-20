@@ -107,15 +107,13 @@ namespace EnElCamino
 
         private void OnDrivingStarted()
         {
-            challengeActive = true;
-            challengeTimeLeft = challengeDuration;
-            PlayTone(120f, 0.6f, 0.22f);
-            StartCoroutine(WarningPulse());
-            EmitFeedback(Color.red, 70);
-            SpawnThreat();
-            gameFlow.ShowMessage("¡DESAFÍO FINAL! Una amenaza te sigue: escapá por la ruta.");
+            challengeActive = false;
+            StopThreat();
+            PlayTone(180f, 0.22f, 0.12f);
+            EmitFeedback(Color.yellow, 24);
+            gameFlow.ShowMessage("No dejes que anochezca: salí manejando antes de que termine el tiempo.");
             if (gameFlow.UI != null)
-                gameFlow.UI.SetObjective("DESAFÍO FINAL\nESCAPÁ A LA RUTA\nLa amenaza se acerca. Llegá a la salida.");
+                gameFlow.UI.SetObjective("OBJETIVO FINAL\nSALÍ ANTES DE QUE ANOCHEZCA\nConducí hasta la ruta.");
         }
 
         private void OnGameFinished()

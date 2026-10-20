@@ -15,6 +15,8 @@ namespace EnElCamino
         [SerializeField] private FuelCan fuelCan;
         [SerializeField] private FuelPumpInteractable fuelPump;
         [SerializeField] private CarInteractable car;
+        [SerializeField] private StationPowerBoxInteractable powerBox;
+        [SerializeField] private GateSwitchInteractable gateSwitch;
         [SerializeField] private float interactionDistance = 2.4f;
         [SerializeField] private float ladderInteractionDistance = 4f;
         [SerializeField] private float distance = 6f;
@@ -24,11 +26,15 @@ namespace EnElCamino
         private void Awake()
         {
             mainCamera = Camera.main;
+            if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
+            if (gameUI == null) gameUI = FindFirstObjectByType<GameUI>();
+            if (powerBox == null) powerBox = FindFirstObjectByType<StationPowerBoxInteractable>();
+            if (gateSwitch == null) gateSwitch = FindFirstObjectByType<GateSwitchInteractable>();
         }
 
         private void Update()
         {
-            if (gameFlow.gameOver || gameFlow.finished)
+            if (gameFlow == null || gameFlow.gameOver || gameFlow.finished)
             {
                 gameUI.HidePrompt();
                 return;
@@ -54,33 +60,63 @@ namespace EnElCamino
 
         private IInteractable FindInteractable()
         {
-            if (IsNear(generatorButton)) return generatorButton;
-            if (ladderPlacement != null && ladderPlacement.CanInteract && IsNear(ladderPlacement, ladderInteractionDistance)) return ladderPlacement;
-            if (exteriorLadder != null && !exteriorLadder.IsCarried && IsNear(exteriorLadder, ladderInteractionDistance)) return exteriorLadder;
-            if (IsNear(garageDoor)) return garageDoor;
-            if (!fuelCan.IsTaken() && IsNear(fuelCan)) return fuelCan;
-            if (IsNear(fuelPump)) return fuelPump;
-            if (IsNear(car)) return car;
-
+            // Aim takes precedence. Proximity fallback chooses the nearest useful
+            // object rather than letting an already-running generator consume E.
             Ray ray = mainCamera != null
                 ? mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f))
                 : new Ray(transform.position + Vector3.up, transform.forward);
+            if (Physics.Raycast(ray, out RaycastHit hit, distance, ~0, QueryTriggerInteraction.Ignore))
+            {
+                foreach (MonoBehaviour behaviour in hit.collider.GetComponentsInParent<MonoBehaviour>())
+                    if (behaviour is IInteractable interactable && IsUseful(behaviour) && IsNear(behaviour)) return interactable;
+            }
 
-            if (!Physics.Raycast(ray, out RaycastHit hit, distance)) return null;
-            MonoBehaviour[] behaviours = hit.collider.GetComponentsInParent<MonoBehaviour>();
-            foreach (MonoBehaviour behaviour in behaviours)
-                if (behaviour is IInteractable interactable) return interactable;
-            return null;
+            IInteractable nearest = null;
+            float nearestDistance = float.PositiveInfinity;
+            Consider(generatorButton, interactionDistance, ref nearestDistance, ref nearest);
+            Consider(powerBox, interactionDistance, ref nearestDistance, ref nearest);
+            Consider(gateSwitch, interactionDistance, ref nearestDistance, ref nearest);
+            // Require the player to be close to the opening before starting the hang/drop animation.
+            Consider(ladderPlacement, interactionDistance, ref nearestDistance, ref nearest);
+            Consider(exteriorLadder, ladderInteractionDistance, ref nearestDistance, ref nearest);
+            if (gateSwitch == null) Consider(garageDoor, interactionDistance, ref nearestDistance, ref nearest);
+            Consider(fuelCan, interactionDistance, ref nearestDistance, ref nearest);
+            Consider(fuelPump, interactionDistance, ref nearestDistance, ref nearest);
+            Consider(car, interactionDistance, ref nearestDistance, ref nearest);
+            return nearest;
+        }
+
+        private bool IsUseful(Component candidate)
+        {
+            if (candidate == null || !candidate.gameObject.activeInHierarchy) return false;
+            if (candidate == generatorButton) return !gameFlow.generatorOn;
+            if (candidate == powerBox) return gameFlow.generatorOn && !gameFlow.stationPowerConnected;
+            if (candidate == gateSwitch) return gameFlow.stationPowerConnected && gameFlow.insideGarage;
+            if (candidate == garageDoor) return gateSwitch == null;
+            if (candidate == ladderPlacement) return !gameFlow.insideGarage && ladderPlacement.CanInteract;
+            if (candidate == exteriorLadder) return !gameFlow.insideGarage && exteriorLadder.CanClimb;
+            if (candidate == fuelCan) return !fuelCan.IsTaken() && gameFlow.garageOpen;
+            if (candidate == fuelPump) return gameFlow.hasFuelCan && !gameFlow.fuelCanFull;
+            return true;
+        }
+
+        private void Consider(Component candidate, float range, ref float nearestDistance, ref IInteractable nearest)
+        {
+            if (!IsUseful(candidate) || !(candidate is IInteractable interactable)) return;
+            float candidateDistance = Vector3.Distance(transform.position, candidate.transform.position);
+            if (candidateDistance >= range || candidateDistance >= nearestDistance) return;
+            nearestDistance = candidateDistance;
+            nearest = interactable;
         }
 
         private bool IsNear(Component target)
         {
-            return Vector3.Distance(transform.position, target.transform.position) < interactionDistance;
+            return target != null && Vector3.Distance(transform.position, target.transform.position) < interactionDistance;
         }
 
         private bool IsNear(Component target, float maxDistance)
         {
-            return Vector3.Distance(transform.position, target.transform.position) < maxDistance;
+            return target != null && Vector3.Distance(transform.position, target.transform.position) < maxDistance;
         }
     }
 }

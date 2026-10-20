@@ -826,22 +826,22 @@ PlayerSettings:
   webWasm2023: 0
   webEnableSubmoduleStrippingCompatibility: 0
   scriptingDefineSymbols:
-    Android: ENVIRO_3
-    EmbeddedLinux: ENVIRO_3
-    GameCoreScarlett: ENVIRO_3
-    GameCoreXboxOne: ENVIRO_3
-    Kepler: ENVIRO_3
-    LinuxHeadlessSimulation: ENVIRO_3
-    Nintendo Switch: ENVIRO_3
-    Nintendo Switch 2: ENVIRO_3
-    PS4: ENVIRO_3
-    PS5: ENVIRO_3
-    QNX: ENVIRO_3
-    Standalone: ENVIRO_3
-    VisionOS: ENVIRO_3
-    WebGL: ENVIRO_3
-    XboxOne: ENVIRO_3
-    tvOS: ENVIRO_3
+    Android: ENVIRO_3;UNITY_POST_PROCESSING_STACK_V2
+    EmbeddedLinux: ENVIRO_3;UNITY_POST_PROCESSING_STACK_V2
+    GameCoreScarlett: ENVIRO_3;UNITY_POST_PROCESSING_STACK_V2
+    GameCoreXboxOne: ENVIRO_3;UNITY_POST_PROCESSING_STACK_V2
+    Kepler: ENVIRO_3;UNITY_POST_PROCESSING_STACK_V2
+    LinuxHeadlessSimulation: ENVIRO_3;UNITY_POST_PROCESSING_STACK_V2
+    Nintendo Switch: ENVIRO_3;UNITY_POST_PROCESSING_STACK_V2
+    Nintendo Switch 2: ENVIRO_3;UNITY_POST_PROCESSING_STACK_V2
+    PS4: ENVIRO_3;UNITY_POST_PROCESSING_STACK_V2
+    PS5: ENVIRO_3;UNITY_POST_PROCESSING_STACK_V2
+    QNX: ENVIRO_3;UNITY_POST_PROCESSING_STACK_V2
+    Standalone: ENVIRO_3;UNITY_POST_PROCESSING_STACK_V2
+    VisionOS: ENVIRO_3;UNITY_POST_PROCESSING_STACK_V2
+    WebGL: ENVIRO_3;UNITY_POST_PROCESSING_STACK_V2
+    XboxOne: ENVIRO_3;UNITY_POST_PROCESSING_STACK_V2
+    tvOS: ENVIRO_3;UNITY_POST_PROCESSING_STACK_V2
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:

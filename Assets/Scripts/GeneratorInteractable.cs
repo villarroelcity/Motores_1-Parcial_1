@@ -17,7 +17,8 @@ namespace EnElCamino
 
         private void Awake()
         {
-            audioSource = GetComponent<AudioSource>();
+            EnsureAudioSource();
+            if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
             if (motorAudioSource == null)
             {
                 Transform motorTransform = transform.Find("GeneratorMotorAudio");
@@ -25,7 +26,14 @@ namespace EnElCamino
             }
         }
 
-        private AudioSource MotorSource => motorAudioSource != null ? motorAudioSource : audioSource;
+        private AudioSource MotorSource => motorAudioSource != null ? motorAudioSource : EnsureAudioSource();
+
+        private AudioSource EnsureAudioSource()
+        {
+            if (audioSource == null) audioSource = GetComponent<AudioSource>();
+            if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
+            return audioSource;
+        }
 
         private void Update()
         {
@@ -44,18 +52,22 @@ namespace EnElCamino
 
         public void Interact()
         {
-            if (generatorOn) return;
+            if (generatorOn || gameFlow == null || gameFlow.gameOver || gameFlow.finished) return;
+            if (!gameFlow.insideGarage)
+            {
+                gameFlow.ShowMessage("Primero entrá al taller por el hueco del techo y bajá por la escalera.");
+                return;
+            }
 
+            if (!gameFlow.TurnOnGenerator()) return;
             generatorOn = true;
-            if (switchSound != null) audioSource.PlayOneShot(switchSound);
+            if (switchSound != null) EnsureAudioSource().PlayOneShot(switchSound);
             if (generatorStartSound != null)
             {
                 MotorSource.PlayOneShot(generatorStartSound);
                 Invoke(nameof(StartGeneratorMotor), generatorStartSound.length);
             }
-            indicator.material.color = Color.green;
-            indicatorLight.enabled = true;
-            gameFlow.TurnOnGenerator();
+            if (indicatorLight != null) indicatorLight.enabled = true;
         }
 
         private void StartGeneratorMotor()
@@ -70,8 +82,11 @@ namespace EnElCamino
         private void StopGeneratorAudio()
         {
             CancelInvoke(nameof(StartGeneratorMotor));
-            audioSource.loop = false;
-            audioSource.Stop();
+            if (audioSource != null)
+            {
+                audioSource.loop = false;
+                audioSource.Stop();
+            }
             AudioSource motorSource = MotorSource;
             motorSource.loop = false;
             motorSource.Stop();

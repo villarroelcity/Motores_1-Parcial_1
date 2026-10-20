@@ -14,13 +14,18 @@ namespace EnElCamino
         private AudioSource audioSource;
         private bool used;
 
-        private void Awake() => audioSource = GetComponent<AudioSource>();
+        private void Awake()
+        {
+            audioSource = GetComponent<AudioSource>();
+            if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
+            if (fuelCan == null) fuelCan = FindFirstObjectByType<FuelCan>();
+        }
 
         public string Prompt
         {
             get
             {
-                if (!gameFlow.generatorOn) return "Surtidor sin energía";
+            if (gameFlow == null || !gameFlow.generatorOn || !gameFlow.stationPowerConnected) return "Surtidor sin energía";
                 if (!gameFlow.hasFuelCan) return "Necesitás un bidón";
                 if (used) return "Bidón lleno";
                 return "[E] Llenar bidón";
@@ -30,7 +35,7 @@ namespace EnElCamino
         public void Interact()
         {
             if (used) return;
-            if (!gameFlow.generatorOn)
+            if (gameFlow == null || !gameFlow.generatorOn || !gameFlow.stationPowerConnected)
             {
                 gameFlow.ShowMessage("El surtidor necesita energía.");
                 return;
@@ -58,7 +63,7 @@ namespace EnElCamino
                 yield return new WaitForSeconds(pumpSound.length);
             }
 
-            fuelCan.Fill();
+            if (fuelCan != null) fuelCan.Fill();
             gameFlow.FillFuelCan();
             gameFlow.fueling = false;
         }

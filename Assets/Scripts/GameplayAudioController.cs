@@ -32,6 +32,7 @@ namespace EnElCamino
             if (flow == null) flow = GetComponent<GameFlow>();
             if (flow == null) return;
             flow.GeneratorStarted += OnGeneratorStarted;
+            flow.GarageDoorMotionStarted += OnGarageDoorMotionStarted;
             flow.GarageOpened += OnGarageOpened;
             flow.FuelCanFilled += OnFuelCanFilled;
             flow.DrivingStarted += OnDrivingStarted;
@@ -43,6 +44,7 @@ namespace EnElCamino
         {
             if (flow == null) return;
             flow.GeneratorStarted -= OnGeneratorStarted;
+            flow.GarageDoorMotionStarted -= OnGarageDoorMotionStarted;
             flow.GarageOpened -= OnGarageOpened;
             flow.FuelCanFilled -= OnFuelCanFilled;
             flow.DrivingStarted -= OnDrivingStarted;
@@ -69,7 +71,8 @@ namespace EnElCamino
         }
 
         private void OnGeneratorStarted() { }
-        private void OnGarageOpened() => PlayEffect(garageOpen);
+        private void OnGarageDoorMotionStarted() => PlayEffect(garageOpen);
+        private void OnGarageOpened() { }
         private void OnFuelCanFilled() { }
 
         private void OnDrivingStarted()

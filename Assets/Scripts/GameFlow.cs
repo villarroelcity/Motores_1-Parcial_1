@@ -8,8 +8,11 @@ namespace EnElCamino
         [SerializeField] private GameUI gameUI;
         [SerializeField] private AudioSource gameOverSource;
         [SerializeField] private AudioSource victorySource;
+        [SerializeField] private float generatorFuelSeconds = 60f;
 
         public event Action GeneratorStarted;
+        public event Action StationPowerConnected;
+        public event Action GarageDoorMotionStarted;
         public event Action GarageOpened;
         public event Action FuelCanTaken;
         public event Action FuelCanFilled;
@@ -21,6 +24,7 @@ namespace EnElCamino
         public GameUI UI => gameUI;
 
         public bool generatorOn;
+        public bool stationPowerConnected;
         public bool hasFuelCan;
         public bool fuelCanFull;
         public bool carHasFuel;
@@ -29,18 +33,32 @@ namespace EnElCamino
         public bool driving;
         public bool fueling;
         public bool movementLocked;
-        public bool exteriorLadderCarried;
-        public bool exteriorLadderPlaced;
         public bool gameOver;
         public bool finished;
+        private float generatorFuelRemaining;
 
         private void Start()
         {
             AudioListener.pause = false;
+            if (gameUI == null) gameUI = FindFirstObjectByType<GameUI>();
             if (gameOverSource == null) gameOverSource = FindSource("GameOverSource");
             if (victorySource == null) victorySource = FindSource("VictorySource");
-            gameUI.SetObjective("OBJETIVO 1/7\nENCENDÉ EL GENERADOR\nEl botón rojo está fijo en el costado derecho del generador.");
-            gameUI.ShowMessage("La estación está sin energía.");
+            if (gameUI != null)
+            {
+                gameUI.SetObjective("OBJETIVO 1/8\nSUBÍ AL TECHO Y BAJÁ POR EL HUECO\nAcercate al borde, colgate y descendé lentamente al taller.");
+                gameUI.ShowMessage("El generador está dentro del taller. Primero tenés que entrar por el techo.");
+            }
+        }
+
+        private void Update()
+        {
+            if (!generatorOn || fuelCanFull || gameOver || finished) return;
+            generatorFuelRemaining -= Time.deltaTime;
+            if (generatorFuelRemaining <= 0f)
+            {
+                ShowMessage("El generador se quedó sin combustible antes de llenar el bidón.");
+                GameOver();
+            }
         }
 
         private static AudioSource FindSource(string objectName)
@@ -49,14 +67,36 @@ namespace EnElCamino
             return sourceObject != null ? sourceObject.GetComponent<AudioSource>() : null;
         }
 
-        public void TurnOnGenerator()
+        public bool TurnOnGenerator()
         {
-            if (generatorOn) return;
+            if (generatorOn || gameOver || finished) return false;
+            if (!insideGarage)
+            {
+                ShowMessage("Primero subí al techo y descendé por el hueco hasta el taller.");
+                return false;
+            }
 
             generatorOn = true;
-            gameUI.SetObjective("OBJETIVO 2/7\nENTRÁ AL GARAGE\nBuscá una forma de subir al techo del garage.");
-            gameUI.ShowMessage("Generador encendido. El bidón está dentro del garage cerrado.");
+            generatorFuelRemaining = generatorFuelSeconds;
+            if (gameUI != null)
+            {
+                gameUI.SetObjective("OBJETIVO 3/8\nCONECTÁ EL GENERADOR\nUsá la caja eléctrica para darle energía a la estación.");
+                gameUI.ShowMessage("Tenés 60 segundos de combustible. Conectalo a la caja eléctrica, abrí el portón y llená el bidón.");
+            }
             GeneratorStarted?.Invoke();
+            return true;
+        }
+
+        public void ConnectStationPower()
+        {
+            if (stationPowerConnected || gameOver || finished || !generatorOn || !insideGarage) return;
+            stationPowerConnected = true;
+            if (gameUI != null)
+            {
+                gameUI.SetObjective("OBJETIVO 4/8\nABRÍ EL PORTÓN\nUsá el interruptor junto al portón.");
+                gameUI.ShowMessage("La estación tiene energía. Abrí el portón y buscá el bidón.");
+            }
+            StationPowerConnected?.Invoke();
         }
 
         public void EnterGarage()
@@ -64,8 +104,11 @@ namespace EnElCamino
             if (insideGarage || gameOver) return;
 
             insideGarage = true;
-            gameUI.SetObjective("OBJETIVO 3/7\nABRÍ EL PORTÓN\nBajá por la escalera interior y presioná el botón rojo de adentro.");
-            gameUI.ShowMessage("Ya estás adentro. Abrí el portón desde este lado.");
+            if (gameUI != null)
+            {
+                gameUI.SetObjective("OBJETIVO 2/8\nENCENDÉ EL GENERADOR\nEstá dentro del taller; presioná [E] en el botón rojo.");
+                gameUI.ShowMessage("Bajaste al taller. Ahora podés encender el generador.");
+            }
         }
 
         public void OpenGarage()
@@ -73,9 +116,17 @@ namespace EnElCamino
             if (garageOpen || gameOver) return;
 
             garageOpen = true;
-            gameUI.SetObjective("OBJETIVO 4/7\nTOMÁ EL BIDÓN VACÍO\nEl bidón está dentro del garage. Acercate y presioná [E].");
-            gameUI.ShowMessage("Portón abierto. Ahora podés tomar el bidón.");
+            if (gameUI != null)
+            {
+                gameUI.SetObjective("OBJETIVO 5/8\nTOMÁ EL BIDÓN VACÍO\nAcercate y presioná [E].");
+                gameUI.ShowMessage("Portón abierto. Ahora podés tomar el bidón.");
+            }
             GarageOpened?.Invoke();
+        }
+
+        public void NotifyGarageDoorMotionStarted()
+        {
+            if (!gameOver && !finished) GarageDoorMotionStarted?.Invoke();
         }
 
         public void TakeFuelCan()
@@ -83,8 +134,11 @@ namespace EnElCamino
             if (hasFuelCan) return;
 
             hasFuelCan = true;
-            gameUI.SetObjective("OBJETIVO 5/7\nLLENÁ EL BIDÓN\nLlevalo al surtidor y presioná [E].");
-            gameUI.ShowMessage("Tenés el bidón vacío. Falta llenarlo.");
+            if (gameUI != null)
+            {
+                gameUI.SetObjective("OBJETIVO 6/8\nLLENÁ EL BIDÓN\nLlevalo al surtidor antes de que se agote el generador.");
+                gameUI.ShowMessage("Tenés el bidón vacío. El generador se está consumiendo.");
+            }
             FuelCanTaken?.Invoke();
         }
 
@@ -93,8 +147,11 @@ namespace EnElCamino
             if (fuelCanFull) return;
 
             fuelCanFull = true;
-            gameUI.SetObjective("OBJETIVO 6/7\nCARGÁ EL AUTO\nLlevá el bidón lleno hasta el auto y presioná [E].");
-            gameUI.ShowMessage("Bidón lleno. Ahora cargá el tanque del auto.");
+            if (gameUI != null)
+            {
+                gameUI.SetObjective("OBJETIVO 7/8\nCARGÁ EL AUTO\nLlevá el bidón lleno hasta el auto y presioná [E].");
+                gameUI.ShowMessage("Bidón lleno. Ahora cargá el tanque del auto.");
+            }
             FuelCanFilled?.Invoke();
         }
 
@@ -103,8 +160,11 @@ namespace EnElCamino
             if (carHasFuel) return;
 
             carHasFuel = true;
-            gameUI.SetObjective("OBJETIVO 7/7\nSUBITE AL AUTO\nAcercate al auto y presioná [E] para arrancarlo.");
-            gameUI.ShowMessage("Auto cargado. Subite para salir de la estación.");
+            if (gameUI != null)
+            {
+                gameUI.SetObjective("OBJETIVO 8/8\nSUBITE AL AUTO\nAcercate al auto y presioná [E] para arrancarlo.");
+                gameUI.ShowMessage("Auto cargado. Subite para salir de la estación.");
+            }
             CarFueled?.Invoke();
         }
 
@@ -113,8 +173,11 @@ namespace EnElCamino
             if (driving || gameOver) return;
 
             driving = true;
-            gameUI.SetObjective("OBJETIVO 7/7\nLLEGÁ A LA RUTA\nManejá el auto hasta la salida de la estación.");
-            gameUI.ShowMessage("Auto arrancado. Llegá a la ruta antes de que anochezca.");
+            if (gameUI != null)
+            {
+                gameUI.SetObjective("OBJETIVO FINAL\nLLEGÁ A LA RUTA\nManejá hasta la salida antes de que anochezca.");
+                gameUI.ShowMessage("Auto arrancado. Llegá a la ruta antes de que anochezca.");
+            }
             DrivingStarted?.Invoke();
         }
 
@@ -124,13 +187,13 @@ namespace EnElCamino
 
             if (!carHasFuel)
             {
-                gameUI.ShowMessage("Primero necesitás cargar el auto.");
+                ShowMessage("Primero necesitás cargar el auto.");
                 return;
             }
 
             if (!driving)
             {
-                gameUI.ShowMessage("Tenés que salir manejando el auto.");
+                ShowMessage("Tenés que salir manejando el auto.");
                 return;
             }
 
@@ -138,7 +201,7 @@ namespace EnElCamino
             StopAllGameplayAudio(victorySource);
             StopTensionMusic();
             PlayOutcomeSound(victorySource);
-            gameUI.ShowCompleted();
+            if (gameUI != null) gameUI.ShowCompleted();
             GameFinished?.Invoke();
         }
 
@@ -150,7 +213,7 @@ namespace EnElCamino
             StopAllGameplayAudio(gameOverSource);
             StopTensionMusic();
             PlayOutcomeSound(gameOverSource);
-            gameUI.ShowGameOver();
+            if (gameUI != null) gameUI.ShowGameOver();
             GameLost?.Invoke();
         }
 
@@ -183,7 +246,7 @@ namespace EnElCamino
 
         public void ShowMessage(string text)
         {
-            gameUI.ShowMessage(text);
+            if (gameUI != null) gameUI.ShowMessage(text);
         }
 
     }

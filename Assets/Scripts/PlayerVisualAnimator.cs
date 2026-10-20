@@ -30,7 +30,8 @@ namespace EnElCamino
         private float walkPhase;
         private float idlePhase;
         private bool built;
-        private bool climbing;
+        private bool hanging;
+        private bool falling;
 
         private void Awake()
         {
@@ -47,10 +48,14 @@ namespace EnElCamino
         {
             if (!Application.isPlaying || !built || controller == null) return;
 
-            if (climbing)
+            if (hanging)
             {
-                walkPhase += Time.deltaTime * walkCycleSpeed * 0.8f;
-                AnimateClimb();
+                AnimateHang();
+                return;
+            }
+            if (falling)
+            {
+                AnimateFalling();
                 return;
             }
 
@@ -232,23 +237,39 @@ namespace EnElCamino
             head.localPosition = Vector3.Lerp(head.localPosition, headRestPosition + Vector3.up * breathing * 1.2f, Time.deltaTime * 8f);
         }
 
-        public void SetClimbing(bool value)
+        public void SetHanging(bool value)
         {
-            climbing = value;
-            if (!value) walkPhase = 0f;
+            hanging = value;
         }
 
-        private void AnimateClimb()
+        public void SetFalling(bool value)
         {
-            float swing = Mathf.Sin(walkPhase) * 34f;
-            leftArm.localRotation = Quaternion.Euler(-swing, 0f, -12f);
-            rightArm.localRotation = Quaternion.Euler(swing, 0f, 12f);
-            leftLeg.localRotation = Quaternion.Euler(swing * 0.45f, 0f, 0f);
-            rightLeg.localRotation = Quaternion.Euler(-swing * 0.45f, 0f, 0f);
-            leftFoot.localRotation = Quaternion.Euler(-swing * 0.2f, 0f, 0f);
-            rightFoot.localRotation = Quaternion.Euler(swing * 0.2f, 0f, 0f);
-            torso.localPosition = torsoRestPosition + Vector3.up * (Mathf.Abs(Mathf.Sin(walkPhase * 2f)) * 0.018f);
-            head.localPosition = headRestPosition + Vector3.up * (Mathf.Abs(Mathf.Sin(walkPhase * 2f)) * 0.025f);
+            falling = value;
+        }
+
+        private void AnimateHang()
+        {
+            leftArm.localRotation = Quaternion.Slerp(leftArm.localRotation, Quaternion.Euler(0f, 0f, 158f), Time.deltaTime * 10f);
+            rightArm.localRotation = Quaternion.Slerp(rightArm.localRotation, Quaternion.Euler(0f, 0f, -158f), Time.deltaTime * 10f);
+            leftLeg.localRotation = Quaternion.Slerp(leftLeg.localRotation, Quaternion.Euler(20f, 0f, -5f), Time.deltaTime * 6f);
+            rightLeg.localRotation = Quaternion.Slerp(rightLeg.localRotation, Quaternion.Euler(-18f, 0f, 5f), Time.deltaTime * 6f);
+            leftFoot.localRotation = Quaternion.Slerp(leftFoot.localRotation, Quaternion.Euler(-12f, 0f, 0f), Time.deltaTime * 6f);
+            rightFoot.localRotation = Quaternion.Slerp(rightFoot.localRotation, Quaternion.Euler(10f, 0f, 0f), Time.deltaTime * 6f);
+            torso.localPosition = Vector3.Lerp(torso.localPosition, torsoRestPosition + Vector3.down * 0.035f, Time.deltaTime * 6f);
+            head.localPosition = Vector3.Lerp(head.localPosition, headRestPosition, Time.deltaTime * 6f);
+        }
+
+        private void AnimateFalling()
+        {
+            float kick = Mathf.Sin(Time.time * 8f) * 18f;
+            leftArm.localRotation = Quaternion.Slerp(leftArm.localRotation, Quaternion.Euler(0f, 0f, 58f), Time.deltaTime * 8f);
+            rightArm.localRotation = Quaternion.Slerp(rightArm.localRotation, Quaternion.Euler(0f, 0f, -58f), Time.deltaTime * 8f);
+            leftLeg.localRotation = Quaternion.Slerp(leftLeg.localRotation, Quaternion.Euler(kick, 0f, -8f), Time.deltaTime * 7f);
+            rightLeg.localRotation = Quaternion.Slerp(rightLeg.localRotation, Quaternion.Euler(-kick, 0f, 8f), Time.deltaTime * 7f);
+            leftFoot.localRotation = Quaternion.Slerp(leftFoot.localRotation, Quaternion.Euler(-kick * 0.35f, 0f, 0f), Time.deltaTime * 7f);
+            rightFoot.localRotation = Quaternion.Slerp(rightFoot.localRotation, Quaternion.Euler(kick * 0.35f, 0f, 0f), Time.deltaTime * 7f);
+            torso.localPosition = Vector3.Lerp(torso.localPosition, torsoRestPosition, Time.deltaTime * 7f);
+            head.localPosition = Vector3.Lerp(head.localPosition, headRestPosition, Time.deltaTime * 7f);
         }
 
         private void PlayFootstep()

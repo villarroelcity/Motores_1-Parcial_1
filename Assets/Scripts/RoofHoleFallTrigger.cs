@@ -9,7 +9,10 @@ namespace EnElCamino
         private void OnTriggerEnter(Collider other)
         {
             if (gameFlow == null || gameFlow.gameOver || gameFlow.finished) return;
-            if (other.GetComponentInParent<PlayerController>() != null)
+            PlayerController player = other.GetComponentInParent<PlayerController>();
+            if (player == null || player.IsInControlledRoofDescent) return;
+            CharacterController controller = player.GetComponent<CharacterController>();
+            if (controller != null && !controller.isGrounded)
                 gameFlow.GameOver();
         }
     }

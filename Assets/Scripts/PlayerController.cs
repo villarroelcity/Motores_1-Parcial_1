@@ -15,6 +15,9 @@ namespace EnElCamino
         private Vector3 verticalVelocity;
         private Camera mainCamera;
         private GameFlow gameFlow;
+        private bool trackingFall;
+        private bool controlledRoofDescent;
+        private float fallStartY;
 
         private void Awake()
         {
@@ -34,6 +37,18 @@ namespace EnElCamino
 
             if (gameFlow != null && (gameFlow.fueling || gameFlow.movementLocked)) return;
 
+            bool groundedBeforeMove = controller.isGrounded;
+            if (groundedBeforeMove && verticalVelocity.y < 0f)
+            {
+                verticalVelocity.y = -2f;
+                trackingFall = false;
+            }
+            else if (!groundedBeforeMove && !trackingFall)
+            {
+                trackingFall = true;
+                fallStartY = transform.position.y;
+            }
+
             Vector2 input = ReadMovement();
             Vector3 direction = new Vector3(input.x, 0f, input.y);
 
@@ -51,9 +66,37 @@ namespace EnElCamino
                 controller.Move(worldDirection * speed * Time.deltaTime);
             }
 
-            if (controller.isGrounded && verticalVelocity.y < 0f) verticalVelocity.y = -2f;
             verticalVelocity.y += gravity * Time.deltaTime;
             controller.Move(verticalVelocity * Time.deltaTime);
+
+            if (trackingFall && controller.isGrounded)
+            {
+                float fallDistance = fallStartY - transform.position.y;
+                trackingFall = false;
+                if (fallDistance >= 2.5f && gameFlow != null && !gameFlow.gameOver && !gameFlow.finished)
+                    gameFlow.GameOver();
+            }
+        }
+
+        public void ResetFallTracking()
+        {
+            trackingFall = false;
+            verticalVelocity = new Vector3(0f, -2f, 0f);
+        }
+
+        public bool IsInControlledRoofDescent => controlledRoofDescent;
+
+        public void SetControlledRoofDescent(bool value)
+        {
+            controlledRoofDescent = value;
+            ResetFallTracking();
+        }
+
+        public void RegisterRoofFall()
+        {
+            if (trackingFall) return;
+            trackingFall = true;
+            fallStartY = transform.position.y;
         }
 
         private Vector2 ReadMovement()

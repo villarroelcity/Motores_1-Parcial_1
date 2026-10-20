@@ -16,6 +16,7 @@ namespace EnElCamino
         [SerializeField] private Transform stopPoint;
         [SerializeField] private Transform exitPoint;
         [SerializeField] private float duration = 7f;
+        [SerializeField] private float engineCutoffLeadTime = 1.25f;
 
         private CarDriver carDriver;
         private Rigidbody vehicleBody;
@@ -37,6 +38,8 @@ namespace EnElCamino
         private IEnumerator ArriveAndUnload()
         {
             carDriver.SetVehicleReady(false);
+            // The intro begins with the car already running; don't play the starter.
+            carDriver.StartEngineAudio(false);
             if (gameFlow != null) gameFlow.movementLocked = true;
             if (player != null)
             {
@@ -55,7 +58,7 @@ namespace EnElCamino
                 vehicleBody.isKinematic = true;
                 vehicleBody.detectCollisions = false;
             }
-            if (vppController != null) vppController.enabled = false;
+            // Keep VPVehicleController enabled so its built-in engine audio remains active.
 
             if (arrivalStart != null)
             {
@@ -75,9 +78,15 @@ namespace EnElCamino
             Quaternion targetRotation = stopPoint != null ? stopPoint.rotation : startRotation;
 
             float elapsed = 0f;
+            bool engineCutoff = false;
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
+                if (!engineCutoff && elapsed >= Mathf.Max(0f, duration - engineCutoffLeadTime))
+                {
+                    carDriver.StopEngineAudio();
+                    engineCutoff = true;
+                }
                 float t = Mathf.Clamp01(elapsed / Mathf.Max(0.1f, duration));
                 t = t * t * (3f - 2f * t);
                 Vector3 nextPosition = Vector3.Lerp(startPosition, targetPosition, t);
@@ -97,7 +106,6 @@ namespace EnElCamino
                 vehicleBody.linearVelocity = Vector3.zero;
                 vehicleBody.angularVelocity = Vector3.zero;
             }
-            if (vppController != null) vppController.enabled = true;
 
             if (player != null)
             {
@@ -108,6 +116,7 @@ namespace EnElCamino
             }
 
             carDriver.SetVehicleReady(true);
+            carDriver.StopEngineAudio();
             if (gameFlow != null)
             {
                 gameFlow.movementLocked = false;

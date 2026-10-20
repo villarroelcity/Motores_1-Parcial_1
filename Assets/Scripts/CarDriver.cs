@@ -1,11 +1,10 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System;
-using System.Reflection;
+using VehiclePhysics;
 
 namespace EnElCamino
 {
-    [RequireComponent(typeof(AudioSource))]
+    [DefaultExecutionOrder(-100)]
     public class CarDriver : MonoBehaviour
     {
         [SerializeField] private GameFlow gameFlow;
@@ -13,136 +12,114 @@ namespace EnElCamino
         [SerializeField] private ThirdPersonCamera cameraFollow;
         [SerializeField] private float speed = 7f;
         [SerializeField] private float turnSpeed = 75f;
-        [SerializeField] private AudioClip accelerationSound;
-        [SerializeField] private AudioClip engineLoopSound;
-        private AudioSource audioSource;
-        private Component vppInput;
-        private Rigidbody vehicleBody;
+
+        private VPVehicleController vehicleController;
         private bool driving;
-        private bool engineLoopPlaying;
         private bool vehicleReady = true;
+        private bool engineRequested;
+        private float starterUntil;
+        private float throttleInput;
+        private float steerInput;
 
         public bool IsReady => vehicleReady;
+        public bool EngineRequested => engineRequested;
 
         private void Awake()
         {
-            audioSource = GetComponent<AudioSource>();
-            vppInput = GetComponent("VPStandardInput");
-            vehicleBody = GetComponent<Rigidbody>();
-
-            if (vppInput != null)
+            if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
+            vehicleController = GetComponent<VPVehicleController>();
+            if (vehicleController == null) return;
+            // The new Input System writes the VPP bus directly. The legacy input
+            // reader would otherwise overwrite these controls every physics step.
+            VPStandardInput legacyInput = GetComponent<VPStandardInput>();
+            if (legacyInput != null) legacyInput.enabled = false;
+            vehicleReady = false;
+            foreach (VPAudio audio in GetComponentsInChildren<VPAudio>(true))
             {
-                if (vppInput is Behaviour behaviour) behaviour.enabled = false;
-                vehicleReady = false;
+                audio.enabled = true;
+                foreach (AudioSource source in audio.GetComponentsInChildren<AudioSource>(true))
+                {
+                    source.enabled = true;
+                    source.mute = false;
+                }
             }
         }
 
         public void SetVehicleReady(bool ready)
         {
             vehicleReady = ready;
-            if (!ready)
-            {
-                driving = false;
-                SetVppInput(false);
-                StopEngineLoop();
-            }
+            if (ready) return;
+            driving = false;
+            throttleInput = 0f;
+            steerInput = 0f;
         }
 
         public void EnterCar()
         {
-            if (!vehicleReady || driving || !gameFlow.carHasFuel || gameFlow.gameOver) return;
-
+            if (!vehicleReady || driving || gameFlow == null || !gameFlow.carHasFuel || gameFlow.gameOver || gameFlow.finished) return;
             driving = true;
-            if (engineLoopSound == null) engineLoopSound = accelerationSound;
-            player.SetActive(false);
-            cameraFollow.SetTarget(transform);
-            SetVppInput(true);
+            StartEngineAudio(true);
+            if (player != null) player.SetActive(false);
+            CinemachineFollowSetup cameraRig = FindFirstObjectByType<CinemachineFollowSetup>();
+            if (cameraRig != null) cameraRig.SetTarget(transform);
+            else if (cameraFollow != null) cameraFollow.SetTarget(transform);
             gameFlow.StartDriving();
         }
 
         private void Update()
         {
-            if (!driving) return;
-            if (gameFlow.gameOver || gameFlow.finished)
+            if (gameFlow != null && (gameFlow.gameOver || gameFlow.finished))
             {
-                SetVppInputs(0f, 0f);
-                StopEngineLoop();
+                StopEngineAudio();
+                driving = false;
                 return;
             }
-            if (Keyboard.current == null) return;
-
-            float forward = 0f;
-            float turn = 0f;
-
-            if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) forward = 1f;
-            if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) forward = -1f;
-            if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) turn = -1f;
-            if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) turn = 1f;
-
-            if (vppInput != null)
+            throttleInput = 0f;
+            steerInput = 0f;
+            if (!driving || Keyboard.current == null) return;
+            if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) throttleInput = 1f;
+            if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) throttleInput = -1f;
+            if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) steerInput = -1f;
+            if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) steerInput = 1f;
+            if (vehicleController == null)
             {
-                SetVppInputs(forward, turn);
-            }
-            else
-            {
-                transform.Rotate(0f, turn * turnSpeed * Time.deltaTime, 0f);
-                transform.Translate(Vector3.forward * forward * speed * Time.deltaTime);
-            }
-
-            if (forward != 0f && !engineLoopPlaying && engineLoopSound != null)
-            {
-                engineLoopPlaying = true;
-                audioSource.clip = engineLoopSound;
-                audioSource.loop = true;
-                audioSource.Play();
-            }
-            else if (forward == 0f)
-            {
-                StopEngineLoop();
+                transform.Rotate(0f, steerInput * turnSpeed * Time.deltaTime, 0f);
+                transform.Translate(Vector3.forward * throttleInput * speed * Time.deltaTime);
             }
         }
 
-        private void SetVppInput(bool enabled)
+        private void FixedUpdate()
         {
-            if (vppInput == null) return;
-            if (vppInput is Behaviour behaviour) behaviour.enabled = enabled;
-            if (!enabled) SetVppInputs(0f, 0f);
+            if (vehicleController == null || !vehicleController.initialized) return;
+            int[] input = vehicleController.data.Get(Channel.Input);
+            bool stopped = gameFlow != null && (gameFlow.gameOver || gameFlow.finished);
+            bool engineOn = engineRequested && !stopped;
+            // VPP bus Key: -1 = off, 0 = ignition on, 1 = starter motor.
+            input[InputData.Key] = !engineOn ? -1 : Time.time < starterUntil ? 1 : 0;
+            input[InputData.Steer] = driving ? Mathf.RoundToInt(steerInput * 10000f) : 0;
+            bool reversing = throttleInput < -0.05f;
+            float throttle = driving ? Mathf.Abs(throttleInput) : !vehicleReady ? 0.18f : 0f;
+            input[InputData.Throttle] = engineOn ? Mathf.RoundToInt(throttle * 10000f) : 0;
+            input[InputData.Brake] = (!driving && vehicleReady) || stopped ? 10000 : 0;
+            input[InputData.Handbrake] = !driving && vehicleReady ? 10000 : 0;
+            input[InputData.Clutch] = driving ? 0 : 10000;
+            input[InputData.ManualGear] = driving ? (reversing ? -1 : 1) : 0;
+            input[InputData.AutomaticGear] = driving ? (reversing ? 2 : 4) : 3;
         }
 
-        private void SetVppInputs(float forward, float turn)
+        public void StartEngineAudio(bool playStartSound)
         {
-            SetVppField("externalThrottle", Mathf.Clamp01(Mathf.Max(0f, forward)));
-            SetVppField("reverse", forward < -0.05f ? 1f : 0f);
-            SetVppField("externalBrake", 0f);
-            SetVppField("externalSteer", Mathf.Clamp(turn, -1f, 1f));
-            SetVppField("externalIgnition", 1f);
+            // VPAudio plays the Sport Coupe's original clips from real RPM/load.
+            if (playStartSound && !engineRequested) starterUntil = Time.time + 1.4f;
+            else if (!playStartSound) starterUntil = 0f;
+            engineRequested = true;
         }
 
-        private void SetVppField(string fieldName, float value)
+        public void StopEngineAudio()
         {
-            if (vppInput == null) return;
-
-            FieldInfo field = vppInput.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (field == null) return;
-
-            try
-            {
-                Type type = field.FieldType;
-                object converted = type == typeof(bool) ? value > 0.5f : Convert.ChangeType(value, type);
-                field.SetValue(vppInput, converted);
-            }
-            catch (Exception)
-            {
-                // Vehicle Physics Pro versions expose these fields with different numeric types.
-            }
-        }
-
-        private void StopEngineLoop()
-        {
-            if (!engineLoopPlaying) return;
-            engineLoopPlaying = false;
-            audioSource.loop = false;
-            audioSource.Stop();
+            engineRequested = false;
+            throttleInput = 0f;
+            steerInput = 0f;
         }
     }
 }

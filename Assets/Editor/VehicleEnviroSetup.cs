@@ -18,13 +18,19 @@ namespace EnElCamino.Editor
         private const string NatureGrassMaterialPath = "Assets/Materials/NatureStarterGrass.mat";
         private const string NatureGrassMeshPath = "Assets/Materials/NatureStarterGrassBillboard.asset";
 
-        [MenuItem("Parcial 2/Integrar Vehicle Physics Pro y Enviro 3")]
         public static void Apply()
         {
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                Debug.LogWarning("Salí de Play Mode antes de integrar los cambios del proyecto.");
+                return;
+            }
+
             SceneSetup();
             IntegrateVehicle();
             IntegrateEnviro();
             ConfigureGeneratorTexture();
+            ReplaceGeneratorVisual();
             ConfigureTelemetryAndLighting();
             FixNegativeTerrainScale();
             RemoveGeneratedGrass();
@@ -33,7 +39,9 @@ namespace EnElCamino.Editor
             AddNatureStarterTerrainGrass();
             ConfigureEnviroAudio();
             ReplaceFuelCanVisual();
+            GenerateNatureKitTrees();
             RemoveVoicePlayback();
+            StationPowerControlsSetup.Apply();
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             EditorSceneManager.SaveOpenScenes();
             Debug.Log("Vehicle Physics Pro, Enviro 3 y el flujo de llegada fueron integrados.");
@@ -110,13 +118,14 @@ namespace EnElCamino.Editor
             SetReference(interactable, "gameFlow", flow);
             SetReference(interactable, "fuelCan", fuelCan);
             SetReference(interactable, "carDriver", driver);
-            SetReference(interactable, "startSound", LoadClip("SFX/motor_arranque.mp3"));
+            SetReference(interactable, "startSound", null);
 
             SetReference(driver, "gameFlow", flow);
             SetReference(driver, "player", player);
             SetReference(driver, "cameraFollow", thirdPersonCamera);
-            SetReference(driver, "accelerationSound", LoadClip("SFX/motor_acelerando.mp3"));
-            SetReference(driver, "engineLoopSound", LoadClip("SFX/motor_acelerando.mp3"));
+            SetReference(driver, "accelerationSound", null);
+            SetReference(driver, "engineLoopSound", null);
+            SetReference(driver, "engineStartSound", null);
 
             SetReference(arrival, "gameFlow", flow);
             SetReference(arrival, "player", player);
@@ -248,30 +257,7 @@ namespace EnElCamino.Editor
 
         private static void ConfigureEnviroGroundTexture()
         {
-            GameObject terrain = GameObject.Find("EstacionDeServicio/Terreno");
-            MeshRenderer renderer = terrain != null ? terrain.GetComponent<MeshRenderer>() : null;
-            Texture2D grassTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(GrassTexturePath);
-            Texture2D grassNormal = AssetDatabase.LoadAssetAtPath<Texture2D>(GrassNormalPath);
-            if (renderer == null || grassTexture == null) return;
-
-            Shader shader = Shader.Find("Standard") ?? Shader.Find("Universal Render Pipeline/Lit");
-            Material material = AssetDatabase.LoadAssetAtPath<Material>(GrassMaterialPath);
-            if (material == null)
-            {
-                material = new Material(shader) { name = "EnviroGrass_Ground" };
-                AssetDatabase.CreateAsset(material, GrassMaterialPath);
-            }
-            if (material.HasProperty("_MainTex")) material.SetTexture("_MainTex", grassTexture);
-            if (material.HasProperty("_BaseMap")) material.SetTexture("_BaseMap", grassTexture);
-            if (material.HasProperty("_BumpMap") && grassNormal != null) material.SetTexture("_BumpMap", grassNormal);
-            if (material.HasProperty("_Color")) material.SetColor("_Color", new Color(0.68f, 0.75f, 0.62f));
-            if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", new Color(0.68f, 0.75f, 0.62f));
-            if (material.HasProperty("_Metallic")) material.SetFloat("_Metallic", 0f);
-            if (material.HasProperty("_Glossiness")) material.SetFloat("_Glossiness", 0f);
-            if (material.HasProperty("_Smoothness")) material.SetFloat("_Smoothness", 0f);
-            material.mainTextureScale = new Vector2(80f, 80f);
-            EditorUtility.SetDirty(material);
-            renderer.sharedMaterial = material;
+            StationPowerControlsSetup.RefreshGroundMaterials(EditorSceneManager.GetActiveScene());
         }
 
         private static void AddEnviroVegetation()
@@ -380,7 +366,7 @@ namespace EnElCamino.Editor
             TerrainData data = new TerrainData { name = "NatureStarterTerrainGrass_Data" };
             data.heightmapResolution = 33;
             data.size = new Vector3(80f, 2f, 70f);
-            data.SetDetailResolution(128, 8);
+            data.SetDetailResolution(256, 16);
             data.detailPrototypes = source.detailPrototypes;
 
             float[,] heights = new float[data.heightmapResolution, data.heightmapResolution];
@@ -396,9 +382,9 @@ namespace EnElCamino.Editor
                     bool leftEarth = worldX > 5f && worldX < 27f;
                     bool rightEarth = worldX > 53f && worldX < 75f;
                     bool withinPlayableArea = worldZ > 4f && worldZ < 66f;
-                    bool sparse = ((x * 17 + z * 31 + layer * 13) % 11) < 3;
+                    bool sparse = ((x * 17 + z * 31 + layer * 13) % 11) < 8;
                     if ((leftEarth || rightEarth) && withinPlayableArea && sparse)
-                        details[z, x] = layer < 2 ? 5 : 3;
+                        details[z, x] = layer < 2 ? 8 : 5;
                 }
                 data.SetDetailLayer(0, 0, layer, details);
             }
@@ -410,8 +396,8 @@ namespace EnElCamino.Editor
             Terrain terrain = terrainObject.GetComponent<Terrain>();
             terrain.drawInstanced = true;
             terrain.heightmapPixelError = 50f;
-            terrain.detailObjectDistance = 60f;
-            terrain.detailObjectDensity = 0.8f;
+            terrain.detailObjectDistance = 140f;
+            terrain.detailObjectDensity = 1f;
             terrain.basemapDistance = 100f;
             EditorUtility.SetDirty(terrainObject);
         }
@@ -481,20 +467,147 @@ namespace EnElCamino.Editor
         {
             Transform fuelCanTransform = FindTransformIncludingInactive("BidonCombustible");
             GameObject fuelCan = fuelCanTransform != null ? fuelCanTransform.gameObject : null;
-            GameObject visualPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/FuelCan.prefab");
+            GameObject visualPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/ThirdParty/ExternalModels/PolyHaven_PlasticJerrycan/plastic_jerrycan_1k.gltf");
             if (fuelCan == null || visualPrefab == null) return;
 
-            Transform oldVisual = fuelCan.transform.Find("Generated_FuelCanister_CC0");
-            if (oldVisual != null) oldVisual.gameObject.SetActive(false);
-            Transform existing = fuelCan.transform.Find("PlasticFuelCan_Visual");
+            foreach (Transform child in fuelCan.transform)
+                if (child.name.Contains("Visual") || child.name.Contains("FuelCanister")) child.gameObject.SetActive(false);
+            Transform existing = fuelCan.transform.Find("JerryCan_20L_Visual");
             if (existing != null) Object.DestroyImmediate(existing.gameObject);
 
             GameObject visual = PrefabUtility.InstantiatePrefab(visualPrefab, fuelCan.transform) as GameObject;
             if (visual == null) return;
-            visual.name = "PlasticFuelCan_Visual";
-            visual.transform.localPosition = Vector3.zero;
+            visual.name = "JerryCan_20L_Visual";
+            visual.transform.localPosition = new Vector3(0f, -0.58f, 0f);
             visual.transform.localRotation = Quaternion.identity;
-            visual.transform.localScale = new Vector3(0.7f, 0.75f, 0.7f);
+            visual.transform.localScale = Vector3.one;
+        }
+
+        private static void ReplaceGeneratorVisual()
+        {
+            Transform generator = FindTransformIncludingInactive("GeneradorAuxiliar");
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/ThirdParty/ExternalModels/PortableGenerator_Grab3D_CC0.glb");
+            if (generator == null || prefab == null) return;
+
+            Transform existing = generator.Find("Generator_Grab3D_CC0");
+            if (existing != null) Object.DestroyImmediate(existing.gameObject);
+            foreach (Transform child in generator)
+                if (child.GetComponentInChildren<MeshRenderer>(true) != null && child.GetComponentInChildren<GeneratorInteractable>(true) == null && child.name.IndexOf("button", System.StringComparison.OrdinalIgnoreCase) < 0)
+                    child.gameObject.SetActive(false);
+
+            GameObject visual = PrefabUtility.InstantiatePrefab(prefab, generator) as GameObject;
+            if (visual == null) return;
+            visual.name = "Generator_Grab3D_CC0";
+            visual.transform.localPosition = new Vector3(0f, -0.9f, 0f);
+            visual.transform.localRotation = Quaternion.identity;
+            visual.transform.localScale = Vector3.one;
+        }
+
+        private static void GenerateNatureKitTrees()
+        {
+            GameObject station = GameObject.Find("EstacionDeServicio");
+            Transform nature = station != null ? station.transform.Find("Art_Environment/Nature") : null;
+            if (nature == null) return;
+
+            var oldTrees = new System.Collections.Generic.List<Transform>();
+            foreach (Transform child in nature.GetComponentsInChildren<Transform>(true))
+                if (child.name.StartsWith("Generated_Tree_")) oldTrees.Add(child);
+
+            Transform root = station.transform.Find("NatureStarterTrees");
+            if (root == null)
+            {
+                GameObject container = new GameObject("NatureStarterTrees");
+                container.transform.SetParent(station.transform, false);
+                root = container.transform;
+            }
+            foreach (Transform child in root) Object.DestroyImmediate(child.gameObject);
+
+            string[] names = { "tree01.prefab", "tree02.prefab", "tree03.prefab", "tree04.prefab" };
+            for (int i = 0; i < oldTrees.Count; i++)
+            {
+                Transform previous = oldTrees[i];
+                GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(NatureKitPath + names[i % names.Length]);
+                if (prefab == null) continue;
+                GameObject tree = PrefabUtility.InstantiatePrefab(prefab, root) as GameObject;
+                if (tree == null) continue;
+                tree.name = "NatureStarterKit2_Tree_" + (i + 1).ToString("00");
+                tree.transform.SetPositionAndRotation(previous.position, previous.rotation);
+                tree.transform.localScale = previous.lossyScale;
+
+                // The pack uses Unity Tree Creator data; force Unity to rebuild its runtime mesh.
+                Component treeComponent = tree.GetComponent("Tree");
+                if (treeComponent == null)
+                    foreach (Component component in tree.GetComponents<Component>())
+                        if (component != null && component.GetType().Name == "Tree") { treeComponent = component; break; }
+                if (treeComponent != null && RebuildTreeMesh(treeComponent, NatureKitPath + names[i % names.Length]))
+                    previous.gameObject.SetActive(false);
+                else
+                {
+                    tree.SetActive(false);
+                    if (treeComponent == null) Debug.LogWarning("No se encontró el componente Unity Tree en " + names[i % names.Length] + ".");
+                    Debug.LogWarning("El prefab " + names[i % names.Length] + " no generó una malla visible; se conserva el árbol existente.");
+                }
+            }
+        }
+
+        private static bool RebuildTreeMesh(Component tree, string prefabPath)
+        {
+            System.Type editorType = null;
+            foreach (System.Reflection.Assembly assembly in System.AppDomain.CurrentDomain.GetAssemblies())
+            {
+                editorType = assembly.GetType("TreeEditor.TreeEditor", false);
+                if (editorType != null) break;
+            }
+            if (editorType == null) return false;
+            try
+            {
+                ScriptableObject treeData = null;
+                foreach (Object subAsset in AssetDatabase.LoadAllAssetsAtPath(prefabPath))
+                    if (subAsset is ScriptableObject && subAsset.name == "Tree Data") { treeData = subAsset as ScriptableObject; break; }
+                if (treeData == null)
+                {
+                    Debug.LogWarning("No se encontró el subasset Tree Data dentro de " + prefabPath + ".");
+                    return false;
+                }
+
+                SerializedObject serializedTree = new SerializedObject(tree);
+                SerializedProperty dataReference = serializedTree.FindProperty("m_TreeData");
+                if (dataReference != null)
+                {
+                    dataReference.objectReferenceValue = treeData;
+                    serializedTree.ApplyModifiedPropertiesWithoutUndo();
+                }
+
+                System.Reflection.MethodInfo update = null;
+                foreach (System.Reflection.MethodInfo candidate in editorType.GetMethods(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic))
+                {
+                    System.Reflection.ParameterInfo[] parameters = candidate.GetParameters();
+                    if (candidate.Name == "UpdateMesh" && parameters.Length == 2 && parameters[0].ParameterType.IsInstanceOfType(tree) && parameters[1].ParameterType == typeof(bool))
+                    { update = candidate; break; }
+                }
+                if (update == null)
+                {
+                    Debug.LogWarning("No se encontró TreeEditor.UpdateMesh(Tree, bool) para " + prefabPath + ".");
+                    return false;
+                }
+                update.Invoke(null, new object[] { tree, false });
+
+                SerializedObject serializedData = new SerializedObject(treeData);
+                SerializedProperty meshReference = serializedData.FindProperty("mesh");
+                MeshFilter filter = tree.GetComponent<MeshFilter>();
+                if (meshReference != null && filter != null)
+                    filter.sharedMesh = meshReference.objectReferenceValue as Mesh;
+                EditorUtility.SetDirty(tree.gameObject);
+                bool generated = filter != null && filter.sharedMesh != null && filter.sharedMesh.vertexCount > 0;
+                if (!generated)
+                    Debug.LogWarning("Tree Editor actualizó " + prefabPath + " pero no asignó una malla. Encontró el dato mesh: " + (meshReference != null) + "; objeto: " + (meshReference != null ? meshReference.objectReferenceValue : null) + ".");
+                return generated;
+            }
+            catch (System.Exception exception)
+            {
+                Debug.LogWarning("No se pudo regenerar un árbol de Nature Starter Kit 2: " + exception.GetBaseException().Message);
+                return false;
+            }
         }
 
         private static void FixNegativeTerrainScale()

@@ -22,9 +22,9 @@ namespace EnElCamino
         {
             if (taken) return;
 
-            if (!gameFlow.generatorOn)
+            if (gameFlow == null || !gameFlow.generatorOn || !gameFlow.stationPowerConnected)
             {
-                gameFlow.ShowMessage("Primero encendé el generador.");
+                if (gameFlow != null) gameFlow.ShowMessage("Primero encendé y conectá el generador.");
                 return;
             }
 

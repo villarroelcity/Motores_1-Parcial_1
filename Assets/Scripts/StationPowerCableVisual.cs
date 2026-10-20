@@ -13,21 +13,30 @@ namespace EnElCamino
         [SerializeField] private LineRenderer cable;
         [SerializeField] private Renderer plugIndicator;
         [SerializeField] private Light statusLamp;
+        [SerializeField, Min(0.1f)] private float unpluggedCableLength = 1.15f;
+        [SerializeField, Min(0.05f)] private float connectionDuration = 0.6f;
+        [SerializeField] private bool routeThroughWall;
         private bool connected;
+        private float connectionProgress;
 
         private void Awake()
         {
-            if (Application.isPlaying) EnsureWallPassThrough();
+            connectionProgress = connected ? 1f : 0f;
         }
 
         private void LateUpdate()
         {
             if (cable == null || generatorOutlet == null || boxSocket == null) return;
-            if (Application.isPlaying && wallPassThrough == null) EnsureWallPassThrough();
             Vector3 start = generatorOutlet.position;
             Vector3 towardGenerator = (start - boxSocket.position).normalized;
-            Vector3 end = connected ? boxSocket.position : boxSocket.position + towardGenerator * 0.8f;
-            if (wallPassThrough != null)
+            float targetProgress = connected ? 1f : 0f;
+            connectionProgress = Mathf.MoveTowards(connectionProgress, targetProgress,
+                Time.deltaTime / Mathf.Max(0.05f, connectionDuration));
+            Vector3 unpluggedEnd = boxSocket.position + towardGenerator * unpluggedCableLength;
+            Vector3 end = Vector3.Lerp(unpluggedEnd, boxSocket.position,
+                connectionProgress * connectionProgress * (3f - 2f * connectionProgress));
+
+            if (routeThroughWall && wallPassThrough != null)
             {
                 Vector3 wallNormal = wallPassThrough.up.normalized;
                 float outsideSign = Mathf.Sign(Vector3.Dot(start - wallPassThrough.position, wallNormal));
@@ -35,7 +44,9 @@ namespace EnElCamino
                 Vector3 outsidePoint = wallPassThrough.position + wallNormal * outsideSign * (wallThickness * 0.5f + 0.035f);
                 Vector3 insideDirection = -wallNormal * outsideSign;
                 Vector3 insidePoint = wallPassThrough.position + insideDirection * (wallThickness * 0.5f + 0.035f);
-                end = connected ? boxSocket.position : boxSocket.position + insideDirection * 0.65f;
+                Vector3 unpluggedWallEnd = boxSocket.position + insideDirection * unpluggedCableLength;
+                end = Vector3.Lerp(unpluggedWallEnd, boxSocket.position,
+                    connectionProgress * connectionProgress * (3f - 2f * connectionProgress));
 
                 if (cable.positionCount != 5) cable.positionCount = 5;
                 Vector3 outsideSag = Vector3.down * Mathf.Min(0.08f, Vector3.Distance(start, outsidePoint) * 0.02f);
@@ -55,9 +66,9 @@ namespace EnElCamino
                 cable.SetPosition(3, end);
             }
 
-            // Keep the authored plug transform untouched in Edit Mode; only animate it at runtime.
+            // The plug now travels to the socket instead of teleporting through the wall.
             if (Application.isPlaying && plugIndicator != null)
-                plugIndicator.transform.position = connected ? boxSocket.position : end;
+                plugIndicator.transform.position = end;
         }
 
         private void EnsureWallPassThrough()

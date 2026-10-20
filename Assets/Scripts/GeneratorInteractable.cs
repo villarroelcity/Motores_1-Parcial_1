@@ -26,6 +26,23 @@ namespace EnElCamino
             }
         }
 
+        private void OnEnable()
+        {
+            if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
+            if (gameFlow == null) return;
+            gameFlow.GeneratorFuelDepleted += ShutDownGenerator;
+            gameFlow.GameLost += ShutDownGenerator;
+            gameFlow.GameFinished += ShutDownGenerator;
+        }
+
+        private void OnDisable()
+        {
+            if (gameFlow == null) return;
+            gameFlow.GeneratorFuelDepleted -= ShutDownGenerator;
+            gameFlow.GameLost -= ShutDownGenerator;
+            gameFlow.GameFinished -= ShutDownGenerator;
+        }
+
         private AudioSource MotorSource => motorAudioSource != null ? motorAudioSource : EnsureAudioSource();
 
         private AudioSource EnsureAudioSource()
@@ -87,9 +104,18 @@ namespace EnElCamino
                 audioSource.loop = false;
                 audioSource.Stop();
             }
-            AudioSource motorSource = MotorSource;
-            motorSource.loop = false;
-            motorSource.Stop();
+            if (motorAudioSource != null)
+            {
+                motorAudioSource.loop = false;
+                motorAudioSource.Stop();
+            }
+        }
+
+        private void ShutDownGenerator()
+        {
+            generatorOn = false;
+            StopGeneratorAudio();
+            if (indicatorLight != null) indicatorLight.enabled = false;
         }
     }
 }

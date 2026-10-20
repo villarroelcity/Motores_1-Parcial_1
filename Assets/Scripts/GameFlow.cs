@@ -11,6 +11,7 @@ namespace EnElCamino
         [SerializeField] private float generatorFuelSeconds = 60f;
 
         public event Action GeneratorStarted;
+        public event Action GeneratorFuelDepleted;
         public event Action StationPowerConnected;
         public event Action GarageDoorMotionStarted;
         public event Action GarageOpened;
@@ -53,10 +54,15 @@ namespace EnElCamino
         private void Update()
         {
             if (!generatorOn || fuelCanFull || gameOver || finished) return;
-            generatorFuelRemaining -= Time.deltaTime;
+            generatorFuelRemaining = Mathf.Max(0f, generatorFuelRemaining - Time.deltaTime);
             if (gameUI != null) gameUI.SetGeneratorFuelTime(generatorFuelRemaining);
             if (generatorFuelRemaining <= 0f)
             {
+                // Stop the generator state before raising the outcome. This gives every
+                // dependent system (including the looped engine sound) one explicit
+                // shutdown signal instead of relying on the global audio pause.
+                generatorOn = false;
+                GeneratorFuelDepleted?.Invoke();
                 ShowMessage("El generador se quedó sin combustible antes de llenar el bidón.");
                 GameOver();
             }

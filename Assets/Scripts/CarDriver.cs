@@ -24,6 +24,7 @@ namespace EnElCamino
         private float steerInput;
         private bool automaticTransmissionConfigured;
         private readonly List<StartupAudioVolume> startupAudioVolumes = new List<StartupAudioVolume>();
+        private readonly List<StartupAudioMute> startupAudioMutes = new List<StartupAudioMute>();
         private float restoreStartupAudioAt = -1f;
 
         private struct StartupAudioVolume
@@ -31,6 +32,12 @@ namespace EnElCamino
             public Component audioComponent;
             public FieldInfo volumeField;
             public float originalVolume;
+        }
+
+        private struct StartupAudioMute
+        {
+            public AudioSource source;
+            public bool originalMute;
         }
 
         public bool IsReady => vehicleReady;
@@ -62,6 +69,11 @@ namespace EnElCamino
                 }
                 foreach (AudioSource source in audio.GetComponentsInChildren<AudioSource>(true))
                 {
+                    startupAudioMutes.Add(new StartupAudioMute
+                    {
+                        source = source,
+                        originalMute = source.mute
+                    });
                     source.enabled = true;
                     source.mute = false;
                 }
@@ -160,6 +172,7 @@ namespace EnElCamino
                 if (!playStartSound)
                 {
                     SetStartupAudioVolume(0f);
+                    SetVehicleAudioMuted(true);
                     restoreStartupAudioAt = starterUntil + 0.1f;
                 }
             }
@@ -190,6 +203,16 @@ namespace EnElCamino
                     entry.volumeField.SetValue(entry.audioComponent, entry.originalVolume);
             }
             restoreStartupAudioAt = -1f;
+            SetVehicleAudioMuted(false);
+        }
+
+        private void SetVehicleAudioMuted(bool muted)
+        {
+            foreach (StartupAudioMute entry in startupAudioMutes)
+            {
+                if (entry.source != null)
+                    entry.source.mute = muted || entry.originalMute;
+            }
         }
     }
 }

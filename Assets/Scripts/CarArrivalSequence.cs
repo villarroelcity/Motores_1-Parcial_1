@@ -16,7 +16,7 @@ namespace EnElCamino
         [SerializeField] private Transform stopPoint;
         [SerializeField] private Transform exitPoint;
         [SerializeField] private float duration = 7f;
-        [SerializeField] private float engineCutoffLeadTime = 1.25f;
+        [SerializeField] private float engineCutoffLeadTime = 2.25f;
 
         private CarDriver carDriver;
         private Rigidbody vehicleBody;

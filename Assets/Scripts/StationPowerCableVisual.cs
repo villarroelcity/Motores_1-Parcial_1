@@ -19,7 +19,8 @@ namespace EnElCamino
             Vector3 start = generatorOutlet.position;
             Vector3 towardGenerator = (start - boxSocket.position).normalized;
             Vector3 end = connected ? boxSocket.position : boxSocket.position + towardGenerator * 0.8f;
-            if (plugIndicator != null)
+            // Keep the authored plug transform untouched in Edit Mode; only animate it at runtime.
+            if (Application.isPlaying && plugIndicator != null)
                 plugIndicator.transform.position = connected ? boxSocket.position : end;
             Vector3 sag = Vector3.down * Mathf.Min(0.3f, Vector3.Distance(start, end) * 0.08f);
             cable.SetPosition(0, start);

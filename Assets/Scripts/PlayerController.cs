@@ -7,7 +7,7 @@ namespace EnElCamino
     public class PlayerController : MonoBehaviour
     {
         [SerializeField] private float speed = 4.5f;
-        [SerializeField] private float sprintMultiplier = 1.65f;
+        [SerializeField] private float sprintSpeed = 8f;
         [SerializeField] private float gravity = -18f;
         [SerializeField] private float turnDegreesPerSecond = 90f;
         [SerializeField] private float fallDeathHeight = -3f;
@@ -30,7 +30,8 @@ namespace EnElCamino
         private void Update()
         {
             if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
-            if (gameFlow != null && !gameFlow.finished && !gameFlow.gameOver && transform.position.y <= fallDeathHeight)
+            if (!controlledRoofDescent && gameFlow != null && !gameFlow.finished && !gameFlow.gameOver &&
+                transform.position.y <= fallDeathHeight)
             {
                 gameFlow.GameOver();
                 return;
@@ -66,14 +67,14 @@ namespace EnElCamino
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, desiredRotation, turnDegreesPerSecond * Time.deltaTime);
                 bool sprinting = Keyboard.current != null &&
                                  (Keyboard.current.leftShiftKey.isPressed || Keyboard.current.rightShiftKey.isPressed);
-                float movementSpeed = speed * (sprinting ? sprintMultiplier : 1f);
+                float movementSpeed = sprinting ? Mathf.Max(speed, sprintSpeed) : speed;
                 controller.Move(worldDirection * movementSpeed * Time.deltaTime);
             }
 
             verticalVelocity.y += gravity * Time.deltaTime;
             controller.Move(verticalVelocity * Time.deltaTime);
 
-            if (trackingFall && controller.isGrounded)
+            if (!controlledRoofDescent && trackingFall && controller.isGrounded)
             {
                 float fallDistance = fallStartY - transform.position.y;
                 trackingFall = false;

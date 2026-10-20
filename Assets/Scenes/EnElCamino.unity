@@ -8401,7 +8401,7 @@ Transform:
   m_GameObject: {fileID: 1062265422}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 17.3, y: 7, z: 8}
+  m_LocalPosition: {x: 23.2, y: 7, z: 10.8}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9918,7 +9918,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.PlayerController
   speed: 4.5
-  sprintMultiplier: 1.65
+  sprintSpeed: 8
   gravity: -18
   turnDegreesPerSecond: 90
   fallDeathHeight: -3

@@ -35,10 +35,18 @@ namespace EnElCamino
             }
 
             taken = true;
-            GetComponent<Collider>().enabled = false;
-            transform.SetParent(player);
-            transform.localPosition = new Vector3(0.6f, 1f, 0.3f);
-            transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+            Collider canCollider = GetComponent<Collider>();
+            if (canCollider != null) canCollider.enabled = false;
+
+            // Parent the can to the animated arm pivot so it stays in the hand while walking.
+            Transform carryAnchor = player != null ? player.Find("PlayerModel/HombroDerecho") : null;
+            Vector3 canScale = transform.localScale;
+            transform.SetParent(carryAnchor != null ? carryAnchor : player, false);
+            transform.localPosition = carryAnchor != null
+                ? new Vector3(0f, -0.15f, 0.06f)
+                : new Vector3(0.43f, 0.99f, 0.06f);
+            transform.localRotation = Quaternion.identity;
+            transform.localScale = canScale;
             gameFlow.TakeFuelCan();
         }
 

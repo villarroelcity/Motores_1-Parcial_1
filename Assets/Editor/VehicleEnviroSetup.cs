@@ -14,6 +14,9 @@ namespace EnElCamino.Editor
         private const string GrassMaterialPath = "Assets/Materials/EnviroGrass_Generated.mat";
         private const string GrassTexturePath = "Assets/Enviro 3 - Sky and Weather/Sample/Textures/Grass004_1K_Color.png";
         private const string GrassNormalPath = "Assets/Enviro 3 - Sky and Weather/Sample/Textures/Grass004_1K_NormalDX.png";
+        private const string NatureKitPath = "Assets/NatureStarterKit2/Nature/";
+        private const string NatureGrassMaterialPath = "Assets/Materials/NatureStarterGrass.mat";
+        private const string NatureGrassMeshPath = "Assets/Materials/NatureStarterGrassBillboard.asset";
 
         [MenuItem("Parcial 2/Integrar Vehicle Physics Pro y Enviro 3")]
         public static void Apply()
@@ -274,29 +277,124 @@ namespace EnElCamino.Editor
         {
             GameObject station = GameObject.Find("EstacionDeServicio");
             Transform nature = station != null ? station.transform.Find("Art_Environment/Nature") : null;
-            Transform oak = nature != null ? nature.Find("Generated_Tree_Oak_Right") : null;
-            Transform pine = nature != null ? nature.Find("Generated_Tree_Pine_Right") : null;
-            if (station == null || (oak == null && pine == null)) return;
+            if (station == null || nature == null) return;
 
-            Transform vegetation = station.transform.Find("EnviroVegetation");
+            Transform vegetation = station.transform.Find("NatureStarterVegetation");
             if (vegetation == null)
             {
-                GameObject root = new GameObject("EnviroVegetation");
+                GameObject root = new GameObject("NatureStarterVegetation");
                 root.transform.SetParent(station.transform);
                 vegetation = root.transform;
             }
-            for (int i = vegetation.childCount - 1; i >= 0; i--)
-                if (vegetation.GetChild(i).name.StartsWith("EnviroTree_")) Object.DestroyImmediate(vegetation.GetChild(i).gameObject);
 
-            Vector3[] positions = { new Vector3(18f, 0f, 42f), new Vector3(46f, 0f, 42f), new Vector3(18f, 0f, -10f), new Vector3(48f, 0f, -10f), new Vector3(4f, 0f, 25f), new Vector3(60f, 0f, 25f) };
-            for (int i = 0; i < positions.Length; i++)
+            Transform trees = vegetation.Find("Trees");
+            if (trees == null)
             {
-                Transform source = (i % 2 == 0 ? oak : pine) ?? oak ?? pine;
-                GameObject copy = Object.Instantiate(source.gameObject, vegetation);
-                copy.name = "EnviroTree_" + i.ToString("00");
-                copy.transform.SetPositionAndRotation(positions[i], source.rotation);
-                copy.transform.localScale = source.lossyScale;
+                GameObject root = new GameObject("Trees");
+                root.transform.SetParent(vegetation);
+                trees = root.transform;
             }
+
+            // Desactivamos los árboles placeholder, conservando sus posiciones para reemplazarlos.
+            var oldTrees = new System.Collections.Generic.List<Transform>();
+            foreach (Transform child in nature.GetComponentsInChildren<Transform>(true))
+                if (child.name.StartsWith("Generated_Tree_")) oldTrees.Add(child);
+
+            string[] treePrefabs = { "tree01.prefab", "tree02.prefab", "tree03.prefab", "tree04.prefab" };
+            for (int i = trees.childCount - 1; i >= 0; i--)
+                Object.DestroyImmediate(trees.GetChild(i).gameObject);
+
+            for (int i = 0; i < oldTrees.Count; i++)
+            {
+                Transform old = oldTrees[i];
+                Vector3 position = old.position;
+                Quaternion rotation = old.rotation;
+                old.gameObject.SetActive(false);
+                GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(NatureKitPath + treePrefabs[i % treePrefabs.Length]);
+                if (prefab == null) continue;
+                GameObject copy = PrefabUtility.InstantiatePrefab(prefab, trees) as GameObject;
+                if (copy == null) continue;
+                copy.name = "NatureStarterTree_" + i.ToString("00");
+                copy.transform.SetPositionAndRotation(position, rotation);
+                copy.transform.localScale = Vector3.one;
+            }
+
+            // Pasto 3D del paquete, colocado en los laterales de tierra y fuera del camino.
+            Transform grass = vegetation.Find("Grass3D");
+            if (grass == null)
+            {
+                GameObject root = new GameObject("Grass3D");
+                root.transform.SetParent(vegetation);
+                grass = root.transform;
+            }
+            for (int i = grass.childCount - 1; i >= 0; i--)
+                Object.DestroyImmediate(grass.GetChild(i).gameObject);
+
+            Mesh grassMesh = GetOrCreateNatureGrassMesh();
+            Material grassMaterial = GetOrCreateNatureGrassMaterial();
+            if (grassMesh == null || grassMaterial == null) return;
+
+            int grassIndex = 0;
+            for (int side = 0; side < 2; side++)
+            for (int row = 0; row < 7; row++)
+            for (int column = 0; column < 5; column++)
+            {
+                float x = side == 0 ? 8f + column * 2.4f : 49f + column * 2.4f;
+                float z = -10f + row * 8.2f + ((column * 1.7f + row * 0.9f) % 2.2f);
+                GameObject clump = new GameObject("NatureStarterGrass_" + grassIndex.ToString("000"));
+                clump.transform.SetParent(grass);
+                clump.transform.position = new Vector3(x, 0.04f, z);
+                clump.transform.rotation = Quaternion.Euler(0f, (grassIndex * 37) % 360, 0f);
+                clump.transform.localScale = Vector3.one * (0.85f + (grassIndex % 4) * 0.12f);
+                MeshFilter filter = clump.AddComponent<MeshFilter>();
+                filter.sharedMesh = grassMesh;
+                MeshRenderer renderer = clump.AddComponent<MeshRenderer>();
+                renderer.sharedMaterial = grassMaterial;
+                grassIndex++;
+            }
+        }
+
+        private static Mesh GetOrCreateNatureGrassMesh()
+        {
+            Mesh mesh = AssetDatabase.LoadAssetAtPath<Mesh>(NatureGrassMeshPath);
+            if (mesh != null) return mesh;
+            mesh = new Mesh { name = "NatureStarterGrassBillboard" };
+            mesh.vertices = new[]
+            {
+                new Vector3(-0.42f, 0f, 0f), new Vector3(0.42f, 0f, 0f), new Vector3(0.34f, 1.15f, 0f), new Vector3(-0.34f, 1.15f, 0f),
+                new Vector3(0f, 0f, -0.42f), new Vector3(0f, 0f, 0.42f), new Vector3(0f, 1.15f, 0.34f), new Vector3(0f, 1.15f, -0.34f)
+            };
+            mesh.uv = new[]
+            {
+                new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(0f, 1f),
+                new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(0f, 1f)
+            };
+            mesh.triangles = new[] { 0, 1, 2, 2, 3, 0, 4, 6, 5, 6, 4, 7 };
+            mesh.RecalculateNormals();
+            AssetDatabase.CreateAsset(mesh, NatureGrassMeshPath);
+            return mesh;
+        }
+
+        private static Material GetOrCreateNatureGrassMaterial()
+        {
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(NatureGrassMaterialPath);
+            Shader shader = Shader.Find("Standard") ?? Shader.Find("Universal Render Pipeline/Lit");
+            if (material == null)
+            {
+                material = new Material(shader) { name = "NatureStarterGrass" };
+                AssetDatabase.CreateAsset(material, NatureGrassMaterialPath);
+            }
+            Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(NatureKitPath.Replace("Nature/", "Textures/") + "grass01.tga");
+            if (material.HasProperty("_MainTex")) material.SetTexture("_MainTex", texture);
+            if (material.HasProperty("_BaseMap")) material.SetTexture("_BaseMap", texture);
+            if (material.HasProperty("_Color")) material.SetColor("_Color", Color.white);
+            if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", Color.white);
+            if (material.HasProperty("_Cutoff")) material.SetFloat("_Cutoff", 0.35f);
+            if (material.HasProperty("_Mode")) material.SetFloat("_Mode", 1f);
+            material.EnableKeyword("_ALPHATEST_ON");
+            material.renderQueue = 2450;
+            EditorUtility.SetDirty(material);
+            return material;
         }
 
         private static Light FindChildLight(GameObject root, string name)

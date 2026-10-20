@@ -279,6 +279,17 @@ namespace EnElCamino.Editor
             Transform nature = station != null ? station.transform.Find("Art_Environment/Nature") : null;
             if (station == null || nature == null) return;
 
+            // El paquete importado contiene prefabs sin Mesh/Material en esta versión de Unity.
+            // No dejamos objetos vacíos ni billboards improvisados en la escena: reactivamos la
+            // vegetación original hasta disponer de modelos válidos del paquete.
+            foreach (Transform child in nature.GetComponentsInChildren<Transform>(true))
+                if (child.name.StartsWith("Generated_Tree_")) child.gameObject.SetActive(true);
+            Transform invalidVegetation = station.transform.Find("NatureStarterVegetation");
+            if (invalidVegetation != null) Object.DestroyImmediate(invalidVegetation.gameObject);
+            Transform generatedVegetation = station.transform.Find("EnviroVegetation");
+            if (generatedVegetation != null) Object.DestroyImmediate(generatedVegetation.gameObject);
+            return;
+
             Transform vegetation = station.transform.Find("NatureStarterVegetation");
             if (vegetation == null)
             {

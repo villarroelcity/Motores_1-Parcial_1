@@ -30,6 +30,7 @@ namespace EnElCamino.Editor
             RemoveGeneratedGrass();
             ConfigureEnviroGroundTexture();
             AddEnviroVegetation();
+            AddNatureStarterTerrainGrass();
             ConfigureEnviroAudio();
             ReplaceFuelCanVisual();
             RemoveVoicePlayback();
@@ -363,6 +364,56 @@ namespace EnElCamino.Editor
                 renderer.sharedMaterial = grassMaterial;
                 grassIndex++;
             }
+        }
+
+        private static void AddNatureStarterTerrainGrass()
+        {
+            GameObject station = GameObject.Find("EstacionDeServicio");
+            if (station == null) return;
+
+            Transform existing = station.transform.Find("NatureStarterTerrainGrass");
+            if (existing != null) Object.DestroyImmediate(existing.gameObject);
+
+            TerrainData source = AssetDatabase.LoadAssetAtPath<TerrainData>("Assets/NatureStarterKit2/Scene/New Terrain.asset");
+            if (source == null || source.detailPrototypes == null || source.detailPrototypes.Length == 0) return;
+
+            TerrainData data = new TerrainData { name = "NatureStarterTerrainGrass_Data" };
+            data.heightmapResolution = 33;
+            data.size = new Vector3(80f, 2f, 70f);
+            data.SetDetailResolution(128, 8);
+            data.detailPrototypes = source.detailPrototypes;
+
+            float[,] heights = new float[data.heightmapResolution, data.heightmapResolution];
+            data.SetHeights(0, 0, heights);
+            for (int layer = 0; layer < data.detailPrototypes.Length; layer++)
+            {
+                int[,] details = new int[data.detailResolution, data.detailResolution];
+                for (int z = 0; z < data.detailResolution; z++)
+                for (int x = 0; x < data.detailResolution; x++)
+                {
+                    float worldX = x / (float)(data.detailResolution - 1) * data.size.x;
+                    float worldZ = z / (float)(data.detailResolution - 1) * data.size.z;
+                    bool leftEarth = worldX > 5f && worldX < 27f;
+                    bool rightEarth = worldX > 53f && worldX < 75f;
+                    bool withinPlayableArea = worldZ > 4f && worldZ < 66f;
+                    bool sparse = ((x * 17 + z * 31 + layer * 13) % 11) < 3;
+                    if ((leftEarth || rightEarth) && withinPlayableArea && sparse)
+                        details[z, x] = layer < 2 ? 5 : 3;
+                }
+                data.SetDetailLayer(0, 0, layer, details);
+            }
+
+            GameObject terrainObject = Terrain.CreateTerrainGameObject(data);
+            terrainObject.name = "NatureStarterTerrainGrass";
+            terrainObject.transform.SetParent(station.transform);
+            terrainObject.transform.position = new Vector3(-5f, -0.12f, -15f);
+            Terrain terrain = terrainObject.GetComponent<Terrain>();
+            terrain.drawInstanced = true;
+            terrain.heightmapPixelError = 50f;
+            terrain.detailObjectDistance = 60f;
+            terrain.detailObjectDensity = 0.8f;
+            terrain.basemapDistance = 100f;
+            EditorUtility.SetDirty(terrainObject);
         }
 
         private static Mesh GetOrCreateNatureGrassMesh()

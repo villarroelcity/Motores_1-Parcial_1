@@ -23,21 +23,62 @@ namespace EnElCamino
         private float throttleInput;
         private float steerInput;
         private bool automaticTransmissionConfigured;
-        private readonly List<StartupAudioVolume> startupAudioVolumes = new List<StartupAudioVolume>();
-        private readonly List<StartupAudioMute> startupAudioMutes = new List<StartupAudioMute>();
+        private bool introFullThrottle;
+        private readonly List<StartupAudioClip> startupAudioClips = new List<StartupAudioClip>();
         private float restoreStartupAudioAt = -1f;
+        private Rigidbody vehicleBody;
+        private Engine introEngine;
+        private bool seedRunningEngine;
+        private float fuelRatio = 1f;
+        private bool arrivalParkingHeld;
+        private RigidbodyConstraints drivingConstraints;
+        private bool arrivalControl;
+        private float brakeInput;
+        private VPStandardInput nativeInput;
 
-        private struct StartupAudioVolume
+        private void SetNativeControls(bool enabled)
         {
-            public Component audioComponent;
-            public FieldInfo volumeField;
-            public float originalVolume;
+            if (nativeInput == null) return;
+            // The VPP component remains available on the vehicle prefab, but this
+            // gameplay controller is the only writer to VPP's input data bus. If
+            // both writers run at once, the raw axis and the game input fight each
+            // other and the car appears to slide sideways.
+            nativeInput.externalThrottle = 0f;
+            nativeInput.externalBrake = 0f;
+            nativeInput.externalHandbrake = 0f;
+            nativeInput.externalSteer = 0f;
+            nativeInput.externalClutch = 0f;
+            nativeInput.lockBrakesOnEnable = false;
+            nativeInput.enabled = false;
+
+            if (!enabled || vehicleController == null || !vehicleController.initialized) return;
+
+            int[] input = vehicleController.data.Get(Channel.Input);
+            input[InputData.Brake] = 0;
+            input[InputData.Handbrake] = 0;
+            input[InputData.Clutch] = 0;
+            input[InputData.Steer] = 0;
+            input[InputData.AutomaticGear] = 4;
         }
 
-        private struct StartupAudioMute
+        public void BeginFuelCutoffControl()
         {
-            public AudioSource source;
-            public bool originalMute;
+            arrivalControl = true;
+            introFullThrottle = false;
+            SetNativeControls(true);
+        }
+
+        public void EndFuelCutoffControl()
+        {
+            arrivalControl = false;
+            SetNativeControls(false);
+        }
+
+        private struct StartupAudioClip
+        {
+            public Component audioComponent;
+            public FieldInfo clipField;
+            public AudioClip originalClip;
         }
 
         public bool IsReady => vehicleReady;
@@ -47,37 +88,42 @@ namespace EnElCamino
         {
             if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
             vehicleController = GetComponent<VPVehicleController>();
+            vehicleBody = GetComponent<Rigidbody>();
             if (vehicleController == null) return;
             vehicleController.gearbox.type = Gearbox.Type.Automatic;
-            // The new Input System writes the VPP bus directly. The legacy input
-            // reader would otherwise overwrite these controls every physics step.
-            VPStandardInput legacyInput = GetComponent<VPStandardInput>();
-            if (legacyInput != null) legacyInput.enabled = false;
+            nativeInput = GetComponent<VPStandardInput>();
+            if (nativeInput == null) nativeInput = gameObject.AddComponent<VPStandardInput>();
+            SetNativeControls(false);
             vehicleReady = false;
-            foreach (VPAudio audio in GetComponentsInChildren<VPAudio>(true))
+            foreach (VPAudioExtras audio in GetComponentsInChildren<VPAudioExtras>(true))
             {
-                audio.enabled = true;
-                FieldInfo startupVolume = audio.GetType().GetField("engineStartupVolume", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                if (startupVolume != null && startupVolume.FieldType == typeof(float))
+                FieldInfo startupClip = audio.GetType().GetField("engineStartupClip", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                if (startupClip != null && startupClip.FieldType == typeof(AudioClip))
                 {
-                    startupAudioVolumes.Add(new StartupAudioVolume
+                    startupAudioClips.Add(new StartupAudioClip
                     {
                         audioComponent = audio,
-                        volumeField = startupVolume,
-                        originalVolume = (float)startupVolume.GetValue(audio)
+                        clipField = startupClip,
+                        originalClip = startupClip.GetValue(audio) as AudioClip
                     });
-                }
-                foreach (AudioSource source in audio.GetComponentsInChildren<AudioSource>(true))
-                {
-                    startupAudioMutes.Add(new StartupAudioMute
-                    {
-                        source = source,
-                        originalMute = source.mute
-                    });
-                    source.enabled = true;
-                    source.mute = false;
+                    // VPAudioExtras may create its startup source on initialization.
+                    // Remove the clip before that callback, not after sound starts.
+                    startupClip.SetValue(audio, null);
                 }
             }
+        }
+
+        public void SetArrivalFuel(float ratio) => fuelRatio = Mathf.Clamp01(ratio);
+
+        public void HoldArrivalParking()
+        {
+            if (vehicleBody == null || arrivalParkingHeld) return;
+            drivingConstraints = vehicleBody.constraints;
+            vehicleBody.linearVelocity = Vector3.zero;
+            vehicleBody.angularVelocity = Vector3.zero;
+            // Preserve the exact settled pose while the player gets out.
+            vehicleBody.constraints = RigidbodyConstraints.FreezeAll;
+            arrivalParkingHeld = true;
         }
 
         public void SetVehicleReady(bool ready)
@@ -89,10 +135,33 @@ namespace EnElCamino
             steerInput = 0f;
         }
 
+        public void SetIntroFullThrottle(bool value)
+        {
+            introFullThrottle = value;
+        }
+
         public void EnterCar()
         {
             if (!vehicleReady || driving || gameFlow == null || !gameFlow.carHasFuel || gameFlow.gameOver || gameFlow.finished) return;
+            if (vehicleBody != null && arrivalParkingHeld)
+            {
+                vehicleBody.constraints = drivingConstraints;
+                arrivalParkingHeld = false;
+                vehicleBody.WakeUp();
+            }
+            if (vehicleBody != null && vehicleBody.isKinematic)
+            {
+                vehicleBody.isKinematic = false;
+                vehicleBody.detectCollisions = true;
+                vehicleBody.linearVelocity = Vector3.zero;
+                vehicleBody.angularVelocity = Vector3.zero;
+                vehicleBody.WakeUp();
+            }
             driving = true;
+            SetNativeControls(true);
+            fuelRatio = 1f;
+            if (introEngine != null) introEngine.allowedFuelRatio = 1f;
+            RestoreStartupAudioClip();
             StartEngineAudio(true);
             if (player != null) player.SetActive(false);
             CinemachineFollowSetup cameraRig = FindFirstObjectByType<CinemachineFollowSetup>();
@@ -104,21 +173,34 @@ namespace EnElCamino
         private void Update()
         {
             if (restoreStartupAudioAt >= 0f && Time.time >= restoreStartupAudioAt)
-                RestoreStartupAudioVolume();
+                RestoreStartupAudioClip();
 
             if (gameFlow != null && (gameFlow.gameOver || gameFlow.finished))
             {
                 StopEngineAudio();
                 driving = false;
+                SetNativeControls(false);
                 return;
             }
             throttleInput = 0f;
             steerInput = 0f;
-            if (!driving || Keyboard.current == null) return;
+            brakeInput = 0f;
+            if ((!driving && !arrivalControl) || Keyboard.current == null) return;
             if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) throttleInput = 1f;
             if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) throttleInput = -1f;
             if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) steerInput = -1f;
             if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) steerInput = 1f;
+
+            // S/down is a brake while the car is moving forward. It only becomes
+            // reverse after the car is practically stopped; this avoids sending
+            // throttle and brake at the same time.
+            if (throttleInput < 0f && vehicleBody != null &&
+                Vector3.Dot(Vector3.ProjectOnPlane(vehicleBody.linearVelocity, Vector3.up),
+                    Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized) > 0.5f)
+            {
+                brakeInput = 1f;
+            }
+            if (Keyboard.current.spaceKey.isPressed) brakeInput = 1f;
             if (vehicleController == null)
             {
                 transform.Rotate(0f, steerInput * turnSpeed * Time.deltaTime, 0f);
@@ -143,37 +225,65 @@ namespace EnElCamino
                 automaticTransmissionConfigured = true;
             }
 
+            if (introEngine == null)
+            {
+                foreach (FieldInfo field in typeof(VPVehicleController).GetFields(BindingFlags.Instance | BindingFlags.NonPublic))
+                    if (field.FieldType == typeof(Engine)) introEngine = field.GetValue(vehicleController) as Engine;
+            }
+            if (introEngine != null)
+            {
+                if (seedRunningEngine)
+                {
+                    Engine.StateVars state = introEngine.GetStateVars();
+                    state.L = 2800f * (2f * Mathf.PI / 60f) * vehicleController.engine.inertia;
+                    introEngine.SetStateVars(state);
+                    seedRunningEngine = false;
+                }
+                introEngine.allowedFuelRatio = fuelRatio;
+            }
+
             int[] input = vehicleController.data.Get(Channel.Input);
             bool stopped = gameFlow != null && (gameFlow.gameOver || gameFlow.finished);
             bool engineOn = engineRequested && !stopped;
             // VPP bus Key: -1 = off, 0 = ignition on, 1 = starter motor.
             input[InputData.Key] = !engineOn ? -1 : Time.time < starterUntil ? 1 : 0;
-            input[InputData.Steer] = driving ? Mathf.RoundToInt(steerInput * 10000f) : 0;
-            bool reversing = throttleInput < -0.05f;
-            float throttle = driving ? Mathf.Abs(throttleInput) : !vehicleReady ? 0.18f : 0f;
+            // Send only normalized driver commands to VPP. VPP continues to own
+            // the wheels, suspension, tires, steering rack and automatic gearbox.
+            int targetSteer = driving || arrivalControl ? Mathf.RoundToInt(steerInput * 10000f) : 0;
+            input[InputData.Steer] = Mathf.RoundToInt(Mathf.MoveTowards(input[InputData.Steer], targetSteer, 20000f * Time.fixedDeltaTime));
+            Vector3 planarForward = Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
+            float forwardSpeed = vehicleBody != null
+                ? Vector3.Dot(Vector3.ProjectOnPlane(vehicleBody.linearVelocity, Vector3.up), planarForward)
+                : 0f;
+            bool reversing = (driving || arrivalControl) && throttleInput < -0.05f && forwardSpeed < 0.5f;
+            float throttle = driving || arrivalControl
+                ? reversing ? Mathf.Abs(throttleInput) : Mathf.Max(0f, throttleInput)
+                : !vehicleReady && introFullThrottle ? 0.5f : 0f;
             input[InputData.Throttle] = engineOn ? Mathf.RoundToInt(throttle * 10000f) : 0;
-            input[InputData.Brake] = (!driving && vehicleReady) || stopped ? 10000 : 0;
+            input[InputData.Brake] = (!driving && !arrivalControl && vehicleReady) || stopped
+                ? 10000
+                : Mathf.RoundToInt(brakeInput * 10000f);
             input[InputData.Handbrake] = !driving && vehicleReady ? 10000 : 0;
-            input[InputData.Clutch] = 0;
+            input[InputData.Clutch] = arrivalControl && fuelRatio <= 0f ? 10000 : 0;
             input[InputData.ManualGear] = 0;
-            // VPP automatic modes: P=1 while parked, R=2 in reverse, N=3 for the
-            // scripted arrival, and D=4 for forward driving (with auto-shifting).
-            input[InputData.AutomaticGear] = driving ? (reversing ? 2 : 4) : vehicleReady ? 1 : 3;
+            // VPP automatic modes: P=1, R=2, N=3, D=4. The scripted arrival
+            // stays in Drive even after fuel starvation, so the motor cuts out
+            // while the car visibly coasts instead of dropping to Neutral.
+            input[InputData.AutomaticGear] = driving ? (reversing ? 2 : 4) : vehicleReady ? 1 : 4;
         }
 
         public void StartEngineAudio(bool playStartSound)
         {
             if (!engineRequested)
             {
-                // VPP needs a short starter-key pulse to transition from off to running.
-                // On the intro the car is already moving, so silence only the starter clip,
-                // then let VPP's original RPM-driven engine audio play normally.
+                // Player-controlled starts use VPP's starter. The intro instead
+                // seeds the running engine state and never sends the starter key.
                 starterUntil = Time.time + 1.25f;
                 if (!playStartSound)
                 {
-                    SetStartupAudioVolume(0f);
-                    SetVehicleAudioMuted(true);
-                    restoreStartupAudioAt = starterUntil + 0.1f;
+                    SetStartupAudioClip(null);
+                    starterUntil = -1f;
+                    seedRunningEngine = true;
                 }
             }
             engineRequested = true;
@@ -182,37 +292,28 @@ namespace EnElCamino
         public void StopEngineAudio()
         {
             engineRequested = false;
+            introFullThrottle = false;
             throttleInput = 0f;
             steerInput = 0f;
         }
 
-        private void SetStartupAudioVolume(float volume)
+        private void SetStartupAudioClip(AudioClip clip)
         {
-            foreach (StartupAudioVolume entry in startupAudioVolumes)
+            foreach (StartupAudioClip entry in startupAudioClips)
             {
-                if (entry.audioComponent != null && entry.volumeField != null)
-                    entry.volumeField.SetValue(entry.audioComponent, volume);
+                if (entry.audioComponent != null && entry.clipField != null)
+                    entry.clipField.SetValue(entry.audioComponent, clip);
             }
         }
 
-        private void RestoreStartupAudioVolume()
+        private void RestoreStartupAudioClip()
         {
-            foreach (StartupAudioVolume entry in startupAudioVolumes)
+            foreach (StartupAudioClip entry in startupAudioClips)
             {
-                if (entry.audioComponent != null && entry.volumeField != null)
-                    entry.volumeField.SetValue(entry.audioComponent, entry.originalVolume);
+                if (entry.audioComponent != null && entry.clipField != null)
+                    entry.clipField.SetValue(entry.audioComponent, entry.originalClip);
             }
             restoreStartupAudioAt = -1f;
-            SetVehicleAudioMuted(false);
-        }
-
-        private void SetVehicleAudioMuted(bool muted)
-        {
-            foreach (StartupAudioMute entry in startupAudioMutes)
-            {
-                if (entry.source != null)
-                    entry.source.mute = muted || entry.originalMute;
-            }
         }
     }
 }

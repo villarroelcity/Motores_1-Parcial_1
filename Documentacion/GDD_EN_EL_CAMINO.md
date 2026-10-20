@@ -1,39 +1,65 @@
-# En el Camino
+# GDD — En el Camino
 
-## Modalidad
+## Ficha
 
-Proyecto individual de Ezequiel Godoy para el Segundo Parcial de Motores de Desarrollo 1 – Unity.
+| Campo | Definición |
+| --- | --- |
+| Materia | Motores de Desarrollo 1 |
+| Entrega | Segundo Parcial |
+| Autor | Ezequiel Godoy |
+| Género | Exploración y supervivencia ligera en tercera persona |
+| Motor | Unity 6 |
+| Escena principal | `Assets/Scenes/EnElCamino.unity` |
 
-## Propuesta
+## High concept
 
-“En el Camino” es una aventura de exploración en tercera persona. Un viajero llega casi sin combustible a una estación rural. El surtidor no funciona porque el lugar está sin energía, así que el jugador debe explorar la estación, encender el generador, cargar combustible y volver a la ruta.
+En un camino rural al anochecer, el auto se queda sin combustible frente a una estación abandonada. Para escapar, el jugador debe atravesar el taller, devolver energía a la estación y abastecer el vehículo antes de que oscurezca.
 
-## Alcance del vertical slice
+## Bucle principal
 
-La experiencia se concentra en una parada rural completa: movimiento a pie, cámara Cinemachine en tercera persona, una estación construida con primitivas, un generador interactuable, un surtidor, una interacción mediante Raycast, cajas físicas, un prefab instanciado, iluminación dinámica, UI uGUI, audio procedural, partículas y un desafío final de escape con IA.
+Llegada automática → exploración a pie → acceso al taller por el techo → generador → tablero eléctrico → portón → bidón → surtidor → vehículo → salida.
 
-El jugador debe recuperar la energía, entrar al taller, abrir el portón, tomar y llenar el bidón, cargar el auto y conducir hasta la salida. Al iniciar la conducción se activa una amenaza que persigue el vehículo durante una ventana de tiempo.
+La secuencia es guiada por objetivos del HUD. Cada interacción valida el paso anterior para que no se pueda completar el recorrido en un orden accidental.
 
-## Bucle jugable
+## Objetivos y condiciones
 
-Explorar la estación → encender el generador → entrar al taller → abrir el portón → tomar el bidón → llenar el bidón → cargar el auto → escapar a la ruta.
+| Paso | Acción | Resultado |
+| --- | --- | --- |
+| 1 | Subir al techo y usar el hueco | Acceso al taller |
+| 2 | Encender el generador | Inicia el contador de combustible del generador |
+| 3 | Conectar el generador al tablero | Energiza la estación |
+| 4 | Accionar el interruptor del portón | Abre la salida del taller |
+| 5 | Recoger el bidón | Permite usar el surtidor |
+| 6 | Llenar el bidón | Combustible disponible para el auto |
+| 7 | Cargar y arrancar el auto | Habilita la conducción |
+| 8 | Llegar a la salida | Victoria |
+
+Derrotas vigentes: agotar el tiempo general/noche, agotar el combustible del generador antes de resolver el taller y caer por el hueco del techo. El mensaje final se normaliza como `GAME OVER` y detiene la mezcla de audio antes de reproducir su feedback.
 
 ## Sistemas implementados
 
-- Movimiento con `CharacterController` e Input System.
-- Cámara de seguimiento con Cinemachine 3 y `CinemachineBrain`.
-- Interacción mediante Raycast y objetivos secuenciales.
-- Física de cajas y vehículo.
-- UI uGUI con objetivos, mensajes, controles, temporizador y estados de victoria/derrota.
-- Iluminación dinámica de día a noche y luces de advertencia durante el escape.
-- Audio procedural: ambiente continuo y feedback sonoro para eventos importantes.
-- Partículas de feedback generadas en runtime.
-- IA de persecución basada en estados para el desafío final.
+- Movimiento con `CharacterController`; caminar y correr con `Shift`.
+- Cámara de tercera persona con Cinemachine.
+- Interacción por Raycast e interfaz `IInteractable`.
+- Flujo de misión secuencial en `GameFlow`.
+- Auto con Vehicle Physics Pro y llegada controlada por `CarArrivalSequence`.
+- Interacciones de generador, tablero, interruptor, portón, bidón, surtidor y salida.
+- UI uGUI adaptada a pantalla para objetivos, mensajes, tiempo y combustible del generador.
+- Ciclo tarde–noche con Enviro 3, iluminación y audio ambiental/espacial.
+- Audio por mixer, efectos de interacción, motor VPP, música adaptativa y silenciamiento al finalizar.
+- Físicas, colliders, triggers, cajas físicas y partículas de feedback.
 
-## Desafío final
+## Dirección visual y sonora
 
-Cuando el vehículo arranca se genera una amenaza detrás del auto. La amenaza persigue al vehículo y provoca Game Over si alcanza la distancia de captura. El jugador debe llegar al trigger `SalidaAlCamino`; la secuencia combina cámara, UI, audio, partículas, luces y gameplay.
+La estación usa una estética rural low-poly con vegetación de Nature Starter Kit 2, entorno de Enviro 3, modelos externos de generador/bidón/tablero y surtidor 3D. El arte se utiliza como apoyo del gameplay: el techo, el hueco, el tablero y el portón hacen visible la ruta de misión.
 
-## Estado actual
+El ambiente exterior, generador, surtidor, portón, acciones del auto, música de exploración y mensajes de victoria/derrota se organizan mediante `EnElCamino_Mixer`.
 
-La escena inicia correctamente en Play Mode y fue verificada sin errores de compilación. La rama de trabajo es `parcial-2`. Falta realizar una prueba completa de build ejecutable y reemplazar los assets provisionales por arte final y audio definitivo.
+## IA — pendiente de definición e integración
+
+La consigna exige IA y navegación. Hay una base `StationThreatAI`, pero la persecución no forma parte del flujo activo actual porque se retiró mientras se corrigieron secuencias y audio. Antes de la entrega se debe elegir una amenaza coherente, darle una presencia visual, configurar NavMesh y comprobar una condición de derrota reproducible. No debe presentarse como funcional hasta probar el recorrido completo.
+
+## Criterios de entrega
+
+Quedan por producir y validar: build jugable, video de hasta cinco minutos, prueba final completa, documentación de testing actualizada y el desafío de IA integrado. La lista operativa está en [Informe_Testing_EN_EL_CAMINO.md](Informe_Testing_EN_EL_CAMINO.md).
+

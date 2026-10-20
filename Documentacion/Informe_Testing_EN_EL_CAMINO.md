@@ -1,53 +1,45 @@
-# Informe de testing — Segundo Parcial
+# Informe de testing — En el Camino
 
-## Versión
+## Alcance de esta revisión
 
-Vertical slice de “En el Camino”, rama `parcial-2`.
+Fecha: 20/10/2026. Rama: `parcial-2`. Esta revisión ordena la base del proyecto y no reemplaza una prueba manual de punta a punta ni una build de entrega.
 
-## Pruebas realizadas
+## Verificaciones técnicas registradas
 
-- El proyecto abre en Unity `6000.3.5f2` y la escena `EnElCamino` carga correctamente.
-- El Editor entra y sale de Play Mode sin errores de compilación.
-- El HUD muestra objetivos, mensajes y temporizador al iniciar.
-- Cinemachine genera la cámara de gameplay y mantiene el encuadre del jugador.
-- El flujo de eventos puede avanzar desde el generador hasta el arranque del vehículo.
-- El desafío actual combina 60 segundos de combustible del generador con la salida antes de que anochezca. La persecución fue retirada por decisión de diseño; el temporizador no constituye por sí mismo un sistema de IA.
-- Se verificaron las referencias de UI durante Play Mode.
-- Persisten advertencias de APIs obsoletas del Nature Starter Kit y código de editor sin uso; esta revisión no equivale a una build validada.
+- La escena principal configurada para build es `Assets/Scenes/EnElCamino.unity`.
+- El flujo de misión tiene ocho pasos y bloquea los interactuables que no correspondan al objetivo actual.
+- El generador usa 60 segundos de combustible y el HUD dispone de un indicador específico mientras está activo.
+- El portón requiere estación energizada; la interacción abre y cierra su collider de paso.
+- El vehículo se configura con transmisión automática de Vehicle Physics Pro.
+- El motor se apaga antes de que finalice la llegada automática; el jugador recibe control al detenerse el auto.
+- Victoria y cualquier Game Over pausan las demás fuentes de audio antes de reproducir el feedback final.
+- Se retiraron scripts de editor que reconfiguraban la escena automáticamente al abrirla o cambiar Play Mode. Se conserva sólo el ajuste de espera diurna en edición.
 
-## Regresión previa de portón y audio VPP — 20/10/2026
+## Prueba manual obligatoria antes de entregar
 
-La siguiente prueba automatizada se ejecutó antes del rediseño de la bajada. Sus resultados de escalera no validan el flujo actual de colgarse y descender. Se retiró del menú de Unity la entrada personalizada que iniciaba la prueba.
+| Caso | Pasos | Resultado esperado | Estado |
+| --- | --- | --- | --- |
+| Llegada | Ejecutar desde escena limpia | Auto llega encendido, pierde motor y el jugador aparece junto a él | Pendiente |
+| Movimiento | Caminar y mantener `Shift` | La carrera es perceptiblemente más rápida que la caminata | Pendiente |
+| Taller | Subir, entrar por el hueco y bajar | Sin flotación ni Game Over en la bajada controlada | Pendiente |
+| Caída | Caer fuera de la bajada controlada | `GAME OVER`, audio global detenido | Pendiente |
+| Energía | Generador → tablero → interruptor | El portón sólo abre con energía y antes del fin del combustible | Pendiente |
+| Combustible | Bidón → surtidor → vehículo | Modelo del bidón acompaña al jugador sin flotar y habilita arrancar | Pendiente |
+| Salida | Conducir a `SalidaAlCamino` | Victoria, UI final y audio final sin sonidos residuales | Pendiente |
+| Tiempo | Dejar agotar el reloj | Atardecer a noche, `GAME OVER`, audio detenido | Pendiente |
+| Resolución | Probar 16:9 y una resolución menor | HUD sin recortes ni solapamientos | Pendiente |
+| Build | Compilar y ejecutar build Windows | Mismo flujo y audio que en editor | Pendiente |
 
-- PASS: señal de audio no nula del motor durante la llegada (`AudioSource.GetOutputData`).
-- PASS: el clip reproducido pertenece al paquete: `Assets/Vehicle Physics Pro/Sample Assets/Art/Audio/8000-clickfix.wav`.
-- No aplica al flujo actual: la prueba antigua validaba tomar y colocar la escalera; ahora no se recoge ni se mueve la escalera.
-- PASS: pulsar la tecla sin conectar la estación no la deja trabada.
-- PASS: el selector de interacción elige la caja eléctrica; usarla enchufa el generador y da energía a la estación.
-- PASS: el tiempo de combustible queda en 60 segundos en Play Mode y en la escena guardada.
-- PASS: tras conectar la caja, el selector elige la tecla junto al portón.
-- PASS: ON abre el portón y desactiva el collider `PortonTaller`.
-- PASS: OFF cierra; ON permite abrirlo de nuevo.
-- PASS: después de subir al auto, el motor gira aproximadamente a 1098 RPM y su AudioSource reproduce una señal de audio no nula.
-- PASS: Game Over pausa el audio general.
+## Riesgos conocidos
 
-Se revisó además un render del modelo texturado de la tecla con sus rótulos. El informe bruto se genera en `Library/GateAudioRegression.txt`; la vista previa en `Library/GateSwitchPreview.png`. No sustituye un recorrido manual ni una prueba de build.
+- Falta integrar y probar la IA exigida por la consigna; no se considera cerrada.
+- La validación en una build Windows es obligatoria y todavía está pendiente.
+- Los paquetes comerciales deben estar instalados localmente antes de abrir la escena; ver la guía de instalación.
 
-## Compilación de esta revisión
+## Evidencia a guardar al cerrar el parcial
 
-- PASS: `Assembly-CSharp.csproj` compila con 0 errores.
-- PASS: `Assembly-CSharp-Editor.csproj` compila con 0 errores.
-- Pendiente: probar en Play Mode la llegada del vehículo y la nueva animación de descenso; esta compilación no es una build ejecutable de Unity.
+- Captura del inspector con la escena en Build Settings.
+- Video del recorrido completo, incluida una derrota y la victoria.
+- Build final con fecha/versionado.
+- Resultado de esta tabla actualizado con PASS/FAIL y correcciones aplicadas.
 
-## Pruebas pendientes
-
-- Completar el recorrido usando teclado y mouse manualmente.
-- Verificar audio en una máquina sin dispositivos Android conectados.
-- Definir e integrar la IA obligatoria de la consigna, respetando la decisión de retirar el fantasma perseguidor.
-- Llegar a `SalidaAlCamino` con el vehículo y confirmar victoria.
-- Ejecutar una build Windows o WebGL.
-- Probar la experiencia con el framerate y resolución de entrega.
-
-## Estado
-
-La escena funciona en el Editor y la integración inicial del vertical slice está operativa. La validación de build, audio final y recorrido manual completo queda pendiente.

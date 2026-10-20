@@ -77,9 +77,11 @@ namespace EnElCamino
             nativeInput.lockBrakesOnEnable = false;
             nativeInput.throttleAndBrakeMode = VPStandardInput.ThrottleAndBrakeMode.AutoForwardAndReverse;
             nativeInput.brakeOnThrottleBackwards = true;
-            nativeInput.progressiveSteerMode = true;
-            nativeInput.movementRate = 0.35f;
-            nativeInput.autoCenterRate = 1f;
+            // Keep VPP's authored steering response. The previous progressive
+            // override made the input feel detached from the front wheel angle.
+            nativeInput.progressiveSteerMode = false;
+            nativeInput.movementRate = 0.25f;
+            nativeInput.autoCenterRate = 0.01f;
             nativeInput.disableGearShiftInputs = true;
             nativeInput.enabled = enabled;
 
@@ -233,31 +235,16 @@ namespace EnElCamino
             if (!driving && !arrivalControl) return;
             if (driving)
             {
-                Keyboard keyboard = Keyboard.current;
-                bool hasKeyboard = keyboard != null;
-                bool forward = hasKeyboard &&
-                    (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed);
-                bool reverse = hasKeyboard &&
-                    (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed);
-                float steer = 0f;
-                if (hasKeyboard)
-                {
-                    if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed) steer -= 1f;
-                    if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed) steer += 1f;
-                }
-
-                // Vehicle Physics Pro remains the only system writing the vehicle
-                // input bus. We only provide its external controls here, avoiding
-                // the old competing transform/bus writes that made the car rotate
-                // on its center and left the visual wheels out of sync.
+                // VPP is the only owner of the vehicle controls. Its
+                // VPStandardInput reads the configured WASD/arrow bindings and
+                // writes the steering bus that turns the front wheel colliders.
+                // Do not add a second Keyboard/InputSystem path here.
                 if (nativeInput != null)
                 {
-                    nativeInput.externalSteer = steer;
-                    nativeInput.externalThrottle = forward ? 1f : 0f;
-                    // With AutoForwardAndReverse, VPP selects reverse from this
-                    // brake request once the vehicle is stopped.
-                    nativeInput.externalBrake = reverse ? 1f : 0f;
-                    nativeInput.externalHandbrake = hasKeyboard && keyboard.spaceKey.isPressed ? 1f : 0f;
+                    nativeInput.externalThrottle = 0f;
+                    nativeInput.externalBrake = 0f;
+                    nativeInput.externalHandbrake = 0f;
+                    nativeInput.externalSteer = 0f;
                     nativeInput.externalClutch = 0f;
                     nativeInput.externalIgnition = engineRequested
                         ? Time.time < starterUntil ? VPStandardInput.IgnitionKey.Start : VPStandardInput.IgnitionKey.AccOn

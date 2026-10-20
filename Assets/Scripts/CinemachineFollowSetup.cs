@@ -49,6 +49,19 @@ namespace EnElCamino
             follow.VerticalArmLength = 0.35f;
             follow.CameraSide = 0.5f;
             follow.CameraDistance = distance;
+            // Keep the camera out of walls and props while the player turns in
+            // the workshop.  This is VPP-independent and uses Cinemachine's
+            // built-in sphere cast instead of moving the player or changing the
+            // scene colliders.
+            follow.AvoidObstacles = new CinemachineThirdPersonFollow.ObstacleSettings
+            {
+                Enabled = true,
+                CollisionFilter = ~0,
+                IgnoreTag = GetCameraTargetTag(target),
+                CameraRadius = 0.22f,
+                DampingIntoCollision = 0.08f,
+                DampingFromCollision = 0.22f
+            };
             CinemachineRotationComposer aim = rig.AddComponent<CinemachineRotationComposer>();
             aim.TargetOffset = new Vector3(0f, 1.35f, 0f);
             aim.Damping = new Vector2(0.2f, 0.2f);
@@ -65,8 +78,25 @@ namespace EnElCamino
         public void SetTarget(Transform newTarget)
         {
             if (newTarget == null || gameplayCamera == null) return;
+            target = newTarget;
             gameplayCamera.Follow = newTarget;
             gameplayCamera.LookAt = newTarget;
+
+            CinemachineThirdPersonFollow follow = gameplayCamera.GetComponent<CinemachineThirdPersonFollow>();
+            if (follow != null)
+            {
+                CinemachineThirdPersonFollow.ObstacleSettings obstacles = follow.AvoidObstacles;
+                obstacles.IgnoreTag = GetCameraTargetTag(newTarget);
+                follow.AvoidObstacles = obstacles;
+            }
+        }
+
+        private static string GetCameraTargetTag(Transform cameraTarget)
+        {
+            if (cameraTarget == null || cameraTarget.gameObject.CompareTag("Untagged"))
+                return string.Empty;
+
+            return cameraTarget.tag;
         }
     }
 }

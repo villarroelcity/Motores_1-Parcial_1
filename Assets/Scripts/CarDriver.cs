@@ -36,6 +36,36 @@ namespace EnElCamino
         private float brakeInput;
         private VPStandardInput nativeInput;
 
+        private void ConfigureFrontSteeringOnly()
+        {
+            if (vehicleController == null || vehicleController.axles == null || vehicleController.axles.Length == 0)
+                return;
+
+            // VPP builds its steering wheel list from these axle settings.  Set
+            // them before initialization as well as at runtime so a prefab or
+            // scene override cannot make the rear axle steer.
+            vehicleController.axles[0].steeringMode = Steering.SteeringMode.Steerable;
+            vehicleController.axles[0].steeringRatio = 1f;
+            for (int i = 1; i < vehicleController.axles.Length; i++)
+            {
+                vehicleController.axles[i].steeringMode = Steering.SteeringMode.Disabled;
+                vehicleController.axles[i].steeringRatio = 1f;
+
+                // VPP uses Unity WheelCollider.steerAngle for the visual wheel
+                // pose too.  Clear any stale scene value on the non-steering
+                // axle so the rear wheels stay straight when turning.
+                ClearWheelSteerAngle(vehicleController.axles[i].leftWheel);
+                ClearWheelSteerAngle(vehicleController.axles[i].rightWheel);
+            }
+        }
+
+        private static void ClearWheelSteerAngle(VPWheelCollider wheel)
+        {
+            if (wheel == null) return;
+            WheelCollider unityWheel = wheel.GetComponent<WheelCollider>();
+            if (unityWheel != null) unityWheel.steerAngle = 0f;
+        }
+
         private void SetNativeControls(bool enabled)
         {
             if (nativeInput == null) return;
@@ -90,6 +120,7 @@ namespace EnElCamino
             vehicleController = GetComponent<VPVehicleController>();
             vehicleBody = GetComponent<Rigidbody>();
             if (vehicleController == null) return;
+            ConfigureFrontSteeringOnly();
             vehicleController.gearbox.type = Gearbox.Type.Automatic;
             nativeInput = GetComponent<VPStandardInput>();
             if (nativeInput == null) nativeInput = gameObject.AddComponent<VPStandardInput>();
@@ -215,12 +246,14 @@ namespace EnElCamino
             {
                 // Apply before VPP initialization as well: this project car prefab
                 // is authored with a manual gearbox, but gameplay requires automatic.
+                ConfigureFrontSteeringOnly();
                 vehicleController.gearbox.type = Gearbox.Type.Automatic;
                 return;
             }
 
             if (!automaticTransmissionConfigured)
             {
+                ConfigureFrontSteeringOnly();
                 vehicleController.gearbox.type = Gearbox.Type.Automatic;
                 automaticTransmissionConfigured = true;
             }

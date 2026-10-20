@@ -118,6 +118,14 @@ namespace EnElCamino
             transform.position = placementPoint.position;
             transform.rotation = placementPoint.rotation;
             transform.localScale = placementPoint.localScale;
+            Bounds visualBounds = new Bounds(transform.position, Vector3.zero);
+            bool hasBounds = false;
+            foreach (Renderer renderer in GetComponentsInChildren<Renderer>(true))
+            {
+                if (!hasBounds) { visualBounds = renderer.bounds; hasBounds = true; }
+                else visualBounds.Encapsulate(renderer.bounds);
+            }
+            if (hasBounds) transform.position += placementPoint.position - visualBounds.center;
             SetColliders(true);
             gameFlow.ShowMessage("Escalera colocada. Bajá por el hueco con [E].");
         }

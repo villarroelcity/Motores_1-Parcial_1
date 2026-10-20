@@ -8,7 +8,7 @@ namespace EnElCamino
 
         private void OnTriggerEnter(Collider other)
         {
-            if (gameFlow == null || gameFlow.gameOver || gameFlow.finished || gameFlow.exteriorLadderPlaced) return;
+            if (gameFlow == null || gameFlow.gameOver || gameFlow.finished) return;
             if (other.GetComponentInParent<PlayerController>() != null)
                 gameFlow.GameOver();
         }

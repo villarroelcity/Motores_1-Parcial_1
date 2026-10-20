@@ -6,12 +6,15 @@ namespace EnElCamino
     /// <summary>
     /// Creates the gameplay virtual camera at runtime while preserving the existing scene camera.
     /// </summary>
+    [DefaultExecutionOrder(10000)]
     public class CinemachineFollowSetup : MonoBehaviour
     {
         [SerializeField] private Transform target;
         [SerializeField] private Transform vehicle;
         [SerializeField] private float distance = 4.2f;
         [SerializeField] private float height = 1.9f;
+        [SerializeField] private float collisionRadius = 0.18f;
+        [SerializeField] private float minimumCameraDistance = 0.12f;
 
         private CinemachineCamera gameplayCamera;
 
@@ -49,18 +52,17 @@ namespace EnElCamino
             follow.VerticalArmLength = 0.35f;
             follow.CameraSide = 0.5f;
             follow.CameraDistance = distance;
-            // Keep the camera out of walls and props while the player turns in
-            // the workshop.  This is VPP-independent and uses Cinemachine's
-            // built-in sphere cast instead of moving the player or changing the
-            // scene colliders.
+            // The custom post-process below ignores the target hierarchy.  The
+            // built-in Cinemachine collision resolver can mistake the player's
+            // own capsule/body for an obstacle in this scene.
             follow.AvoidObstacles = new CinemachineThirdPersonFollow.ObstacleSettings
             {
-                Enabled = true,
-                CollisionFilter = ~0,
-                IgnoreTag = GetCameraTargetTag(target),
-                CameraRadius = 0.22f,
-                DampingIntoCollision = 0.08f,
-                DampingFromCollision = 0.22f
+                Enabled = false,
+                CollisionFilter = 0,
+                IgnoreTag = string.Empty,
+                CameraRadius = 0.18f,
+                DampingIntoCollision = 0f,
+                DampingFromCollision = 0f
             };
             CinemachineRotationComposer aim = rig.AddComponent<CinemachineRotationComposer>();
             aim.TargetOffset = new Vector3(0f, 1.35f, 0f);
@@ -75,6 +77,47 @@ namespace EnElCamino
                 SetTarget(vehicle);
         }
 
+        private void LateUpdate()
+        {
+            if (target == null || gameplayCamera == null)
+                return;
+
+            // CinemachineBrain has already placed the real camera at this
+            // point.  Only shorten that segment when an external collider is
+            // between the target and the camera; never test the player/vehicle
+            // hierarchy itself.
+            Vector3 anchor = target.position + Vector3.up * 1.15f;
+            Vector3 cameraPosition = transform.position;
+            Vector3 targetToCamera = cameraPosition - anchor;
+            float targetDistance = targetToCamera.magnitude;
+            if (targetDistance <= minimumCameraDistance)
+                return;
+
+            Vector3 direction = targetToCamera / targetDistance;
+            RaycastHit[] hits = Physics.SphereCastAll(
+                anchor,
+                collisionRadius,
+                direction,
+                targetDistance,
+                Physics.DefaultRaycastLayers,
+                QueryTriggerInteraction.Ignore);
+
+            float safeDistance = targetDistance;
+            for (int i = 0; i < hits.Length; i++)
+            {
+                if (IsInsideTargetHierarchy(hits[i].collider.transform))
+                    continue;
+
+                safeDistance = Mathf.Min(safeDistance, hits[i].distance - collisionRadius);
+            }
+
+            if (safeDistance >= targetDistance - 0.001f)
+                return;
+
+            safeDistance = Mathf.Max(minimumCameraDistance, safeDistance);
+            transform.position = anchor + direction * safeDistance;
+        }
+
         public void SetTarget(Transform newTarget)
         {
             if (newTarget == null || gameplayCamera == null) return;
@@ -83,20 +126,11 @@ namespace EnElCamino
             gameplayCamera.LookAt = newTarget;
 
             CinemachineThirdPersonFollow follow = gameplayCamera.GetComponent<CinemachineThirdPersonFollow>();
-            if (follow != null)
-            {
-                CinemachineThirdPersonFollow.ObstacleSettings obstacles = follow.AvoidObstacles;
-                obstacles.IgnoreTag = GetCameraTargetTag(newTarget);
-                follow.AvoidObstacles = obstacles;
-            }
         }
 
-        private static string GetCameraTargetTag(Transform cameraTarget)
+        private bool IsInsideTargetHierarchy(Transform candidate)
         {
-            if (cameraTarget == null || cameraTarget.gameObject.CompareTag("Untagged"))
-                return string.Empty;
-
-            return cameraTarget.tag;
+            return candidate == target || candidate.IsChildOf(target);
         }
     }
 }

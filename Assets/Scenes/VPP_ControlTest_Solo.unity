@@ -130,6 +130,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: VPP Sport Coupe
       objectReference: {fileID: 0}
+    - target: {fileID: 2069814030545375922, guid: f7a352f52c0b4034a8e157c2e33e54c4,
+        type: 3}
+      propertyPath: gearbox.type
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2069814030545375927, guid: f7a352f52c0b4034a8e157c2e33e54c4,
         type: 3}
       propertyPath: m_LocalPosition.x

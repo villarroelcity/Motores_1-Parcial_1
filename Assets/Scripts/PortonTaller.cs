@@ -32,10 +32,10 @@ namespace EnElCamino
         {
             get
             {
-                if (open) return "Portón abierto";
-                if (moving) return "El portón está en movimiento";
-                if (gameFlow == null || !gameFlow.insideGarage) return "El portón se abre desde adentro";
-                return "[E] Abrir portón";
+                if (open) return "Porton abierto";
+                if (moving) return "El porton esta en movimiento";
+                if (gameFlow == null || !gameFlow.insideGarage) return "El porton se abre desde adentro";
+                return "[E] Abrir porton";
             }
         }
 
@@ -49,13 +49,13 @@ namespace EnElCamino
             if (gameFlow == null || gameFlow.gameOver || gameFlow.finished || moving || value == open) return false;
             if (!gameFlow.stationPowerConnected)
             {
-                gameFlow.ShowMessage("Primero conectá el generador en la caja eléctrica.");
+                gameFlow.ShowMessage("Primero conecta el generador en la caja electrica.");
                 return false;
             }
 
             if (!gameFlow.insideGarage)
             {
-                gameFlow.ShowMessage("Tenés que entrar al garage para abrir el portón.");
+                gameFlow.ShowMessage("Tenes que entrar al garage para abrir el porton.");
                 return false;
             }
 
@@ -108,7 +108,7 @@ namespace EnElCamino
             else
             {
                 gameFlow.garageOpen = opening;
-                gameFlow.ShowMessage(opening ? "Portón abierto." : "Portón cerrado. Accioná la tecla para abrirlo.");
+                gameFlow.ShowMessage(opening ? "Porton abierto." : "Porton cerrado. Acciona la tecla para abrirlo.");
             }
             moving = false;
             motion = null;

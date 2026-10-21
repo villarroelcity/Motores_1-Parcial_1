@@ -88,13 +88,13 @@ namespace EnElCamino
             {
                 if (pumpMode)
                 {
-                    if (gameFlow == null || !gameFlow.generatorOn || !gameFlow.stationPowerConnected) return "Surtidor sin energía";
-                    if (!gameFlow.hasFuelCan) return "Necesitás un bidón";
-                    if (pumpUsed) return "Bidón lleno";
-                    return "[E] Llenar bidón";
+                    if (gameFlow == null || !gameFlow.generatorOn || !gameFlow.stationPowerConnected) return "Surtidor sin energia";
+                    if (!gameFlow.hasFuelCan) return "Necesitas un bidon";
+                    if (pumpUsed) return "Bidon lleno";
+                    return "[E] Llenar bidon";
                 }
-                if (taken) return "Bidón tomado";
-                return "[E] Tomar bidón vacío";
+                if (taken) return "Bidon tomado";
+                return "[E] Tomar bidon vacio";
             }
         }
 
@@ -109,13 +109,13 @@ namespace EnElCamino
 
             if (gameFlow == null || !gameFlow.generatorOn || !gameFlow.stationPowerConnected)
             {
-                if (gameFlow != null) gameFlow.ShowMessage("Primero encendé y conectá el generador.");
+                if (gameFlow != null) gameFlow.ShowMessage("Primero encende y conecta el generador.");
                 return;
             }
 
             if (!gameFlow.garageOpen)
             {
-                gameFlow.ShowMessage("Primero abrí el portón desde adentro del garage.");
+                gameFlow.ShowMessage("Primero abri el porton desde adentro del garage.");
                 return;
             }
 
@@ -130,12 +130,12 @@ namespace EnElCamino
         {
             if (gameFlow == null || !gameFlow.generatorOn || !gameFlow.stationPowerConnected)
             {
-                if (gameFlow != null) gameFlow.ShowMessage("El surtidor necesita energía.");
+                if (gameFlow != null) gameFlow.ShowMessage("El surtidor necesita energia.");
                 yield break;
             }
             if (!gameFlow.hasFuelCan)
             {
-                gameFlow.ShowMessage("Necesitás traer el bidón vacío.");
+                gameFlow.ShowMessage("Necesitas traer el bidon vacio.");
                 yield break;
             }
 

@@ -36,7 +36,7 @@ namespace EnElCamino
                 if (climbState == ClimbState.Ground) return promptText;
                 if (climbState == ClimbState.AtRoof) return "Acercate al hueco para bajar";
                 if (climbState == ClimbState.Descending) return "Bajando al taller...";
-                return "Ya estás dentro del taller";
+                return "Ya estas dentro del taller";
             }
         }
 
@@ -79,7 +79,7 @@ namespace EnElCamino
             ResetPlayerFallState();
             gameFlow.movementLocked = false;
             climbState = ClimbState.AtRoof;
-            gameFlow.ShowMessage("Subiste al techo. Acercate al hueco y presioná [E] para colgarte y bajar.");
+            gameFlow.ShowMessage("Subiste al techo. Acercate al hueco y presiona [E] para colgarte y bajar.");
         }
 
         public void DescendThroughHole(Transform holePoint)

@@ -6,7 +6,6 @@ namespace EnElCamino
     public class Generador : MonoBehaviour, IInteractable
     {
         [SerializeField] private GameFlow gameFlow;
-        [SerializeField] private Renderer indicator;
         [SerializeField] private Light indicatorLight;
         [SerializeField] private AudioClip switchSound;
         [SerializeField] private AudioClip generatorStartSound;
@@ -63,7 +62,7 @@ namespace EnElCamino
             get
             {
                 if (generatorOn) return "Generador encendido";
-                return "[E] Presionar botón rojo";
+                return "[E] Presionar boton rojo";
             }
         }
 
@@ -72,7 +71,7 @@ namespace EnElCamino
             if (generatorOn || gameFlow == null || gameFlow.gameOver || gameFlow.finished) return;
             if (!gameFlow.insideGarage)
             {
-                gameFlow.ShowMessage("Primero entrá al taller por el hueco del techo y bajá por la escalera.");
+                gameFlow.ShowMessage("Primero entra al taller por el hueco del techo y baja por la escalera.");
                 return;
             }
 

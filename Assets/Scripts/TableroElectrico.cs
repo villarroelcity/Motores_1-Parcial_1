@@ -6,32 +6,19 @@ namespace EnElCamino
     {
         [SerializeField] private GameFlow gameFlow;
         [SerializeField] private Renderer statusLight;
-        [SerializeField] private Transform generatorOutlet;
-        [SerializeField] private Transform boxSocket;
-        [SerializeField] private Transform wallPassThrough;
-        [SerializeField] private float wallThickness = 0.4f;
-        [SerializeField] private LineRenderer cable;
-        [SerializeField] private Renderer plugIndicator;
         [SerializeField] private Light statusLamp;
-        [SerializeField, Min(0.1f)] private float unpluggedCableLength = 1.15f;
-        [SerializeField, Min(0.05f)] private float connectionDuration = 0.6f;
-        [SerializeField] private bool routeThroughWall;
-
-        private bool connected;
-        private float connectionProgress;
 
         private void Awake()
         {
             if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
             if (statusLight == null) statusLight = transform.Find("LuzEstado")?.GetComponent<Renderer>();
+            if (statusLamp == null) statusLamp = transform.Find("LuzTablero")?.GetComponent<Light>();
             if (gameFlow != null)
             {
                 gameFlow.GeneratorFuelDepleted += RefreshAfterPowerLoss;
                 gameFlow.GameLost += RefreshAfterPowerLoss;
                 gameFlow.GameFinished += RefreshAfterPowerLoss;
             }
-            connected = gameFlow != null && gameFlow.stationPowerConnected;
-            connectionProgress = connected ? 1f : 0f;
             RestorePlayModeControls();
             RefreshVisualState();
         }
@@ -52,71 +39,26 @@ namespace EnElCamino
             RefreshVisualState();
         }
 
-        private void LateUpdate()
-        {
-            if (cable == null || generatorOutlet == null || boxSocket == null) return;
-            Vector3 start = generatorOutlet.position;
-            Vector3 towardGenerator = (start - boxSocket.position).normalized;
-            float targetProgress = connected ? 1f : 0f;
-            connectionProgress = Mathf.MoveTowards(connectionProgress, targetProgress,
-                Time.deltaTime / Mathf.Max(0.05f, connectionDuration));
-            Vector3 unpluggedEnd = boxSocket.position + towardGenerator * unpluggedCableLength;
-            Vector3 end = Vector3.Lerp(unpluggedEnd, boxSocket.position,
-                connectionProgress * connectionProgress * (3f - 2f * connectionProgress));
-
-            if (routeThroughWall && wallPassThrough != null)
-            {
-                Vector3 wallNormal = wallPassThrough.up.normalized;
-                float outsideSign = Mathf.Sign(Vector3.Dot(start - wallPassThrough.position, wallNormal));
-                if (Mathf.Approximately(outsideSign, 0f)) outsideSign = 1f;
-                Vector3 outsidePoint = wallPassThrough.position + wallNormal * outsideSign * (wallThickness * 0.5f + 0.035f);
-                Vector3 insideDirection = -wallNormal * outsideSign;
-                Vector3 insidePoint = wallPassThrough.position + insideDirection * (wallThickness * 0.5f + 0.035f);
-                Vector3 unpluggedWallEnd = boxSocket.position + insideDirection * unpluggedCableLength;
-                end = Vector3.Lerp(unpluggedWallEnd, boxSocket.position,
-                    connectionProgress * connectionProgress * (3f - 2f * connectionProgress));
-                if (cable.positionCount != 5) cable.positionCount = 5;
-                Vector3 outsideSag = Vector3.down * Mathf.Min(0.08f, Vector3.Distance(start, outsidePoint) * 0.02f);
-                cable.SetPosition(0, start);
-                cable.SetPosition(1, Vector3.Lerp(start, outsidePoint, 0.55f) + outsideSag);
-                cable.SetPosition(2, outsidePoint);
-                cable.SetPosition(3, insidePoint);
-                cable.SetPosition(4, end);
-            }
-            else
-            {
-                if (cable.positionCount != 4) cable.positionCount = 4;
-                Vector3 sag = Vector3.down * Mathf.Min(0.3f, Vector3.Distance(start, end) * 0.08f);
-                cable.SetPosition(0, start);
-                cable.SetPosition(1, Vector3.Lerp(start, end, 0.33f) + sag);
-                cable.SetPosition(2, Vector3.Lerp(start, end, 0.67f) + sag);
-                cable.SetPosition(3, end);
-            }
-
-            if (plugIndicator != null) plugIndicator.transform.position = end;
-        }
-
         public string Prompt => gameFlow == null || !gameFlow.generatorOn
-            ? "Primero encendé el generador"
-            : gameFlow.stationPowerConnected ? "Generador enchufado: estación con energía" : "[E] Enchufar generador a la caja eléctrica";
+            ? "Primero encende el generador"
+            : gameFlow.stationPowerConnected ? "Generador conectado: estacion con energia" : "[E] Conectar generador a la caja electrica";
 
         public void Interact()
         {
             if (gameFlow == null || gameFlow.gameOver || gameFlow.finished) return;
             if (!gameFlow.generatorOn)
             {
-                gameFlow.ShowMessage("Primero encendé el generador del taller.");
+                gameFlow.ShowMessage("Primero encende el generador del taller.");
                 return;
             }
             if (!gameFlow.insideGarage)
             {
-                gameFlow.ShowMessage("Agarrá el cable del generador y enchufalo a esta caja desde adentro del taller.");
+                gameFlow.ShowMessage("Conecta el generador a esta caja desde adentro del taller.");
                 return;
             }
             if (gameFlow.stationPowerConnected) return;
 
             gameFlow.ConnectStationPower();
-            SetConnected(true);
             RefreshVisualState();
         }
 
@@ -124,12 +66,12 @@ namespace EnElCamino
         {
             string[] visibleParts =
             {
-                "TableroFrontal", "InterruptorGeneral", "LlaveTermica", "LuzEstado", "RótuloCaja", "RótuloToma"
+                "TableroFrontal", "InterruptorGeneral", "LlaveTermica", "LuzEstado", "RotuloCaja", "RotuloToma"
             };
 
             foreach (string partName in visibleParts)
             {
-                Transform part = transform.Find(partName);
+                Transform part = FindPart(partName);
                 if (part == null) continue;
                 if (!part.gameObject.activeSelf) part.gameObject.SetActive(true);
 
@@ -172,8 +114,17 @@ namespace EnElCamino
                     if (material == null) continue;
                     if (material.HasProperty("_Color")) material.color = color;
                     if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", color);
-                    if (material.HasProperty("_EmissionColor")) material.SetColor("_EmissionColor", color * 0.45f);
+                    if (material.HasProperty("_EmissionColor")) material.SetColor("_EmissionColor", color * 1.8f);
                 }
+            }
+
+            if (statusLamp != null)
+            {
+                bool powered = gameFlow != null && gameFlow.stationPowerConnected;
+                statusLamp.enabled = powered;
+                statusLamp.color = new Color(0.05f, 1f, 0.12f);
+                statusLamp.intensity = powered ? 2.5f : 0f;
+                statusLamp.range = 3f;
             }
 
             Transform breaker = transform.Find("LlaveTermica");
@@ -185,29 +136,28 @@ namespace EnElCamino
         private void RefreshAfterPowerLoss()
         {
             // El agotamiento del generador corta la electricidad, pero no
-            // desenchufa físicamente el cable: debe seguir conectado a la caja.
+            // desenchufa fisicamente el cable: debe seguir conectado a la caja.
             RefreshVisualState();
         }
 
-        public void SetConnected(bool value)
+        private Transform FindPart(string expectedName)
         {
-            connected = value;
-            Color color = value ? new Color(0.15f, 0.95f, 0.28f) : new Color(0.9f, 0.12f, 0.04f);
-            if (plugIndicator != null)
-            {
-                foreach (Material material in plugIndicator.materials)
-                {
-                    if (material == null) continue;
-                    if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", color);
-                    if (material.HasProperty("_Color")) material.color = color;
-                    if (material.HasProperty("_EmissionColor")) material.SetColor("_EmissionColor", value ? color * 1.5f : Color.black);
-                }
-            }
-            if (statusLamp != null)
-            {
-                statusLamp.color = color;
-                statusLamp.enabled = value;
-            }
+            string normalizedExpected = RemoveAccents(expectedName);
+            foreach (Transform part in GetComponentsInChildren<Transform>(true))
+                if (RemoveAccents(part.name) == normalizedExpected) return part;
+            return null;
         }
+
+        private static string RemoveAccents(string value)
+        {
+            return value.ToLowerInvariant()
+                .Replace("\u00e1", "a")
+                .Replace("\u00e9", "e")
+                .Replace("\u00ed", "i")
+                .Replace("\u00f3", "o")
+                .Replace("\u00fa", "u")
+                .Replace("\u00f1", "n");
+        }
+
     }
 }

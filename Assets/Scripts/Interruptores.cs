@@ -29,9 +29,9 @@ namespace EnElCamino
         {
             get
             {
-                if (gameFlow == null || !gameFlow.insideGarage) return "Interruptor del portón (desde adentro)";
-                if (!gameFlow.stationPowerConnected) return "Primero enchufá el generador a la caja eléctrica";
-                return switchedOn ? "[E] Apagar tecla / cerrar portón" : "[E] Encender tecla / abrir portón";
+                if (gameFlow == null || !gameFlow.insideGarage) return "Interruptor del porton (desde adentro)";
+                if (!gameFlow.stationPowerConnected) return "Primero enchufa el generador a la caja electrica";
+                return switchedOn ? "[E] Apagar tecla / cerrar porton" : "[E] Encender tecla / abrir porton";
             }
         }
 
@@ -40,18 +40,18 @@ namespace EnElCamino
             if (gameFlow == null || gameFlow.gameOver || gameFlow.finished) return;
             if (!gameFlow.stationPowerConnected)
             {
-                gameFlow.ShowMessage("Primero enchufá el generador a la caja eléctrica.");
+                gameFlow.ShowMessage("Primero enchufa el generador a la caja electrica.");
                 return;
             }
             if (!gameFlow.insideGarage)
             {
-                gameFlow.ShowMessage("El interruptor está del lado interior del taller.");
+                gameFlow.ShowMessage("El interruptor esta del lado interior del taller.");
                 return;
             }
 
             if (garageDoor == null)
             {
-                gameFlow.ShowMessage("El interruptor no está conectado al portón.");
+                gameFlow.ShowMessage("El interruptor no esta conectado al porton.");
                 return;
             }
             bool next = !garageDoor.IsOpen;

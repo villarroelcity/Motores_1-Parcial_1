@@ -120,7 +120,7 @@ namespace EnElCamino
         }
     }
 
-    // Interfaz común de las acciones que se activan con E.
+    // Interfaz comun de las acciones que se activan con E.
     // Vive junto al interactor porque no es un componente independiente de la escena.
     public interface IInteractable
     {

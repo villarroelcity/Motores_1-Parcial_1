@@ -85,6 +85,40 @@ namespace EnElCamino
             input[InputData.AutomaticGear] = 4;
         }
 
+        private void PrepareScriptedPlayerControls()
+        {
+            if (nativeInput != null)
+            {
+                // The reference controls are the same bus-driven controls used
+                // while the car coasts after fuel starvation. Do not hand the
+                // vehicle to a second steering/pedal path when the player
+                // boards again.
+                nativeInput.enabled = true;
+                nativeInput.disableSteerInput = true;
+                nativeInput.disableThrottleInput = true;
+                nativeInput.disableBrakeInput = true;
+                nativeInput.disableHandbrakeInput = true;
+                nativeInput.disableClutchInput = true;
+                nativeInput.disableGearShiftInputs = true;
+                nativeInput.externalThrottle = 0f;
+                nativeInput.externalBrake = 0f;
+                nativeInput.externalHandbrake = 0f;
+                nativeInput.externalSteer = 0f;
+                nativeInput.externalClutch = 0f;
+            }
+
+            if (vehicleController == null || !vehicleController.initialized) return;
+
+            int[] input = vehicleController.data.Get(Channel.Input);
+            input[InputData.Throttle] = 0;
+            input[InputData.Steer] = 0;
+            input[InputData.Brake] = 0;
+            input[InputData.Handbrake] = 0;
+            input[InputData.Clutch] = 0;
+            input[InputData.ManualGear] = 0;
+            input[InputData.AutomaticGear] = 4;
+        }
+
         public void BeginFuelCutoffControl()
         {
             arrivalControl = true;
@@ -197,7 +231,12 @@ namespace EnElCamino
                 vehicleBody.angularVelocity = Vector3.zero;
                 vehicleBody.WakeUp();
             }
-            driving = true;
+            // Re-enter the same control mode used during the fuel-starved
+            // coast. GameFlow.driving is the mission state; this local flag
+            // must stay false so Update/FixedUpdate keep reading the same
+            // keyboard path as the initial coast.
+            driving = false;
+            arrivalControl = true;
             if (vehicleBody != null)
             {
                 vehicleBody.constraints = RigidbodyConstraints.None;
@@ -208,14 +247,11 @@ namespace EnElCamino
             if (introEngine != null) introEngine.allowedFuelRatio = 1f;
             RestoreStartupAudioClip();
             StartEngineAudio(true);
-            // Only select automatic transmission at handoff. VPP owns the
-            // actual steering, throttle and wheel physics from this point on.
+            // Keep the same automatic Drive gear used while coasting under
+            // player control; do not switch to the separate native handoff.
             if (vehicleController != null)
                 vehicleController.gearbox.type = Gearbox.Type.Automatic;
-            // Restore the authored VPP input path exactly once at handoff.
-            // After this call CarDriver is disabled and never writes the input
-            // bus again, so steering and braking remain native to VPP.
-            SetNativeControls(true);
+            PrepareScriptedPlayerControls();
             if (player != null) player.SetActive(false);
             ThirdPersonCamera legacyCamera = cameraFollow != null
                 ? cameraFollow
@@ -228,10 +264,10 @@ namespace EnElCamino
             }
             gameFlow.StartDriving();
 
-            // From this point the vehicle must be exactly the raw VPP test:
-            // the mission driver has finished its job and cannot interfere
-            // with the native steering, gearbox or rigidbody simulation.
-            enabled = false;
+            // The arrival sequence disabled this component while the car was
+            // parked. Re-enable it so the same coast controls continue after
+            // refueling and boarding.
+            enabled = true;
         }
 
         private void Update()
@@ -333,7 +369,9 @@ namespace EnElCamino
             // VPP automatic modes: P=1, R=2, N=3, D=4. The scripted arrival
             // stays in Drive even after fuel starvation, so the motor cuts out
             // while the car visibly coasts instead of dropping to Neutral.
-            input[InputData.AutomaticGear] = driving ? (reversing ? 2 : 4) : vehicleReady ? 1 : 4;
+            input[InputData.AutomaticGear] = driving || arrivalControl
+                ? (reversing ? 2 : 4)
+                : vehicleReady ? 1 : 4;
         }
 
         public void StartEngineAudio(bool playStartSound)

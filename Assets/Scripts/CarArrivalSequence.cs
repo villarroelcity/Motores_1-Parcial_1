@@ -48,7 +48,10 @@ namespace EnElCamino
             float fuelCutoffDistance = Mathf.Min(coastDistance, Vector3.Distance(laneOrigin, destination) * 0.8f);
             RigidbodyConstraints originalConstraints = body.constraints;
             body.rotation = Quaternion.LookRotation(direction, Vector3.up);
-            body.constraints = originalConstraints | RigidbodyConstraints.FreezeRotationY;
+            // Keep the body level during the scripted straight approach. Do
+            // not freeze Y: that is the yaw axis and freezing it makes the
+            // chassis fight VPP's steering when control is handed over.
+            body.constraints = originalConstraints | RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
             body.linearVelocity = direction * cruiseSpeed;
             body.WakeUp();
             while (vehicle != null && !vehicle.initialized) yield return new WaitForFixedUpdate();
@@ -87,14 +90,14 @@ namespace EnElCamino
                     continue;
                 }
 
-                // Guide horizontal speed along the arrival route. Grounding stays
-                // entirely physical; no bounds-based snap or final teleport.
+                // Guide only the longitudinal speed along the arrival route.
+                // A lateral force here makes the whole chassis slide sideways
+                // instead of letting VPP's front axle determine the heading.
                 float desiredSpeed = cruiseSpeed;
                 desiredSpeed = Mathf.Min(desiredSpeed, Mathf.Max(0f, remaining) / Time.fixedDeltaTime);
-                Vector3 lateralError = Vector3.ProjectOnPlane(body.position - laneOrigin, Vector3.up);
-                lateralError -= direction * Vector3.Dot(lateralError, direction);
-                Vector3 laneCorrection = Vector3.ClampMagnitude(-lateralError * 3f, 1f);
-                body.AddForce((direction * desiredSpeed + laneCorrection - horizontal) / Time.fixedDeltaTime, ForceMode.Acceleration);
+                float longitudinalSpeed = Vector3.Dot(horizontal, direction);
+                body.AddForce(direction * (desiredSpeed - longitudinalSpeed) / Time.fixedDeltaTime,
+                    ForceMode.Acceleration);
                 if (remaining <= 0.12f && currentSpeed <= 0.35f) break;
             }
 

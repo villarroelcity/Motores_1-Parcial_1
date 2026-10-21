@@ -32,14 +32,10 @@ namespace EnElCamino
             {
                 if (gameFlow.gameOver || gameFlow.finished) return;
                 if (startSound != null) audioSource.PlayOneShot(startSound);
-                if (carDriver != null && carDriver.enabled)
-                {
-                    carDriver.EnterCar();
-                }
-                else
-                {
-                    EnterNativeVppCar();
-                }
+                // The arrival helper is only for the scripted approach. From
+                // the moment the player boards, Vehicle Physics Pro must be
+                // the sole owner of steering, throttle, wheels and yaw.
+                EnterNativeVppCar();
                 return;
             }
 
@@ -56,6 +52,10 @@ namespace EnElCamino
 
         private void EnterNativeVppCar()
         {
+            if (carDriver != null) carDriver.enabled = false;
+            CarArrivalSequence arrival = GetComponent<CarArrivalSequence>();
+            if (arrival != null) arrival.enabled = false;
+
             Rigidbody body = GetComponent<Rigidbody>();
             if (body != null)
             {
@@ -71,9 +71,12 @@ namespace EnElCamino
                 vehicle.enabled = true;
                 vehicle.gearbox.type = Gearbox.Type.Automatic;
                 int[] input = vehicle.data.Get(Channel.Input);
+                input[InputData.Steer] = 0;
+                input[InputData.Throttle] = 0;
                 input[InputData.AutomaticGear] = 4;
                 input[InputData.Brake] = 0;
                 input[InputData.Handbrake] = 0;
+                input[InputData.Clutch] = 0;
             }
 
             VPStandardInput nativeInput = GetComponent<VPStandardInput>();

@@ -70,54 +70,6 @@ namespace EnElCamino
             input[InputData.AutomaticGear] = 4;
         }
 
-        private void RestoreFactoryVppControlState()
-        {
-            // The arrival sequence temporarily freezes and feeds the VPP input
-            // bus. Before handing the car to the player, put the vehicle back in
-            // the same physical state as the Sport Coupe prefab.
-            if (vehicleBody != null)
-            {
-                vehicleBody.constraints = RigidbodyConstraints.None;
-                vehicleBody.angularVelocity = Vector3.zero;
-                vehicleBody.WakeUp();
-            }
-
-            if (vehicleController == null) return;
-
-            if (vehicleController.axles != null && vehicleController.axles.Length > 0)
-            {
-                vehicleController.axles[0].steeringMode = Steering.SteeringMode.Steerable;
-                vehicleController.axles[0].steeringRatio = 1f;
-                for (int i = 1; i < vehicleController.axles.Length; i++)
-                {
-                    vehicleController.axles[i].steeringMode = Steering.SteeringMode.Disabled;
-                    vehicleController.axles[i].steeringRatio = 1f;
-                }
-            }
-
-            vehicleController.gearbox.type = Gearbox.Type.Automatic;
-            if (!vehicleController.initialized) return;
-
-            if (nativeInput != null)
-            {
-                nativeInput.throttleAndBrakeMode = VPStandardInput.ThrottleAndBrakeMode.ThrottleAndBrake;
-                nativeInput.brakeOnThrottleBackwards = false;
-                nativeInput.progressiveSteerMode = false;
-                nativeInput.movementRate = 0.25f;
-                nativeInput.autoCenterRate = 0.01f;
-                nativeInput.disableSteerInput = false;
-                nativeInput.disableThrottleInput = false;
-                nativeInput.disableBrakeInput = false;
-                nativeInput.disableHandbrakeInput = false;
-                nativeInput.disableClutchInput = false;
-                nativeInput.disableGearShiftInputs = false;
-            }
-
-            int[] input = vehicleController.data.Get(Channel.Input);
-            for (int i = 0; i < input.Length; i++) input[i] = 0;
-            input[InputData.AutomaticGear] = 4;
-        }
-
         public void BeginFuelCutoffControl()
         {
             arrivalControl = true;
@@ -149,7 +101,6 @@ namespace EnElCamino
             vehicleController = GetComponent<VPVehicleController>();
             vehicleBody = GetComponent<Rigidbody>();
             if (vehicleController == null) return;
-            vehicleController.gearbox.type = Gearbox.Type.Automatic;
             nativeInput = GetComponent<VPStandardInput>();
             if (nativeInput == null) nativeInput = gameObject.AddComponent<VPStandardInput>();
             SetNativeControls(false);
@@ -217,7 +168,12 @@ namespace EnElCamino
                 vehicleBody.WakeUp();
             }
             driving = true;
-            RestoreFactoryVppControlState();
+            if (vehicleBody != null)
+            {
+                vehicleBody.constraints = RigidbodyConstraints.None;
+                vehicleBody.angularVelocity = Vector3.zero;
+                vehicleBody.WakeUp();
+            }
             SetNativeControls(true);
             fuelRatio = 1f;
             if (introEngine != null) introEngine.allowedFuelRatio = 1f;
@@ -279,18 +235,10 @@ namespace EnElCamino
         {
             if (vehicleController == null) return;
             if (!vehicleController.initialized)
-            {
-                // The game uses the VPP automatic gearbox, while all wheel and
-                // steering geometry remains exactly as authored in the prefab.
-                vehicleController.gearbox.type = Gearbox.Type.Automatic;
                 return;
-            }
 
             if (!automaticTransmissionConfigured)
-            {
-                vehicleController.gearbox.type = Gearbox.Type.Automatic;
                 automaticTransmissionConfigured = true;
-            }
 
             if (introEngine == null)
             {

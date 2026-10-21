@@ -201,6 +201,11 @@ namespace EnElCamino
             if (cameraRig != null) cameraRig.SetTarget(transform);
             else if (cameraFollow != null) cameraFollow.SetTarget(transform);
             gameFlow.StartDriving();
+
+            // From this point the vehicle must be exactly the raw VPP test:
+            // the mission driver has finished its job and cannot interfere
+            // with the native steering, gearbox or rigidbody simulation.
+            enabled = false;
         }
 
         private void Update()

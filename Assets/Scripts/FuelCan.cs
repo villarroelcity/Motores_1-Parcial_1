@@ -30,6 +30,12 @@ namespace EnElCamino
             transform.localPosition = carriedLocalPosition;
             transform.localRotation = Quaternion.identity;
             transform.localScale = carriedLocalScale;
+
+            // The hand pivot is scaled for the low-poly hand mesh. Reassert the
+            // world pose too, so the can cannot drift away when the arm swings.
+            transform.position = carryAnchor.position
+                - carryAnchor.up * 0.22f
+                + carryAnchor.forward * 0.03f;
         }
 
         public string Prompt

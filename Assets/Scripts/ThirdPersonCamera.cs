@@ -1,4 +1,5 @@
 using UnityEngine;
+using VehiclePhysics;
 
 namespace EnElCamino
 {
@@ -19,11 +20,20 @@ namespace EnElCamino
         private float smoothedDistance;
         private float distanceVelocity;
         private readonly RaycastHit[] cameraHits = new RaycastHit[24];
+        private GameFlow gameFlow;
 
         private void Awake()
         {
             if (collisionMask.value == 0) collisionMask = Physics.DefaultRaycastLayers;
             smoothedDistance = distance;
+            gameFlow = FindFirstObjectByType<GameFlow>();
+        }
+
+        private void Start()
+        {
+            if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
+            if (gameFlow != null && gameFlow.driving)
+                RouteToVehicle();
         }
 
         public void SetTarget(Transform value)
@@ -53,6 +63,8 @@ namespace EnElCamino
 
         private void LateUpdate()
         {
+            if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
+            if (gameFlow != null && gameFlow.driving) RouteToVehicle();
             if (target == null) return;
             yaw = Mathf.LerpAngle(yaw, target.eulerAngles.y, followSpeed * Time.deltaTime);
             Quaternion orbit = Quaternion.Euler(pitch, yaw, 0f);
@@ -70,6 +82,14 @@ namespace EnElCamino
             Vector3 forward = Quaternion.Euler(0f, yaw, 0f) * Vector3.forward;
             Vector3 focus = target.position + Vector3.up * lookHeight + forward * lookAhead;
             transform.rotation = Quaternion.LookRotation(focus - transform.position);
+        }
+
+        private void RouteToVehicle()
+        {
+            VPVehicleController vehicle = FindFirstObjectByType<VPVehicleController>();
+            if (vehicle == null || target == vehicle.transform) return;
+            SetTarget(vehicle.transform);
+            SnapToTarget();
         }
 
         private float CalculateSafeDistance(Vector3 anchor, Vector3 direction)

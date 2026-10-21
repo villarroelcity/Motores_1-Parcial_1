@@ -92,22 +92,6 @@ namespace EnElCamino
             // Keep VPStandardInput initialized like the working pure VPP test.
         }
 
-        public void LockNativeInputForArrival()
-        {
-            // The scripted approach drives the VPP input bus itself. Prevent
-            // VPStandardInput from reading a held direction and steering the
-            // car away from the authored road line before boarding.
-            SetNativeControls(false);
-            if (vehicleController == null || !vehicleController.initialized) return;
-
-            int[] input = vehicleController.data.Get(Channel.Input);
-            input[InputData.Steer] = 0;
-            input[InputData.Throttle] = 0;
-            input[InputData.Brake] = 0;
-            input[InputData.Handbrake] = 0;
-            input[InputData.Clutch] = 0;
-        }
-
         public void EndFuelCutoffControl()
         {
             arrivalControl = false;

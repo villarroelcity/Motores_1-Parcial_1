@@ -111,6 +111,10 @@ namespace EnElCamino
             }
             body.constraints = originalConstraints;
             driver.HoldArrivalParking();
+            // The arrival helper has finished its job. From the moment the
+            // player can board, native VPP must be the only owner of steering,
+            // gearbox and vehicle physics.
+            driver.enabled = false;
             if (player != null)
             {
                 PlacePlayerBesideCar();

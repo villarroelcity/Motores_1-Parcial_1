@@ -1,4 +1,5 @@
 using UnityEngine;
+using VehiclePhysics;
 
 namespace EnElCamino
 {
@@ -31,7 +32,14 @@ namespace EnElCamino
             {
                 if (gameFlow.gameOver || gameFlow.finished) return;
                 if (startSound != null) audioSource.PlayOneShot(startSound);
-                carDriver.EnterCar();
+                if (carDriver != null && carDriver.enabled)
+                {
+                    carDriver.EnterCar();
+                }
+                else
+                {
+                    EnterNativeVppCar();
+                }
                 return;
             }
 
@@ -44,6 +52,44 @@ namespace EnElCamino
             used = true;
             gameFlow.FillCar();
             fuelCan.Use();
+        }
+
+        private void EnterNativeVppCar()
+        {
+            Rigidbody body = GetComponent<Rigidbody>();
+            if (body != null)
+            {
+                body.constraints = RigidbodyConstraints.None;
+                body.linearVelocity = Vector3.zero;
+                body.angularVelocity = Vector3.zero;
+                body.WakeUp();
+            }
+
+            VPVehicleController vehicle = GetComponent<VPVehicleController>();
+            if (vehicle != null)
+            {
+                vehicle.enabled = true;
+                vehicle.gearbox.type = Gearbox.Type.Automatic;
+                int[] input = vehicle.data.Get(Channel.Input);
+                input[InputData.AutomaticGear] = 4;
+                input[InputData.Brake] = 0;
+                input[InputData.Handbrake] = 0;
+            }
+
+            VPStandardInput nativeInput = GetComponent<VPStandardInput>();
+            if (nativeInput != null)
+            {
+                nativeInput.enabled = true;
+                nativeInput.externalIgnition = VPStandardInput.IgnitionKey.AccOn;
+            }
+
+            GameObject player = GameObject.Find("Jugador");
+            if (player != null) player.SetActive(false);
+
+            ThirdPersonCamera camera = FindFirstObjectByType<ThirdPersonCamera>();
+            if (camera != null) camera.SetTarget(transform);
+
+            gameFlow.StartDriving();
         }
     }
 }

@@ -136,6 +136,7 @@ GameObject:
   - component: {fileID: 7153598}
   - component: {fileID: 7153600}
   - component: {fileID: 7153601}
+  - component: {fileID: 7153602}
   m_Layer: 0
   m_Name: GameFlow
   m_TagString: Untagged
@@ -220,6 +221,18 @@ MonoBehaviour:
   ambientClip: {fileID: 8300000, guid: 94b96caf429a3ac4598bf31740a6b5a6, type: 3}
   garageOpen: {fileID: 8300000, guid: f8aeaaec2e331204f8eee5c14498ff9b, type: 3}
   mixer: {fileID: 24100000, guid: c59ce946207622c4ead36e65cf15c523, type: 2}
+--- !u!114 &7153602
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7153597}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c1f2ad4c86b4d8594cb6ce2d5a13f71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.VppDirectControlSetup
 --- !u!1 &9220162
 GameObject:
   m_ObjectHideFlags: 0

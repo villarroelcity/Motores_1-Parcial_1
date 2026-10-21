@@ -50,6 +50,12 @@ namespace EnElCamino
             // controls after the player gets in the car.
             nativeInput.enabled = enabled;
 
+            // The isolated VPP test uses the asset's automatic transmission.
+            // Apply the same setting only when player control is handed over;
+            // the scripted arrival keeps its own drive/coast behavior.
+            if (enabled && vehicleController != null)
+                vehicleController.gearbox.type = Gearbox.Type.Automatic;
+
             if (!enabled)
             {
                 nativeInput.externalIgnition = VPStandardInput.IgnitionKey.Off;

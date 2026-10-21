@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 
 namespace EnElCamino
 {
+    [ExecuteAlways]
     public class GameUI : MonoBehaviour
     {
         [SerializeField] private Text objectiveText;
@@ -45,6 +46,8 @@ namespace EnElCamino
         private Text controlsText;
         private bool paused;
         private GameObject outcomeRestartButton;
+        private Vector2 rearViewPanelPosition = new Vector2(0f, -24f);
+        private Vector2 pursuitDistancePanelPosition = new Vector2(0f, -190f);
 
         public void SetGameplayVisible(bool visible)
         {
@@ -64,6 +67,14 @@ namespace EnElCamino
 
         private void Awake()
         {
+            if (!Application.isPlaying)
+            {
+                CreateEditorPreviewPanels();
+                return;
+            }
+
+            ReadEditorPreviewPositions();
+            DestroyEditorPreviewPanels();
             EnsureUiEventSystem();
             canvasScaler = GetComponent<CanvasScaler>();
             gameFlow = FindFirstObjectByType<GameFlow>();
@@ -99,6 +110,7 @@ namespace EnElCamino
 
         private void Update()
         {
+            if (!Application.isPlaying) return;
             if (Keyboard.current == null) return;
 
             if (Keyboard.current.escapeKey.wasPressedThisFrame)
@@ -252,6 +264,7 @@ namespace EnElCamino
 
         private void LateUpdate()
         {
+            if (!Application.isPlaying) return;
             if (messageText != null && messageText.gameObject.activeSelf && Time.time >= messageExpiresAt)
                 messageText.gameObject.SetActive(false);
             UpdateRearViewCamera();
@@ -409,6 +422,81 @@ namespace EnElCamino
                 new Vector2(0f, -78f),
                 RestartGame);
             outcomeRestartButton.SetActive(false);
+        }
+
+        private void CreateEditorPreviewPanels()
+        {
+            rearViewPanel = CreateEditorPreviewPanel(
+                "RearViewMirrorPanel",
+                "ESPEJO RETROVISOR\n(ARRASTRAME EN LA VISTA SCENE)",
+                new Color(0.01f, 0.015f, 0.025f, 0.94f),
+                rearViewPanelPosition,
+                new Vector2(320f, 156f));
+
+            pursuitDistancePanel = CreateEditorPreviewPanel(
+                "PursuitDistancePanel",
+                "DISTANCIA DE ESCAPE\n0 / 100 m",
+                new Color(0.035f, 0.045f, 0.06f, 0.88f),
+                pursuitDistancePanelPosition,
+                new Vector2(320f, 58f));
+        }
+
+        private GameObject CreateEditorPreviewPanel(string objectName, string label, Color backgroundColor,
+            Vector2 position, Vector2 size)
+        {
+            Transform existing = transform.Find(objectName);
+            GameObject panel = existing != null
+                ? existing.gameObject
+                : CreateUiObject(objectName, transform, typeof(RectTransform), typeof(CanvasRenderer), typeof(RawImage));
+
+            RectTransform panelRect = panel.GetComponent<RectTransform>();
+            if (existing == null)
+            {
+                SetTopCenter(panelRect, position, size);
+                panelRect.SetAsLastSibling();
+            }
+
+            RawImage background = panel.GetComponent<RawImage>();
+            background.texture = Texture2D.whiteTexture;
+            background.color = backgroundColor;
+            background.raycastTarget = false;
+
+            Text previewText = panel.transform.Find(objectName + "Label")?.GetComponent<Text>();
+            if (previewText == null)
+                previewText = CreateUiText(objectName + "Label", panel.transform, label, 18, TextAnchor.MiddleCenter);
+
+            previewText.text = label;
+            previewText.color = new Color(0.65f, 0.85f, 1f, 1f);
+            previewText.raycastTarget = false;
+            previewText.rectTransform.anchorMin = Vector2.zero;
+            previewText.rectTransform.anchorMax = Vector2.one;
+            previewText.rectTransform.offsetMin = new Vector2(8f, 4f);
+            previewText.rectTransform.offsetMax = new Vector2(-8f, -4f);
+            panel.SetActive(true);
+            return panel;
+        }
+
+        private void ReadEditorPreviewPositions()
+        {
+            RectTransform mirror = transform.Find("RearViewMirrorPanel")?.GetComponent<RectTransform>();
+            if (mirror != null) rearViewPanelPosition = mirror.anchoredPosition;
+
+            RectTransform distance = transform.Find("PursuitDistancePanel")?.GetComponent<RectTransform>();
+            if (distance != null) pursuitDistancePanelPosition = distance.anchoredPosition;
+        }
+
+        private void DestroyEditorPreviewPanels()
+        {
+            DestroyEditorPreviewPanel("RearViewMirrorPanel");
+            DestroyEditorPreviewPanel("PursuitDistancePanel");
+            rearViewPanel = null;
+            pursuitDistancePanel = null;
+        }
+
+        private void DestroyEditorPreviewPanel(string objectName)
+        {
+            Transform preview = transform.Find(objectName);
+            if (preview != null) Destroy(preview.gameObject);
         }
 
         private void PrepareOutcomeForInput()
@@ -667,12 +755,12 @@ namespace EnElCamino
             if (rearViewPanel != null)
             {
                 float mirrorWidth = Mathf.Clamp(width * 0.25f, 260f, 340f);
-                SetTopCenter(rearViewPanel.GetComponent<RectTransform>(), new Vector2(0f, -24f), new Vector2(mirrorWidth, 156f));
+                SetTopCenter(rearViewPanel.GetComponent<RectTransform>(), rearViewPanelPosition, new Vector2(mirrorWidth, 156f));
             }
             if (pursuitDistancePanel != null)
             {
                 float mirrorWidth = Mathf.Clamp(width * 0.25f, 260f, 340f);
-                SetTopCenter(pursuitDistancePanel.GetComponent<RectTransform>(), new Vector2(0f, -190f), new Vector2(mirrorWidth, 58f));
+                SetTopCenter(pursuitDistancePanel.GetComponent<RectTransform>(), pursuitDistancePanelPosition, new Vector2(mirrorWidth, 58f));
             }
             if (objectivePanel != null)
             {

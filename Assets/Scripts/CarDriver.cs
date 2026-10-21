@@ -89,15 +89,12 @@ namespace EnElCamino
         {
             arrivalControl = true;
             introFullThrottle = false;
-            // The arrival is still scripted until the car reaches its stop.
-            // VPP native input is enabled only after the player enters the car.
-            SetNativeControls(false);
+            // Keep VPStandardInput initialized like the working pure VPP test.
         }
 
         public void EndFuelCutoffControl()
         {
             arrivalControl = false;
-            SetNativeControls(false);
         }
 
         private struct StartupAudioClip
@@ -118,7 +115,7 @@ namespace EnElCamino
             if (vehicleController == null) return;
             nativeInput = GetComponent<VPStandardInput>();
             if (nativeInput == null) nativeInput = gameObject.AddComponent<VPStandardInput>();
-            SetNativeControls(false);
+            // Keep the prefab's native VPP input untouched during the arrival.
             vehicleReady = false;
             foreach (VPAudioExtras audio in GetComponentsInChildren<VPAudioExtras>(true))
             {
@@ -193,10 +190,10 @@ namespace EnElCamino
             if (introEngine != null) introEngine.allowedFuelRatio = 1f;
             RestoreStartupAudioClip();
             StartEngineAudio(true);
-            // VPP must receive the ignition request after engineRequested is
-            // set. Otherwise the handoff leaves externalIgnition at Off,
-            // unlike the working pure VPP test scene.
-            SetNativeControls(true);
+            // Only select automatic transmission at handoff. VPP owns the
+            // actual steering, throttle and wheel physics from this point on.
+            if (vehicleController != null)
+                vehicleController.gearbox.type = Gearbox.Type.Automatic;
             if (player != null) player.SetActive(false);
             CinemachineFollowSetup cameraRig = FindFirstObjectByType<CinemachineFollowSetup>();
             if (cameraRig != null) cameraRig.SetTarget(transform);
@@ -227,8 +224,6 @@ namespace EnElCamino
                 // original WASD/arrow bindings and writes the steering bus for
                 // the front wheel colliders. Do not inject a second input path
                 // or rotate the vehicle transform from this script.
-                if (nativeInput != null && !nativeInput.enabled)
-                    SetNativeControls(true);
                 if (nativeInput != null)
                     nativeInput.externalIgnition = engineRequested
                         ? Time.time < starterUntil ? VPStandardInput.IgnitionKey.Start : VPStandardInput.IgnitionKey.AccOn

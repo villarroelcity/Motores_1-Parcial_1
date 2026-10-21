@@ -656,7 +656,7 @@ namespace EnElCamino
 
             RemovePanelChild(panel.transform, "RearViewMirrorLabel");
 
-            rearViewTexture = new RenderTexture(480, 240, 16, RenderTextureFormat.ARGB32);
+            rearViewTexture = new RenderTexture(480, 160, 16, RenderTextureFormat.ARGB32);
             rearViewTexture.name = "RearViewMirrorTexture";
             rearViewTexture.Create();
             rearViewImage.texture = rearViewTexture;
@@ -749,7 +749,7 @@ namespace EnElCamino
             if (rearViewPanel != null)
             {
                 float mirrorWidth = Mathf.Clamp(width * 0.25f, 260f, 340f);
-                SetTopCenter(rearViewPanel.GetComponent<RectTransform>(), rearViewPanelPosition, new Vector2(mirrorWidth, 156f));
+                SetTopCenter(rearViewPanel.GetComponent<RectTransform>(), rearViewPanelPosition, new Vector2(mirrorWidth, 96f));
             }
             if (pursuitDistancePanel != null)
             {

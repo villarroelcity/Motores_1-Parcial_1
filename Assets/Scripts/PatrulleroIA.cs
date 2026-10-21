@@ -4,9 +4,8 @@ using System.Reflection;
 
 namespace EnElCamino
 {
-    // Simple first-year AI: the patrol follows the player's car in a straight
-    // chase. VPP remains on the player's car; the patrol only needs movement,
-    // a collision and an adjustable catch distance.
+    // Simple first-year AI: the patrol follows the player's car, waits if it
+    // is still ahead of the player, and steers around collidable obstacles.
     [RequireComponent(typeof(Rigidbody))]
     public class PatrulleroIA : MonoBehaviour
     {
@@ -19,9 +18,15 @@ namespace EnElCamino
         [SerializeField] private float maxChaseSeconds = 60f;
         [SerializeField] private AudioClip sirenClip;
         [SerializeField] private float sirenVolume = 0.55f;
+        [SerializeField] private LayerMask obstacleLayers = ~0;
+        [SerializeField] private float obstacleDetectionDistance = 9f;
+        [SerializeField] private float obstacleDetectionRadius = 1.2f;
+        [SerializeField] private float obstacleSideCheckDistance = 4f;
+        [SerializeField] private float obstacleAvoidanceStrength = 1.8f;
 
         private Rigidbody body;
         private bool chasing;
+        private bool waitingForPlayerToPass;
         private float speed;
         private float chaseTime;
         private Light leftPoliceLight;
@@ -53,6 +58,7 @@ namespace EnElCamino
                 source.enabled = false;
             }
 
+            EnableOptionalVisualDamage();
             CreatePoliceLights();
             CreateSirenSource();
             SetPoliceEffects(false);
@@ -90,9 +96,12 @@ namespace EnElCamino
             chasing = true;
             chaseTime = 0f;
             speed = 0f;
+            Vector3 relativePosition = transform.position - targetCar.transform.position;
+            relativePosition.y = 0f;
+            waitingForPlayerToPass = Vector3.Dot(targetCar.transform.forward, relativePosition) > 1f;
             body.isKinematic = true;
             body.WakeUp();
-            SetPoliceEffects(true);
+            SetPoliceEffects(!waitingForPlayerToPass);
         }
 
         private void Update()
@@ -122,6 +131,16 @@ namespace EnElCamino
                 if (targetCar == null) return;
             }
 
+            if (waitingForPlayerToPass)
+            {
+                Vector3 relativePosition = body.position - targetCar.transform.position;
+                relativePosition.y = 0f;
+                if (Vector3.Dot(targetCar.transform.forward, relativePosition) > 1f) return;
+
+                waitingForPlayerToPass = false;
+                SetPoliceEffects(true);
+            }
+
             chaseTime += Time.fixedDeltaTime;
             Vector3 offset = targetCar.transform.position - body.position;
             offset.y = 0f;
@@ -149,6 +168,7 @@ namespace EnElCamino
             }
 
             Vector3 direction = offset.sqrMagnitude > 0.01f ? offset.normalized : transform.forward;
+            direction = AvoidObstacles(direction);
             speed = Mathf.MoveTowards(speed, chaseSpeed, acceleration * Time.fixedDeltaTime);
             body.MovePosition(body.position + direction * speed * Time.fixedDeltaTime);
             Quaternion wantedRotation = Quaternion.LookRotation(direction, Vector3.up);
@@ -160,6 +180,71 @@ namespace EnElCamino
             if (!chasing || gameFlow == null) return;
             if (collision.collider.GetComponentInParent<CarDriver>() != null)
                 gameFlow.GameOver();
+        }
+
+        private Vector3 AvoidObstacles(Vector3 desiredDirection)
+        {
+            desiredDirection = Vector3.ProjectOnPlane(desiredDirection, Vector3.up).normalized;
+            if (desiredDirection.sqrMagnitude < 0.01f) return transform.forward;
+
+            Vector3 origin = body.position + Vector3.up * 0.65f;
+            if (!FindObstacle(origin, desiredDirection, obstacleDetectionDistance, out _))
+                return desiredDirection;
+
+            Vector3 side = Vector3.Cross(Vector3.up, desiredDirection).normalized;
+            float leftClearance = GetClearance(origin, -side);
+            float rightClearance = GetClearance(origin, side);
+            Vector3 preferredSide = rightClearance >= leftClearance ? side : -side;
+            return (desiredDirection + preferredSide * obstacleAvoidanceStrength).normalized;
+        }
+
+        private float GetClearance(Vector3 origin, Vector3 direction)
+        {
+            return FindObstacle(origin, direction, obstacleSideCheckDistance, out RaycastHit hit)
+                ? hit.distance
+                : obstacleSideCheckDistance;
+        }
+
+        private bool FindObstacle(Vector3 origin, Vector3 direction, float distance, out RaycastHit closestHit)
+        {
+            closestHit = default;
+            RaycastHit[] hits = Physics.SphereCastAll(
+                origin,
+                obstacleDetectionRadius,
+                direction,
+                distance,
+                obstacleLayers,
+                QueryTriggerInteraction.Ignore);
+
+            float nearestDistance = float.MaxValue;
+            bool found = false;
+            foreach (RaycastHit hit in hits)
+            {
+                Collider collider = hit.collider;
+                if (collider == null || collider.transform.IsChildOf(transform)) continue;
+                if (collider.GetComponentInParent<CarDriver>() != null) continue;
+                if (hit.distance >= nearestDistance) continue;
+
+                nearestDistance = hit.distance;
+                closestHit = hit;
+                found = true;
+            }
+
+            return found;
+        }
+
+        private void EnableOptionalVisualDamage()
+        {
+            // If the VPP prefab includes a damage/deformation component, keep
+            // it enabled. If it does not, this loop intentionally does nothing.
+            foreach (MonoBehaviour component in GetComponentsInChildren<MonoBehaviour>(true))
+            {
+                if (component == null) continue;
+                string componentName = component.GetType().Name;
+                bool isDamageComponent = componentName.IndexOf("Damage", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    componentName.IndexOf("Deform", System.StringComparison.OrdinalIgnoreCase) >= 0;
+                if (isDamageComponent) component.enabled = true;
+            }
         }
 
         private void CreatePoliceLights()

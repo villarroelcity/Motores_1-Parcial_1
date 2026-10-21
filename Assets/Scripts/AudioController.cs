@@ -20,6 +20,7 @@ namespace EnElCamino
         private GameFlow flow;
         private AudioSource ambientSource;
         private AudioSource effectsSource;
+        private AudioSource garageDoorSource;
         private bool tensionState;
         private float transition;
 
@@ -29,6 +30,7 @@ namespace EnElCamino
             if (flow == null) flow = FindFirstObjectByType<GameFlow>();
             ambientSource = CreateSource("AmbientAudio", true, 0.12f);
             effectsSource = CreateSource("EffectsAudio", false, 0.75f);
+            garageDoorSource = CreateSource("GarageDoorAudio", false, 0.75f);
 
             ConfigureMusicSource(explorationSource, explorationClip, explorationVolume);
             ConfigureMusicSource(tensionSource, tensionClip, 0f);
@@ -44,14 +46,14 @@ namespace EnElCamino
             if (flow == null) flow = GetComponent<GameFlow>();
             if (flow == null) return;
             flow.GarageDoorMotionStarted += OnGarageDoorMotionStarted;
-            flow.DrivingStarted += OnDrivingStarted;
+            flow.TensionStarted += OnTensionStarted;
         }
 
         private void OnDisable()
         {
             if (flow == null) return;
             flow.GarageDoorMotionStarted -= OnGarageDoorMotionStarted;
-            flow.DrivingStarted -= OnDrivingStarted;
+            flow.TensionStarted -= OnTensionStarted;
         }
 
         private void Update()
@@ -81,9 +83,20 @@ namespace EnElCamino
             if (effectsSource != null && clip != null) effectsSource.PlayOneShot(clip);
         }
 
-        private void OnGarageDoorMotionStarted() => PlayEffect(garageOpen);
+        private void OnGarageDoorMotionStarted()
+        {
+            if (garageDoorSource == null || garageOpen == null) return;
 
-        private void OnDrivingStarted()
+            garageDoorSource.Stop();
+            garageDoorSource.clip = garageOpen;
+            // The supplied porton recording contains 1.19 seconds of silence
+            // before the mechanism starts. Skip that silence so the sound and
+            // the first movement of the door begin together.
+            garageDoorSource.time = Mathf.Min(1.19f, Mathf.Max(0f, garageOpen.length - 0.05f));
+            garageDoorSource.Play();
+        }
+
+        private void OnTensionStarted()
         {
             tensionState = true;
             if (tensionSource != null && !tensionSource.isPlaying) tensionSource.Play();
@@ -93,6 +106,7 @@ namespace EnElCamino
         {
             if (ambientSource != null) ambientSource.Stop();
             if (effectsSource != null) effectsSource.Stop();
+            if (garageDoorSource != null) garageDoorSource.Stop();
             if (explorationSource != null) explorationSource.Stop();
             if (tensionSource != null) tensionSource.Stop();
         }

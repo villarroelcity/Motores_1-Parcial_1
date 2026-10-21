@@ -146,12 +146,22 @@ namespace EnElCamino
 
         public bool IsReady => vehicleReady;
         public bool EngineRequested => engineRequested;
+        public bool HasPlayerControl => driving || arrivalControl;
+        public float SpeedKmh
+        {
+            get
+            {
+                if (vehicleBody == null) return 0f;
+                return Vector3.ProjectOnPlane(vehicleBody.linearVelocity, Vector3.up).magnitude * 3.6f;
+            }
+        }
 
         private void Awake()
         {
             if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
             vehicleController = GetComponent<VPVehicleController>();
             vehicleBody = GetComponent<Rigidbody>();
+            DisableVppTelemetry();
             if (vehicleController == null) return;
             nativeInput = GetComponent<VPStandardInput>();
             if (nativeInput == null) nativeInput = gameObject.AddComponent<VPStandardInput>();
@@ -175,15 +185,35 @@ namespace EnElCamino
             }
         }
 
+        private void DisableVppTelemetry()
+        {
+            foreach (MonoBehaviour component in GetComponentsInChildren<MonoBehaviour>(true))
+            {
+                if (component == null || component.GetType().Name != "VPTelemetry") continue;
+                FieldInfo field = component.GetType().GetField("showTelemetry", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                if (field != null && field.FieldType == typeof(bool)) field.SetValue(component, false);
+            }
+        }
+
+        public void SetHeadLights(bool enabled)
+        {
+            foreach (VPAudioExtras audio in GetComponentsInChildren<VPAudioExtras>(true))
+            {
+                FieldInfo field = audio.GetType().GetField("headLightsEnabled", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                if (field != null && field.FieldType == typeof(bool))
+                    field.SetValue(audio, enabled);
+            }
+        }
+
         public string Prompt
         {
             get
             {
-                if (!vehicleReady) return "El auto está llegando...";
+                if (!vehicleReady) return "El auto esta llegando...";
                 if (used) return "[E] Subir al auto";
                 return gameFlow != null && gameFlow.fuelCanFull
                     ? "[E] Cargar tanque del auto"
-                    : "Falta llenar el bidón";
+                    : "Falta llenar el bidon";
             }
         }
 
@@ -197,7 +227,7 @@ namespace EnElCamino
             }
             if (!gameFlow.fuelCanFull)
             {
-                gameFlow.ShowMessage("Primero llená el bidón en el surtidor.");
+                gameFlow.ShowMessage("Primero llena el bidon en el surtidor.");
                 return;
             }
             used = true;
@@ -294,7 +324,8 @@ namespace EnElCamino
             if (gameFlow != null)
             {
                 gameFlow.movementLocked = false;
-                gameFlow.ShowMessage("El auto se quedó sin combustible. Acercate a la estación abandonada.");
+                        gameFlow.ShowMessage("El auto se quedo sin combustible. Acercate a la estacion abandonada.");
+                if (gameFlow.UI != null) gameFlow.UI.HideVehicleSpeed();
             }
             if (legacyCamera != null && player != null) legacyCamera.SetTarget(player.transform);
         }
@@ -465,6 +496,11 @@ namespace EnElCamino
                 driving = false;
                 SetNativeControls(false);
                 return;
+            }
+            if (gameFlow != null && gameFlow.UI != null)
+            {
+                if (HasPlayerControl) gameFlow.UI.SetVehicleSpeed(SpeedKmh);
+                else gameFlow.UI.HideVehicleSpeed();
             }
             throttleInput = 0f;
             steerInput = 0f;

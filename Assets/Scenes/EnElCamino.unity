@@ -3983,7 +3983,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b9f8b46db81b6f489c2b052a5b0775e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.ThirdPersonCamera
-  target: {fileID: 1262591742}
+   target: {fileID: 470211924}
   distance: 4.2
   height: 1.9
   lookHeight: 1.1
@@ -10024,7 +10024,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1262591742
 Transform:
   m_ObjectHideFlags: 0

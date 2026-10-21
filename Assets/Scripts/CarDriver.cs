@@ -36,36 +36,6 @@ namespace EnElCamino
         private float brakeInput;
         private VPStandardInput nativeInput;
 
-        private void ConfigureFrontSteeringOnly()
-        {
-            if (vehicleController == null || vehicleController.axles == null || vehicleController.axles.Length == 0)
-                return;
-
-            // VPP builds its steering wheel list from these axle settings.  Set
-            // them before initialization as well as at runtime so a prefab or
-            // scene override cannot make the rear axle steer.
-            vehicleController.axles[0].steeringMode = Steering.SteeringMode.Steerable;
-            vehicleController.axles[0].steeringRatio = 1f;
-            for (int i = 1; i < vehicleController.axles.Length; i++)
-            {
-                vehicleController.axles[i].steeringMode = Steering.SteeringMode.Disabled;
-                vehicleController.axles[i].steeringRatio = 1f;
-
-                // VPP uses Unity WheelCollider.steerAngle for the visual wheel
-                // pose too.  Clear any stale scene value on the non-steering
-                // axle so the rear wheels stay straight when turning.
-                ClearWheelSteerAngle(vehicleController.axles[i].leftWheel);
-                ClearWheelSteerAngle(vehicleController.axles[i].rightWheel);
-            }
-        }
-
-        private static void ClearWheelSteerAngle(VPWheelCollider wheel)
-        {
-            if (wheel == null) return;
-            WheelCollider unityWheel = wheel.GetComponent<WheelCollider>();
-            if (unityWheel != null) unityWheel.steerAngle = 0f;
-        }
-
         private void SetNativeControls(bool enabled)
         {
             if (nativeInput == null) return;
@@ -75,14 +45,9 @@ namespace EnElCamino
             nativeInput.externalSteer = 0f;
             nativeInput.externalClutch = 0f;
             nativeInput.lockBrakesOnEnable = false;
-            nativeInput.throttleAndBrakeMode = VPStandardInput.ThrottleAndBrakeMode.AutoForwardAndReverse;
-            nativeInput.brakeOnThrottleBackwards = true;
-            // Keep VPP's authored steering response. The previous progressive
-            // override made the input feel detached from the front wheel angle.
-            nativeInput.progressiveSteerMode = false;
-            nativeInput.movementRate = 0.25f;
-            nativeInput.autoCenterRate = 0.01f;
-            nativeInput.disableGearShiftInputs = true;
+            // Do not overwrite any of the steering or pedal settings authored
+            // in Vehicle Physics Pro. VPStandardInput is the sole owner of the
+            // controls after the player gets in the car.
             nativeInput.enabled = enabled;
 
             if (!enabled)
@@ -136,7 +101,6 @@ namespace EnElCamino
             vehicleController = GetComponent<VPVehicleController>();
             vehicleBody = GetComponent<Rigidbody>();
             if (vehicleController == null) return;
-            ConfigureFrontSteeringOnly();
             vehicleController.gearbox.type = Gearbox.Type.Automatic;
             nativeInput = GetComponent<VPStandardInput>();
             if (nativeInput == null) nativeInput = gameObject.AddComponent<VPStandardInput>();
@@ -280,16 +244,14 @@ namespace EnElCamino
             if (vehicleController == null) return;
             if (!vehicleController.initialized)
             {
-                // Apply before VPP initialization as well: this project car prefab
-                // is authored with a manual gearbox, but gameplay requires automatic.
-                ConfigureFrontSteeringOnly();
+                // The game uses the VPP automatic gearbox, while all wheel and
+                // steering geometry remains exactly as authored in the prefab.
                 vehicleController.gearbox.type = Gearbox.Type.Automatic;
                 return;
             }
 
             if (!automaticTransmissionConfigured)
             {
-                ConfigureFrontSteeringOnly();
                 vehicleController.gearbox.type = Gearbox.Type.Automatic;
                 automaticTransmissionConfigured = true;
             }

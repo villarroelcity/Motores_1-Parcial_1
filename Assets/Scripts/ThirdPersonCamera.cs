@@ -12,7 +12,7 @@ namespace EnElCamino
         [SerializeField] private float followSpeed = 12f;
         [SerializeField] private float collisionRadius = 0.22f;
         [SerializeField] private float collisionPadding = 0.12f;
-        [SerializeField] private float minimumDistance = 0.75f;
+        [SerializeField] private float minimumDistance = 0.3f;
         [SerializeField] private LayerMask collisionMask = ~0;
         private float yaw;
         private float pitch = 12f;
@@ -27,7 +27,22 @@ namespace EnElCamino
             {
                 yaw = target.eulerAngles.y;
                 smoothedDistance = distance;
+                distanceVelocity = 0f;
             }
+        }
+
+        public void SnapToTarget()
+        {
+            if (target == null) return;
+            smoothedDistance = CalculateSafeDistance(target.position + Vector3.up * height,
+                (Quaternion.Euler(pitch, yaw, 0f) * Vector3.back).normalized);
+            distanceVelocity = 0f;
+            Vector3 anchor = target.position + Vector3.up * height;
+            Vector3 cameraDirection = (Quaternion.Euler(pitch, yaw, 0f) * Vector3.back).normalized;
+            transform.position = anchor + cameraDirection * smoothedDistance;
+            Vector3 forward = Quaternion.Euler(0f, yaw, 0f) * Vector3.forward;
+            Vector3 focus = target.position + Vector3.up * lookHeight + forward * lookAhead;
+            transform.rotation = Quaternion.LookRotation(focus - transform.position);
         }
 
         private void LateUpdate()
@@ -37,8 +52,24 @@ namespace EnElCamino
             Quaternion orbit = Quaternion.Euler(pitch, yaw, 0f);
             Vector3 anchor = target.position + Vector3.up * height;
             Vector3 cameraDirection = (orbit * Vector3.back).normalized;
+            float safeDistance = CalculateSafeDistance(anchor, cameraDirection);
+            bool cameraHitObstacle = safeDistance < distance - 0.01f;
+            if (cameraHitObstacle)
+                smoothedDistance = safeDistance;
+            smoothedDistance = Mathf.SmoothDamp(smoothedDistance, safeDistance, ref distanceVelocity, 0.08f);
+            Vector3 desired = anchor + cameraDirection * smoothedDistance;
+            transform.position = cameraHitObstacle
+                ? desired
+                : Vector3.Lerp(transform.position, desired, followSpeed * Time.deltaTime);
+            Vector3 forward = Quaternion.Euler(0f, yaw, 0f) * Vector3.forward;
+            Vector3 focus = target.position + Vector3.up * lookHeight + forward * lookAhead;
+            transform.rotation = Quaternion.LookRotation(focus - transform.position);
+        }
+
+        private float CalculateSafeDistance(Vector3 anchor, Vector3 direction)
+        {
             float safeDistance = distance;
-            int hitCount = Physics.SphereCastNonAlloc(anchor, collisionRadius, cameraDirection,
+            int hitCount = Physics.SphereCastNonAlloc(anchor, collisionRadius, direction,
                 cameraHits, distance, collisionMask, QueryTriggerInteraction.Ignore);
             for (int i = 0; i < hitCount; i++)
             {
@@ -47,12 +78,7 @@ namespace EnElCamino
                 safeDistance = Mathf.Min(safeDistance,
                     Mathf.Max(minimumDistance, cameraHits[i].distance - collisionPadding));
             }
-            smoothedDistance = Mathf.SmoothDamp(smoothedDistance, safeDistance, ref distanceVelocity, 0.08f);
-            Vector3 desired = anchor + cameraDirection * smoothedDistance;
-            transform.position = Vector3.Lerp(transform.position, desired, followSpeed * Time.deltaTime);
-            Vector3 forward = Quaternion.Euler(0f, yaw, 0f) * Vector3.forward;
-            Vector3 focus = target.position + Vector3.up * lookHeight + forward * lookAhead;
-            transform.rotation = Quaternion.LookRotation(focus - transform.position);
+            return safeDistance;
         }
 
     }

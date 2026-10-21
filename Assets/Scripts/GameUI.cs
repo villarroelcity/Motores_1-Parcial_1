@@ -46,8 +46,8 @@ namespace EnElCamino
         private Text controlsText;
         private bool paused;
         private GameObject outcomeRestartButton;
-        private Vector2 rearViewPanelPosition = new Vector2(0f, -24f);
-        private Vector2 pursuitDistancePanelPosition = new Vector2(0f, -190f);
+        private Vector2 rearViewPanelPosition = new Vector2(0f, -6f);
+        private Vector2 pursuitDistancePanelPosition = new Vector2(0f, -655f);
 
         public void SetGameplayVisible(bool visible)
         {
@@ -67,14 +67,15 @@ namespace EnElCamino
 
         private void Awake()
         {
+            // These two objects were only editor helpers for positioning. They
+            // are not part of the runtime HUD and must not remain in the scene.
+            RemoveEditorPreviewPanels();
+
             if (!Application.isPlaying)
             {
-                CreateEditorPreviewPanels();
                 return;
             }
 
-            ReadEditorPreviewPositions();
-            DestroyEditorPreviewPanels();
             EnsureUiEventSystem();
             canvasScaler = GetComponent<CanvasScaler>();
             gameFlow = FindFirstObjectByType<GameFlow>();
@@ -82,6 +83,7 @@ namespace EnElCamino
             clockText = FindText("RelojTexto");
             objectivePanel = FindRectTransform("PanelObjetivo");
             CreatePauseMenu();
+            CreateOutcomePanel();
             CreateOutcomeRestartButton();
             HidePrompt();
             if (completedPanel != null) completedPanel.SetActive(false);
@@ -362,9 +364,10 @@ namespace EnElCamino
 
         public void SetPursuitDistance(float currentDistance, float requiredDistance)
         {
-            if (!gameplayVisible) return;
+            EnableGameplayOverlay();
             if (pursuitDistancePanel == null) CreatePursuitDistancePanel();
             if (rearViewPanel == null) CreateRearViewMirror();
+            if (pursuitDistanceText == null || rearViewPanel == null) return;
 
             int current = Mathf.Max(0, Mathf.FloorToInt(currentDistance));
             int required = Mathf.Max(1, Mathf.CeilToInt(requiredDistance));
@@ -383,6 +386,7 @@ namespace EnElCamino
 
         public void ShowCompleted()
         {
+            CreateOutcomePanel();
             if (finalText != null) finalText.text = "LLEGASTE A LA RUTA\nVICTORIA";
             if (completedPanel != null) completedPanel.SetActive(true);
             if (outcomeRestartButton != null) outcomeRestartButton.SetActive(false);
@@ -395,6 +399,7 @@ namespace EnElCamino
 
         public void ShowGameOver()
         {
+            CreateOutcomePanel();
             if (finalText != null) finalText.text = "GAME OVER";
             PrepareOutcomeForInput();
             if (completedPanel != null) completedPanel.SetActive(true);
@@ -413,7 +418,8 @@ namespace EnElCamino
 
         private void CreateOutcomeRestartButton()
         {
-            if (completedPanel == null) return;
+            CreateOutcomePanel();
+            if (completedPanel == null || outcomeRestartButton != null) return;
 
             outcomeRestartButton = CreateMenuButton(
                 "OutcomeRestartButton",
@@ -424,84 +430,70 @@ namespace EnElCamino
             outcomeRestartButton.SetActive(false);
         }
 
-        private void CreateEditorPreviewPanels()
+        private void CreateOutcomePanel()
         {
-            rearViewPanel = CreateEditorPreviewPanel(
-                "RearViewMirrorPanel",
-                "",
-                Color.clear,
-                rearViewPanelPosition,
-                new Vector2(320f, 156f));
-
-            pursuitDistancePanel = CreateEditorPreviewPanel(
-                "PursuitDistancePanel",
-                "VENTAJA\n0 / 100 m",
-                new Color(0.035f, 0.045f, 0.06f, 0.88f),
-                pursuitDistancePanelPosition,
-                new Vector2(320f, 58f));
-        }
-
-        private GameObject CreateEditorPreviewPanel(string objectName, string label, Color backgroundColor,
-            Vector2 position, Vector2 size)
-        {
-            Transform existing = transform.Find(objectName);
-            GameObject panel = existing != null
-                ? existing.gameObject
-                : CreateUiObject(objectName, transform, typeof(RectTransform), typeof(CanvasRenderer), typeof(RawImage));
-
-            RectTransform panelRect = panel.GetComponent<RectTransform>();
-            if (existing == null)
+            if (completedPanel == null)
             {
-                SetTopCenter(panelRect, position, size);
-                panelRect.SetAsLastSibling();
+                completedPanel = CreateUiObject("PanelResultadoRuntime", transform, typeof(Image));
+                SetCenteredRect(completedPanel.GetComponent<RectTransform>(), new Vector2(650f, 220f), Vector2.zero);
+
+                Image panelImage = completedPanel.GetComponent<Image>();
+                panelImage.color = new Color(0.04f, 0.06f, 0.05f, 0.92f);
+                panelImage.raycastTarget = true;
             }
 
-            RawImage background = panel.GetComponent<RawImage>();
-            background.texture = Texture2D.whiteTexture;
-            background.color = backgroundColor;
-            background.raycastTarget = false;
-
-            Text previewText = panel.transform.Find(objectName + "Label")?.GetComponent<Text>();
-            if (previewText == null)
-                previewText = CreateUiText(objectName + "Label", panel.transform, label, 18, TextAnchor.MiddleCenter);
-
-            previewText.text = label;
-            previewText.gameObject.SetActive(!string.IsNullOrEmpty(label));
-            previewText.color = new Color(0.65f, 0.85f, 1f, 1f);
-            previewText.raycastTarget = false;
-            previewText.rectTransform.anchorMin = Vector2.zero;
-            previewText.rectTransform.anchorMax = Vector2.one;
-            previewText.rectTransform.offsetMin = new Vector2(8f, 4f);
-            previewText.rectTransform.offsetMax = new Vector2(-8f, -4f);
-            panel.SetActive(true);
-            return panel;
+            if (finalText == null)
+            {
+                finalText = completedPanel.transform.Find("ResultadoFinalText")?.GetComponent<Text>();
+                if (finalText == null)
+                {
+                    finalText = CreateUiText("ResultadoFinalText", completedPanel.transform, "", 36, TextAnchor.MiddleCenter);
+                    finalText.rectTransform.anchorMin = Vector2.zero;
+                    finalText.rectTransform.anchorMax = Vector2.one;
+                    finalText.rectTransform.offsetMin = new Vector2(24f, 38f);
+                    finalText.rectTransform.offsetMax = new Vector2(-24f, -24f);
+                }
+            }
         }
 
-        private void ReadEditorPreviewPositions()
+        private void EnableGameplayOverlay()
         {
-            RectTransform mirror = transform.Find("RearViewMirrorPanel")?.GetComponent<RectTransform>();
-            if (mirror != null) rearViewPanelPosition = mirror.anchoredPosition;
+            gameplayVisible = true;
+            if (gameplayVisibility == null)
+            {
+                gameplayVisibility = GetComponent<CanvasGroup>();
+                if (gameplayVisibility == null) gameplayVisibility = gameObject.AddComponent<CanvasGroup>();
+            }
 
-            RectTransform distance = transform.Find("PursuitDistancePanel")?.GetComponent<RectTransform>();
-            if (distance != null) pursuitDistancePanelPosition = distance.anchoredPosition;
+            gameplayVisibility.alpha = 1f;
+            gameplayVisibility.interactable = true;
+            gameplayVisibility.blocksRaycasts = true;
         }
 
-        private void DestroyEditorPreviewPanels()
+        private void RemoveEditorPreviewPanels()
         {
-            DestroyEditorPreviewPanel("RearViewMirrorPanel");
-            DestroyEditorPreviewPanel("PursuitDistancePanel");
-            rearViewPanel = null;
-            pursuitDistancePanel = null;
+            RemoveEditorPreviewPanel("RearViewMirrorPanel");
+            RemoveEditorPreviewPanel("PursuitDistancePanel");
         }
 
-        private void DestroyEditorPreviewPanel(string objectName)
+        private void RemoveEditorPreviewPanel(string objectName)
         {
             Transform preview = transform.Find(objectName);
-            if (preview != null) Destroy(preview.gameObject);
+            if (preview == null) return;
+
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+                DestroyImmediate(preview.gameObject);
+            else
+                Destroy(preview.gameObject);
+#else
+            Destroy(preview.gameObject);
+#endif
         }
 
         private void PrepareOutcomeForInput()
         {
+            CreateOutcomePanel();
             if (gameplayVisibility == null)
                 gameplayVisibility = GetComponent<CanvasGroup>();
 

@@ -46,14 +46,10 @@ namespace EnElCamino
             float fuelCutoffDistance = Mathf.Min(coastDistance, Vector3.Distance(laneOrigin, destination) * 0.8f);
             RigidbodyConstraints originalConstraints = body.constraints;
             body.rotation = Quaternion.LookRotation(direction, Vector3.up);
-            // The approach is an authored straight-line sequence. Keep yaw
-            // locked while the car is moving on its initial momentum; otherwise
-            // VPP's tire solver can turn the whole body before the player ever
-            // receives control. These constraints are released only after the
-            // vehicle has stopped and the player can board it.
-            body.constraints = originalConstraints | RigidbodyConstraints.FreezeRotationX |
-                RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
-            body.angularVelocity = Vector3.zero;
+            // Keep the body level during the scripted straight approach. Do
+            // not freeze Y: that is the yaw axis and freezing it makes the
+            // chassis fight VPP's steering when control is handed over.
+            body.constraints = originalConstraints | RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
             body.linearVelocity = direction * cruiseSpeed;
             body.WakeUp();
             while (vehicle != null && !vehicle.initialized) yield return new WaitForFixedUpdate();
@@ -65,14 +61,13 @@ namespace EnElCamino
             {
                 yield return new WaitForFixedUpdate();
                 if (gameFlow != null && (gameFlow.gameOver || gameFlow.finished)) yield break;
-                if (!starved && vehicle != null && vehicle.initialized)
-                    vehicle.data.Get(Channel.Input)[InputData.Steer] = 0;
                 Vector3 horizontal = Vector3.ProjectOnPlane(body.linearVelocity, Vector3.up);
                 float remaining = Vector3.Dot(destination - body.position, direction);
                 float currentSpeed = Mathf.Max(0f, Vector3.Dot(horizontal, direction));
                 if (!starved && remaining <= fuelCutoffDistance)
                 {
                     starved = true;
+                    body.constraints = originalConstraints;
                     driver.BeginFuelCutoffControl();
                     DayTimer clock = FindFirstObjectByType<DayTimer>();
                     if (clock != null) clock.BeginAtFuelCutoff();
@@ -87,9 +82,8 @@ namespace EnElCamino
                         driver.StopEngineAudio();
                         engineStopped = true;
                     }
-                    // The engine is off and the vehicle coasts to the stop
-                    // marker while keeping the authored heading. Player input
-                    // is handed over only after this sequence finishes.
+                    // Control is now physical: no route corrections, velocity
+                    // forces or yaw locks may fight the player's steering/brakes.
                     if (fuel <= 0f && horizontal.magnitude <= 0.25f) break;
                     continue;
                 }

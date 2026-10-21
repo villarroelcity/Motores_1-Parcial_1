@@ -94,12 +94,16 @@ namespace EnElCamino
                 // vehicle to a second steering/pedal path when the player
                 // boards again.
                 nativeInput.enabled = true;
-                nativeInput.disableSteerInput = true;
-                nativeInput.disableThrottleInput = true;
-                nativeInput.disableBrakeInput = true;
-                nativeInput.disableHandbrakeInput = true;
-                nativeInput.disableClutchInput = true;
-                nativeInput.disableGearShiftInputs = true;
+                // Match the initial coasting state: VPStandardInput remains
+                // enabled for the authored steering rack and pedal bindings.
+                // The scripted bus path and VPP input then receive the same
+                // keyboard direction input as before refueling.
+                nativeInput.disableSteerInput = false;
+                nativeInput.disableThrottleInput = false;
+                nativeInput.disableBrakeInput = false;
+                nativeInput.disableHandbrakeInput = false;
+                nativeInput.disableClutchInput = false;
+                nativeInput.disableGearShiftInputs = false;
                 nativeInput.externalThrottle = 0f;
                 nativeInput.externalBrake = 0f;
                 nativeInput.externalHandbrake = 0f;

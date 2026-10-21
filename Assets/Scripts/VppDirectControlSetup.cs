@@ -8,7 +8,7 @@ namespace EnElCamino
     /// Initializes the untouched VPP vehicle instance for direct testing.
     /// The vehicle keeps VPStandardInput as its only driving input component.
     /// </summary>
-    [DefaultExecutionOrder(-1000)]
+    [DefaultExecutionOrder(1000)]
     public sealed class VppDirectControlSetup : MonoBehaviour
     {
         private VPVehicleController vehicle;
@@ -35,6 +35,12 @@ namespace EnElCamino
 
             // VPP's automatic gearbox expects D (4) to be explicitly selected.
             SetDrive();
+        }
+
+        private void Update()
+        {
+            if (vehicle != null)
+                SetDrive();
         }
 
         private void SetDrive()

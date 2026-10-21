@@ -3754,13 +3754,106 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2069814030545375925, guid: f7a352f52c0b4034a8e157c2e33e54c4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 470211926}
+    - targetCorrespondingSourceObject: {fileID: 2069814030545375925, guid: f7a352f52c0b4034a8e157c2e33e54c4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 470211927}
+    - targetCorrespondingSourceObject: {fileID: 2069814030545375925, guid: f7a352f52c0b4034a8e157c2e33e54c4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 470211928}
+    - targetCorrespondingSourceObject: {fileID: 2069814030545375925, guid: f7a352f52c0b4034a8e157c2e33e54c4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 470211929}
   m_SourcePrefab: {fileID: 100100000, guid: f7a352f52c0b4034a8e157c2e33e54c4, type: 3}
 --- !u!4 &470211924 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2069814030545375927, guid: f7a352f52c0b4034a8e157c2e33e54c4, type: 3}
   m_PrefabInstance: {fileID: 470211923}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &470211925 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2069814030545375925, guid: f7a352f52c0b4034a8e157c2e33e54c4, type: 3}
+  m_PrefabInstance: {fileID: 470211923}
+  m_PrefabAsset: {fileID: 0}
+--- !u!82 &470211926
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 470211925}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+--- !u!114 &470211927
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 470211925}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc2e8365e44a0d141a8ea0daf1a8b7c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.CarDriver
+  gameFlow: {fileID: 7153598}
+  player: {fileID: 1262591741}
+  cameraFollow: {fileID: 490530026}
+  speed: 7
+  turnSpeed: 75
+--- !u!114 &470211928
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 470211925}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb4bcecaeaf0eef4a97892c064f6555e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.CarArrivalSequence
+  gameFlow: {fileID: 7153598}
+  player: {fileID: 1262591741}
+  stopPoint: {fileID: 184789708}
+  exitPoint: {fileID: 1953924722}
+  cruiseSpeed: 18
+  coastDistance: 180
+  fuelStarvationDuration: 1.2
+--- !u!114 &470211929
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 470211925}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23e80727df127664ab999c39dbe1d00c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.CarInteractable
+  gameFlow: {fileID: 7153598}
+  fuelCan: {fileID: 284828479}
+  carDriver: {fileID: 470211927}
+  startSound: {fileID: 0}
 --- !u!1 &474680181
 GameObject:
   m_ObjectHideFlags: 0
@@ -10037,7 +10130,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1262591742
 Transform:
   m_ObjectHideFlags: 0
@@ -10076,7 +10169,7 @@ MonoBehaviour:
   garageDoor: {fileID: 104564684}
   fuelCan: {fileID: 284828479}
   fuelPump: {fileID: 406157878}
-  car: {fileID: 218067658}
+  car: {fileID: 470211929}
   powerBox: {fileID: 888963563}
   gateSwitch: {fileID: 1288614118}
   interactionDistance: 2.4

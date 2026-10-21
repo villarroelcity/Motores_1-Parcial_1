@@ -194,6 +194,8 @@ namespace EnElCamino
             // actual steering, throttle and wheel physics from this point on.
             if (vehicleController != null)
                 vehicleController.gearbox.type = Gearbox.Type.Automatic;
+            if (nativeInput != null)
+                nativeInput.externalIgnition = VPStandardInput.IgnitionKey.AccOn;
             if (player != null) player.SetActive(false);
             CinemachineFollowSetup cameraRig = FindFirstObjectByType<CinemachineFollowSetup>();
             if (cameraRig != null) cameraRig.SetTarget(transform);
@@ -224,10 +226,6 @@ namespace EnElCamino
                 // original WASD/arrow bindings and writes the steering bus for
                 // the front wheel colliders. Do not inject a second input path
                 // or rotate the vehicle transform from this script.
-                if (nativeInput != null)
-                    nativeInput.externalIgnition = engineRequested
-                        ? Time.time < starterUntil ? VPStandardInput.IgnitionKey.Start : VPStandardInput.IgnitionKey.AccOn
-                        : VPStandardInput.IgnitionKey.Off;
                 return;
             }
             if (Keyboard.current == null) return;

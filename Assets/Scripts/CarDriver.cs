@@ -215,9 +215,15 @@ namespace EnElCamino
             if (nativeInput != null)
                 nativeInput.externalIgnition = VPStandardInput.IgnitionKey.AccOn;
             if (player != null) player.SetActive(false);
-            CinemachineFollowSetup cameraRig = FindFirstObjectByType<CinemachineFollowSetup>();
-            if (cameraRig != null) cameraRig.SetTarget(transform);
-            else if (cameraFollow != null) cameraFollow.SetTarget(transform);
+            ThirdPersonCamera legacyCamera = cameraFollow != null
+                ? cameraFollow
+                : FindFirstObjectByType<ThirdPersonCamera>(FindObjectsInactive.Include);
+            if (legacyCamera != null)
+            {
+                legacyCamera.enabled = true;
+                legacyCamera.SetVehicleTarget(transform);
+                legacyCamera.SnapToTarget();
+            }
             gameFlow.StartDriving();
 
             // From this point the vehicle must be exactly the raw VPP test:

@@ -25,10 +25,8 @@ namespace EnElCamino
             driver.StartEngineAudio(false);
             if (gameFlow != null) gameFlow.movementLocked = true;
             if (player != null) player.SetActive(false);
-            CinemachineFollowSetup camera = FindFirstObjectByType<CinemachineFollowSetup>();
-            ThirdPersonCamera legacyCamera = FindFirstObjectByType<ThirdPersonCamera>();
-            if (camera != null) camera.SetTarget(transform);
-            else if (legacyCamera != null) legacyCamera.SetTarget(transform);
+            ThirdPersonCamera legacyCamera = FindFirstObjectByType<ThirdPersonCamera>(FindObjectsInactive.Include);
+            if (legacyCamera != null) legacyCamera.SetTarget(transform);
 
             // VPP keeps suspension and tire contacts for the entire sequence.
             // Preserve the authored starting pose; the stop marker supplies X/Z only.
@@ -128,8 +126,7 @@ namespace EnElCamino
                 gameFlow.movementLocked = false;
                 gameFlow.ShowMessage("El auto se quedó sin combustible. Acercate a la estación abandonada.");
             }
-            if (camera != null && player != null) camera.SetTarget(player.transform);
-            else if (legacyCamera != null && player != null) legacyCamera.SetTarget(player.transform);
+            if (legacyCamera != null && player != null) legacyCamera.SetTarget(player.transform);
         }
 
         private void PlacePlayerBesideCar()

@@ -103,13 +103,11 @@ namespace EnElCamino
             GameObject player = GameObject.Find("Jugador");
             if (player != null) player.SetActive(false);
 
-            ThirdPersonCamera camera = Camera.main != null
-                ? Camera.main.GetComponent<ThirdPersonCamera>()
-                : FindFirstObjectByType<ThirdPersonCamera>();
+            ThirdPersonCamera camera = FindFirstObjectByType<ThirdPersonCamera>(FindObjectsInactive.Include);
             if (camera != null)
             {
                 camera.enabled = true;
-                camera.SetTarget(transform);
+                camera.SetVehicleTarget(transform);
                 camera.SnapToTarget();
             }
 

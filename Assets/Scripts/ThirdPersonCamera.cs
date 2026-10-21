@@ -3,17 +3,18 @@ using VehiclePhysics;
 
 namespace EnElCamino
 {
+    [DefaultExecutionOrder(5000)]
     public class ThirdPersonCamera : MonoBehaviour
     {
         [SerializeField] private Transform target;
         [SerializeField] private float distance = 4.2f;
         [SerializeField] private float height = 1.9f;
         [SerializeField] private float lookHeight = 1.1f;
-        [SerializeField] private float lookAhead = 3.5f;
+        [SerializeField] private float lookAhead = 0.75f;
         [SerializeField] private float followSpeed = 12f;
-        [SerializeField] private float collisionRadius = 0.22f;
-        [SerializeField] private float collisionPadding = 0.12f;
-        [SerializeField] private float minimumDistance = 0.3f;
+        [SerializeField] private float collisionRadius = 0.35f;
+        [SerializeField] private float collisionPadding = 0.18f;
+        [SerializeField] private float minimumDistance = 0.45f;
         [SerializeField] private LayerMask collisionMask = ~0;
         private float yaw;
         private float pitch = 12f;
@@ -21,6 +22,7 @@ namespace EnElCamino
         private float distanceVelocity;
         private readonly RaycastHit[] cameraHits = new RaycastHit[24];
         private GameFlow gameFlow;
+        private Transform vehicleTarget;
 
         private void Awake()
         {
@@ -39,12 +41,20 @@ namespace EnElCamino
         public void SetTarget(Transform value)
         {
             target = value;
+            vehicleTarget = value != null && value.GetComponent<VPVehicleController>() != null ? value : null;
             if (target != null)
             {
                 yaw = target.eulerAngles.y;
                 smoothedDistance = distance;
                 distanceVelocity = 0f;
             }
+        }
+
+        public void SetVehicleTarget(Transform value)
+        {
+            if (value == null) return;
+            vehicleTarget = value;
+            SetTarget(value);
         }
 
         public void SnapToTarget()
@@ -86,8 +96,24 @@ namespace EnElCamino
 
         private void RouteToVehicle()
         {
-            VPVehicleController vehicle = FindFirstObjectByType<VPVehicleController>();
+            VPVehicleController vehicle = vehicleTarget != null
+                ? vehicleTarget.GetComponent<VPVehicleController>()
+                : null;
+            if (vehicle == null || !vehicle.isActiveAndEnabled)
+            {
+                VPVehicleController[] vehicles = FindObjectsByType<VPVehicleController>(FindObjectsInactive.Exclude,
+                    FindObjectsSortMode.None);
+                for (int i = 0; i < vehicles.Length; i++)
+                {
+                    if (vehicles[i] != null && vehicles[i].isActiveAndEnabled)
+                    {
+                        vehicle = vehicles[i];
+                        break;
+                    }
+                }
+            }
             if (vehicle == null || target == vehicle.transform) return;
+            vehicleTarget = vehicle.transform;
             SetTarget(vehicle.transform);
             SnapToTarget();
         }

@@ -4093,8 +4093,11 @@ MonoBehaviour:
   distance: 4.2
   height: 1.9
   lookHeight: 1.1
-  lookAhead: 3.5
+  lookAhead: 0.75
   followSpeed: 12
+  collisionRadius: 0.35
+  collisionPadding: 0.18
+  minimumDistance: 0.45
 --- !u!20 &490530027
 Camera:
   m_ObjectHideFlags: 0

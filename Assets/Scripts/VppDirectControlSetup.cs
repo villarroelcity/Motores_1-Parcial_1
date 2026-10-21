@@ -36,18 +36,18 @@ namespace EnElCamino
             if (vehicle == null)
                 return;
 
-            // VPP's automatic gearbox expects D (4) to be explicitly selected.
-            SetDrive();
-            EnsureNativePlayerControl();
+            // Before the player boards, keep the scripted vehicle in Drive.
+            // After boarding, VPStandardInput must own the complete input bus.
+            if (gameFlow == null || !gameFlow.driving)
+                SetDrive();
+            else
+                EnsureNativePlayerControl();
         }
 
         private void Update()
         {
-            if (vehicle != null)
-            {
+            if (vehicle != null && (gameFlow == null || !gameFlow.driving))
                 SetDrive();
-                EnsureNativePlayerControl();
-            }
         }
 
         private void SetDrive()
@@ -60,27 +60,11 @@ namespace EnElCamino
         {
             if (gameFlow == null || !gameFlow.driving || nativeInput == null) return;
 
-            // Reassert only the VPP component state. Never write steering or
-            // throttle here: those values must come directly from VPP's
-            // original keyboard input and reach the front axle.
+            // Reassert only the component state. Never write the input bus or
+            // external pedal values here: VPP must read steering, throttle and
+            // brake directly from its original keyboard bindings.
             vehicle.enabled = true;
             nativeInput.enabled = true;
-            nativeInput.disableSteerInput = false;
-            nativeInput.disableThrottleInput = false;
-            nativeInput.disableBrakeInput = false;
-            nativeInput.disableHandbrakeInput = false;
-            nativeInput.disableClutchInput = false;
-            nativeInput.disableGearShiftInputs = false;
-            nativeInput.externalSteer = 0f;
-            nativeInput.externalThrottle = 0f;
-            nativeInput.externalBrake = 0f;
-            nativeInput.externalHandbrake = 0f;
-
-            int[] input = vehicle.data.Get(Channel.Input);
-            input[InputData.Brake] = 0;
-            input[InputData.Handbrake] = 0;
-            input[InputData.Clutch] = 0;
-            input[InputData.AutomaticGear] = 4;
         }
 
         private IEnumerator KeepEngineRunning()

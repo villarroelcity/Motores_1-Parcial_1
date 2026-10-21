@@ -5,7 +5,7 @@ namespace EnElCamino
 {
     /// <summary>
     /// Integrates the Parcial 2 systems around the existing gameplay loop:
-    /// audio feedback, final escape challenge, warning lights and particles.
+    /// audio feedback, final escape challenge and warning lights.
     /// </summary>
     public class VerticalSliceDirector : MonoBehaviour
     {
@@ -18,7 +18,6 @@ namespace EnElCamino
 
         private AudioSource ambientSource;
         private AudioClip ambientClip;
-        private ParticleSystem feedbackParticles;
         private StationThreatAI threat;
         private float challengeTimeLeft;
         private bool challengeActive;
@@ -49,7 +48,6 @@ namespace EnElCamino
             }
 
             CreateAmbientAudio();
-            CreateFeedbackParticles();
         }
 
         private void OnEnable()
@@ -102,7 +100,6 @@ namespace EnElCamino
         private void OnGeneratorStarted()
         {
             PlayTone(520f, 0.12f, 0.16f);
-            EmitFeedback(Color.yellow, 18);
         }
 
         private void OnDrivingStarted()
@@ -110,7 +107,6 @@ namespace EnElCamino
             challengeActive = false;
             StopThreat();
             PlayTone(180f, 0.22f, 0.12f);
-            EmitFeedback(Color.yellow, 24);
             gameFlow.ShowMessage("No dejes que anochezca: salí manejando antes de que termine el tiempo.");
             if (gameFlow.UI != null)
                 gameFlow.UI.SetObjective("OBJETIVO FINAL\nSALÍ ANTES DE QUE ANOCHEZCA\nConducí hasta la ruta.");
@@ -120,7 +116,6 @@ namespace EnElCamino
         {
             challengeActive = false;
             StopThreat();
-            EmitFeedback(Color.green, 80);
         }
 
         private void OnGameLost()
@@ -192,35 +187,6 @@ namespace EnElCamino
             ambientClip = CreateToneClip("StationAmbience", 110f, 4f, 0.05f);
             ambientSource.clip = ambientClip;
             ambientSource.Play();
-        }
-
-        private void CreateFeedbackParticles()
-        {
-            GameObject particleObject = new GameObject("VerticalSliceFeedbackParticles");
-            particleObject.transform.SetParent(transform);
-            particleObject.transform.localPosition = Vector3.up * 0.8f;
-            feedbackParticles = particleObject.AddComponent<ParticleSystem>();
-            var main = feedbackParticles.main;
-            main.loop = false;
-            main.playOnAwake = false;
-            main.startLifetime = 0.9f;
-            main.startSpeed = 3.5f;
-            main.startSize = 0.12f;
-            main.startColor = Color.yellow;
-            main.maxParticles = 150;
-            var emission = feedbackParticles.emission;
-            emission.enabled = false;
-            var shape = feedbackParticles.shape;
-            shape.shapeType = ParticleSystemShapeType.Sphere;
-            shape.radius = 0.4f;
-        }
-
-        private void EmitFeedback(Color color, int count)
-        {
-            if (feedbackParticles == null) return;
-            var main = feedbackParticles.main;
-            main.startColor = color;
-            feedbackParticles.Emit(count);
         }
 
         private void PlayTone(float frequency, float duration, float volume)

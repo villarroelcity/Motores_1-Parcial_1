@@ -59,13 +59,13 @@ El ambiente exterior, generador, surtidor, portón, acciones del auto, música d
 
 La amenaza elegida es un patrullero (`PatrulleroIA`) que permanece oculto hasta que el jugador supera los 60 km/h y atraviesa el trigger de persecución. No usa el controlador VPP del jugador: se mueve con un `Rigidbody` sencillo para evitar la limitación de la edición Community de Vehicle Physics Pro, que permite un solo vehículo VPP activo en la escena.
 
-Durante la persecución el patrullero sigue al auto del jugador, activa dos luces azules y una sirena espacial, actualiza la distancia de escape en el HUD y produce `GAME OVER` si alcanza al jugador, choca contra él o se agota el tiempo máximo de persecución. El jugador gana al mantener una distancia de 100 metros. El HUD incluye un indicador de distancia y un espejo retrovisor renderizado desde una cámara auxiliar.
+Durante la persecución el patrullero sigue al auto del jugador, activa dos luces azules y una sirena espacial, actualiza la ventaja en el HUD y produce `GAME OVER` si alcanza al jugador, choca contra él o se agota el tiempo máximo de persecución. El jugador gana al mantener una distancia de 100 metros. El HUD incluye un indicador `VENTAJA` y un espejo retrovisor renderizado desde una cámara auxiliar.
 
 La IA y sus condiciones deben validarse en una prueba completa: superar el límite de velocidad, activar el trigger, comprobar sirena/luces, escapar y comprobar también la derrota por alcance o choque.
 
 ## Interfaz y controles
 
-La UI usa uGUI y se adapta al tamaño de la pantalla. Incluye objetivos, mensajes, reloj de tarde a noche, combustible restante del generador, velocidad del vehículo durante la conducción, distancia de escape y espejo retrovisor durante la persecución. El espejo y el indicador de distancia tienen previsualizaciones editables dentro del Canvas (`RearViewMirrorPanel` y `PursuitDistancePanel`) para poder acomodarlos visualmente en la vista Scene; al ejecutar se leen sus posiciones y se reemplazan por el HUD funcional.
+La UI usa uGUI y se adapta al tamaño de la pantalla. Incluye objetivos, mensajes, reloj de tarde a noche, combustible restante del generador, velocidad del vehículo durante la conducción, indicador `VENTAJA` y espejo retrovisor durante la persecución. El espejo y el indicador tienen previsualizaciones editables dentro del Canvas (`RearViewMirrorPanel` y `PursuitDistancePanel`) para poder acomodarlos visualmente en la vista Scene; al ejecutar se leen sus posiciones y se reemplazan por el HUD funcional. El espejo muestra solo la imagen, sin marco ni texto.
 
 El menú solicitado contiene únicamente:
 

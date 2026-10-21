@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using VehiclePhysics;
 
@@ -52,6 +53,7 @@ namespace EnElCamino
 
         private void EnterNativeVppCar()
         {
+            if (carDriver != null) carDriver.RestoreFuelForNativeControl();
             if (carDriver != null) carDriver.enabled = false;
             CarArrivalSequence arrival = GetComponent<CarArrivalSequence>();
             if (arrival != null) arrival.enabled = false;
@@ -83,7 +85,18 @@ namespace EnElCamino
             if (nativeInput != null)
             {
                 nativeInput.enabled = true;
+                nativeInput.disableSteerInput = false;
+                nativeInput.disableThrottleInput = false;
+                nativeInput.disableBrakeInput = false;
+                nativeInput.disableHandbrakeInput = false;
+                nativeInput.disableClutchInput = false;
+                nativeInput.disableGearShiftInputs = false;
+                nativeInput.externalThrottle = 0f;
+                nativeInput.externalBrake = 0f;
+                nativeInput.externalHandbrake = 0f;
+                nativeInput.externalSteer = 0f;
                 nativeInput.externalIgnition = VPStandardInput.IgnitionKey.AccOn;
+                StartCoroutine(StartNativeEngine(nativeInput));
             }
 
             GameObject player = GameObject.Find("Jugador");
@@ -93,6 +106,14 @@ namespace EnElCamino
             if (camera != null) camera.SetTarget(transform);
 
             gameFlow.StartDriving();
+        }
+
+        private IEnumerator StartNativeEngine(VPStandardInput nativeInput)
+        {
+            nativeInput.externalIgnition = VPStandardInput.IgnitionKey.Start;
+            yield return new WaitForSeconds(0.8f);
+            if (nativeInput != null && nativeInput.enabled)
+                nativeInput.externalIgnition = VPStandardInput.IgnitionKey.AccOn;
         }
     }
 }

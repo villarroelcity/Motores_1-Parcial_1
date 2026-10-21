@@ -44,15 +44,29 @@ namespace EnElCamino
             Collider canCollider = GetComponent<Collider>();
             if (canCollider != null) canCollider.enabled = false;
 
-            // Parent the can to the animated arm pivot so it stays in the hand while walking.
+            // Parent the can to the actual hand, not the shoulder. Compensate
+            // for the hand's small visual scale so the can keeps its authored size.
             Transform carryAnchor = player != null ? player.Find("PlayerModel/HombroDerecho") : null;
+            if (carryAnchor != null)
+            {
+                Transform hand = carryAnchor.Find("ManoDerecha");
+                if (hand != null) carryAnchor = hand;
+            }
             Vector3 canScale = transform.localScale;
             transform.SetParent(carryAnchor != null ? carryAnchor : player, false);
             transform.localPosition = carryAnchor != null
-                ? new Vector3(0f, -0.15f, 0.06f)
+                ? new Vector3(0f, -0.32f, 0.02f)
                 : new Vector3(0.43f, 0.99f, 0.06f);
             transform.localRotation = Quaternion.identity;
-            transform.localScale = canScale;
+            if (carryAnchor != null)
+            {
+                Vector3 parentScale = carryAnchor.lossyScale;
+                transform.localScale = new Vector3(
+                    canScale.x / Mathf.Max(0.001f, parentScale.x),
+                    canScale.y / Mathf.Max(0.001f, parentScale.y),
+                    canScale.z / Mathf.Max(0.001f, parentScale.z));
+            }
+            else transform.localScale = canScale;
             gameFlow.TakeFuelCan();
         }
 

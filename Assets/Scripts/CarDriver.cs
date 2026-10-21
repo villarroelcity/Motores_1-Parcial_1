@@ -137,6 +137,24 @@ namespace EnElCamino
 
         public void SetArrivalFuel(float ratio) => fuelRatio = Mathf.Clamp01(ratio);
 
+        public void RestoreFuelForNativeControl()
+        {
+            fuelRatio = 1f;
+            if (vehicleController == null) return;
+            if (introEngine == null)
+            {
+                foreach (FieldInfo field in typeof(VPVehicleController).GetFields(BindingFlags.Instance | BindingFlags.NonPublic))
+                {
+                    if (field.FieldType == typeof(Engine))
+                    {
+                        introEngine = field.GetValue(vehicleController) as Engine;
+                        break;
+                    }
+                }
+            }
+            if (introEngine != null) introEngine.allowedFuelRatio = 1f;
+        }
+
         public void HoldArrivalParking()
         {
             if (vehicleBody == null || arrivalParkingHeld) return;

@@ -201,7 +201,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.VerticalSliceDirector
   gameFlow: {fileID: 0}
-  vehicle: {fileID: 218067654}
+  vehicle: {fileID: 470211924}
   exit: {fileID: 0}
   threatPrefab: {fileID: 7449782648777001352, guid: d195d78751f44af48b3af52354d36591, type: 3}
   warningLights: []
@@ -4075,13 +4075,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 490530025}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4bff6624175351741b928dc96283fc71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.CinemachineFollowSetup
   target: {fileID: 0}
-  vehicle: {fileID: 218067654}
+  vehicle: {fileID: 470211924}
   distance: 5.5
   height: 2.4
   collisionRadius: 0.18

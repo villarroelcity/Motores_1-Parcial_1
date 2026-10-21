@@ -65,7 +65,7 @@ La IA y sus condiciones deben validarse en una prueba completa: superar el lími
 
 ## Interfaz y controles
 
-La UI usa uGUI y se adapta al tamaño de la pantalla. Incluye objetivos, mensajes, reloj de tarde a noche, combustible restante del generador, velocidad del vehículo durante la conducción, distancia de escape y espejo retrovisor durante la persecución.
+La UI usa uGUI y se adapta al tamaño de la pantalla. Incluye objetivos, mensajes, reloj de tarde a noche, combustible restante del generador, velocidad del vehículo durante la conducción, distancia de escape y espejo retrovisor durante la persecución. El espejo y el indicador de distancia tienen previsualizaciones editables dentro del Canvas (`RearViewMirrorPanel` y `PursuitDistancePanel`) para poder acomodarlos visualmente en la vista Scene; al ejecutar se leen sus posiciones y se reemplazan por el HUD funcional.
 
 El menú solicitado contiene únicamente:
 

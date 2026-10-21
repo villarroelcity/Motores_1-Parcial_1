@@ -32,11 +32,13 @@ namespace EnElCamino
             if (used)
             {
                 if (gameFlow.gameOver || gameFlow.finished) return;
-                if (startSound != null) audioSource.PlayOneShot(startSound);
-                // The arrival helper is only for the scripted approach. From
-                // the moment the player boards, Vehicle Physics Pro must be
-                // the sole owner of steering, throttle, wheels and yaw.
-                EnterNativeVppCar();
+                // Use the same handoff path as the native VPP driver. The
+                // interactable must not create a second input owner after the
+                // player fuels the car.
+                if (carDriver != null)
+                    carDriver.EnterCar();
+                else
+                    EnterNativeVppCar();
                 return;
             }
 

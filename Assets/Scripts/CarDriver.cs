@@ -212,8 +212,10 @@ namespace EnElCamino
             // actual steering, throttle and wheel physics from this point on.
             if (vehicleController != null)
                 vehicleController.gearbox.type = Gearbox.Type.Automatic;
-            if (nativeInput != null)
-                nativeInput.externalIgnition = VPStandardInput.IgnitionKey.AccOn;
+            // Restore the authored VPP input path exactly once at handoff.
+            // After this call CarDriver is disabled and never writes the input
+            // bus again, so steering and braking remain native to VPP.
+            SetNativeControls(true);
             if (player != null) player.SetActive(false);
             ThirdPersonCamera legacyCamera = cameraFollow != null
                 ? cameraFollow

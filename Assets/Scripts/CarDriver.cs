@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -7,13 +8,17 @@ using VehiclePhysics;
 namespace EnElCamino
 {
     [DefaultExecutionOrder(-100)]
-    public class CarDriver : MonoBehaviour
+    public class CarDriver : MonoBehaviour, IInteractable
     {
         [SerializeField] private GameFlow gameFlow;
         [SerializeField] private GameObject player;
-        [SerializeField] private ThirdPersonCamera cameraFollow;
-        [SerializeField] private float speed = 7f;
-        [SerializeField] private float turnSpeed = 75f;
+        [SerializeField] private CamaraJugador cameraFollow;
+        [SerializeField] private Transform stopPoint;
+        [SerializeField] private Transform exitPoint;
+        [SerializeField] private float cruiseSpeed = 12f;
+        [SerializeField] private float coastDistance = 180f;
+        [SerializeField] private float fuelStarvationDuration = 1.2f;
+        [SerializeField] private Surtidor fuelCan;
 
         private VPVehicleController vehicleController;
         private bool driving;
@@ -22,10 +27,8 @@ namespace EnElCamino
         private float starterUntil;
         private float throttleInput;
         private float steerInput;
-        private bool automaticTransmissionConfigured;
         private bool introFullThrottle;
         private readonly List<StartupAudioClip> startupAudioClips = new List<StartupAudioClip>();
-        private float restoreStartupAudioAt = -1f;
         private Rigidbody vehicleBody;
         private Engine introEngine;
         private bool seedRunningEngine;
@@ -35,6 +38,7 @@ namespace EnElCamino
         private bool arrivalControl;
         private float brakeInput;
         private VPStandardInput nativeInput;
+        private bool used;
 
         private void SetNativeControls(bool enabled)
         {
@@ -85,30 +89,28 @@ namespace EnElCamino
             input[InputData.AutomaticGear] = 4;
         }
 
-        private void PrepareScriptedPlayerControls()
+        private void PrepareCoastControls()
         {
             if (nativeInput != null)
             {
-                // The reference controls are the same bus-driven controls used
-                // while the car coasts after fuel starvation. Do not hand the
-                // vehicle to a second steering/pedal path when the player
-                // boards again.
+                // Keep the VPP input component alive, but let this small bridge
+                // be the only writer of the driver input bus. VPP still owns
+                // the engine, wheels, suspension and steering geometry.
                 nativeInput.enabled = true;
-                // Match the initial coasting state: VPStandardInput remains
-                // enabled for the authored steering rack and pedal bindings.
-                // The scripted bus path and VPP input then receive the same
-                // keyboard direction input as before refueling.
-                nativeInput.disableSteerInput = false;
-                nativeInput.disableThrottleInput = false;
-                nativeInput.disableBrakeInput = false;
-                nativeInput.disableHandbrakeInput = false;
-                nativeInput.disableClutchInput = false;
-                nativeInput.disableGearShiftInputs = false;
+                nativeInput.disableSteerInput = true;
+                nativeInput.disableThrottleInput = true;
+                nativeInput.disableBrakeInput = true;
+                nativeInput.disableHandbrakeInput = true;
+                nativeInput.disableClutchInput = true;
+                nativeInput.disableGearShiftInputs = true;
                 nativeInput.externalThrottle = 0f;
                 nativeInput.externalBrake = 0f;
                 nativeInput.externalHandbrake = 0f;
                 nativeInput.externalSteer = 0f;
                 nativeInput.externalClutch = 0f;
+                nativeInput.externalIgnition = engineRequested
+                    ? Time.time < starterUntil ? VPStandardInput.IgnitionKey.Start : VPStandardInput.IgnitionKey.AccOn
+                    : VPStandardInput.IgnitionKey.Off;
             }
 
             if (vehicleController == null || !vehicleController.initialized) return;
@@ -127,7 +129,7 @@ namespace EnElCamino
         {
             arrivalControl = true;
             introFullThrottle = false;
-            // Keep VPStandardInput initialized like the working pure VPP test.
+            PrepareCoastControls();
         }
 
         public void EndFuelCutoffControl()
@@ -171,6 +173,163 @@ namespace EnElCamino
                     startupClip.SetValue(audio, null);
                 }
             }
+        }
+
+        public string Prompt
+        {
+            get
+            {
+                if (!vehicleReady) return "El auto está llegando...";
+                if (used) return "[E] Subir al auto";
+                return gameFlow != null && gameFlow.fuelCanFull
+                    ? "[E] Cargar tanque del auto"
+                    : "Falta llenar el bidón";
+            }
+        }
+
+        public void Interact()
+        {
+            if (gameFlow == null || gameFlow.gameOver || gameFlow.finished) return;
+            if (used)
+            {
+                EnterCar();
+                return;
+            }
+            if (!gameFlow.fuelCanFull)
+            {
+                gameFlow.ShowMessage("Primero llená el bidón en el surtidor.");
+                return;
+            }
+            used = true;
+            gameFlow.FillCar();
+            if (fuelCan != null) fuelCan.Use();
+        }
+
+        private IEnumerator Start()
+        {
+            SetVehicleReady(false);
+            SetIntroFullThrottle(true);
+            StartEngineAudio(false);
+            if (gameFlow != null) gameFlow.movementLocked = true;
+            if (player != null) player.SetActive(false);
+            CamaraJugador legacyCamera = cameraFollow != null
+                ? cameraFollow
+                : FindFirstObjectByType<CamaraJugador>(FindObjectsInactive.Include);
+            if (legacyCamera != null) legacyCamera.SetTarget(transform);
+
+            if (vehicleBody == null) vehicleBody = GetComponent<Rigidbody>();
+            if (vehicleController == null) vehicleController = GetComponent<VPVehicleController>();
+            if (vehicleBody == null) yield break;
+            vehicleBody.isKinematic = false;
+            vehicleBody.detectCollisions = true;
+            Vector3 destination = stopPoint != null ? stopPoint.position : transform.position;
+            Vector3 laneOrigin = vehicleBody.position;
+            GameObject road = GameObject.Find("Ruta");
+            Vector3 direction = Vector3.ProjectOnPlane(road != null ? road.transform.forward : transform.forward, Vector3.up).normalized;
+            if (direction.sqrMagnitude < 0.01f) direction = transform.forward;
+            if (Vector3.Dot(destination - laneOrigin, direction) < 0f) direction = -direction;
+            destination = laneOrigin + direction * Mathf.Max(0f, Vector3.Dot(destination - laneOrigin, direction));
+            float fuelCutoffDistance = Mathf.Min(coastDistance, Vector3.Distance(laneOrigin, destination) * 0.8f);
+            RigidbodyConstraints originalConstraints = vehicleBody.constraints;
+            vehicleBody.rotation = Quaternion.LookRotation(direction, Vector3.up);
+            vehicleBody.constraints = originalConstraints | RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+            vehicleBody.linearVelocity = direction * cruiseSpeed;
+            vehicleBody.WakeUp();
+            while (vehicleController != null && !vehicleController.initialized) yield return new WaitForFixedUpdate();
+
+            bool starved = false;
+            bool engineStopped = false;
+            float starvationTime = 0f;
+            while (true)
+            {
+                yield return new WaitForFixedUpdate();
+                if (gameFlow != null && (gameFlow.gameOver || gameFlow.finished)) yield break;
+                Vector3 horizontal = Vector3.ProjectOnPlane(vehicleBody.linearVelocity, Vector3.up);
+                float remaining = Vector3.Dot(destination - vehicleBody.position, direction);
+                float currentSpeed = Mathf.Max(0f, Vector3.Dot(horizontal, direction));
+                if (!starved && remaining <= fuelCutoffDistance)
+                {
+                    starved = true;
+                    vehicleBody.constraints = originalConstraints;
+                    BeginFuelCutoffControl();
+                    if (gameFlow != null) gameFlow.BeginAtFuelCutoff();
+                }
+                if (starved)
+                {
+                    starvationTime += Time.fixedDeltaTime;
+                    float fuel = 1f - Mathf.Clamp01(starvationTime / Mathf.Max(0.1f, fuelStarvationDuration));
+                    SetArrivalFuel(fuel);
+                    if (fuel <= 0f && !engineStopped)
+                    {
+                        StopEngineAudio();
+                        engineStopped = true;
+                    }
+                    if (fuel <= 0f && horizontal.magnitude <= 0.25f) break;
+                    continue;
+                }
+                float desiredSpeed = Mathf.Min(cruiseSpeed, Mathf.Max(0f, remaining) / Time.fixedDeltaTime);
+                float longitudinalSpeed = Vector3.Dot(horizontal, direction);
+                vehicleBody.AddForce(direction * (desiredSpeed - longitudinalSpeed) / Time.fixedDeltaTime, ForceMode.Acceleration);
+                if (remaining <= 0.12f && currentSpeed <= 0.35f) break;
+            }
+
+            SetArrivalFuel(0f);
+            StopEngineAudio();
+            EndFuelCutoffControl();
+            SetVehicleReady(true);
+            float settle = 0f;
+            while (settle < 0.5f)
+            {
+                settle += Time.fixedDeltaTime;
+                yield return new WaitForFixedUpdate();
+            }
+            vehicleBody.constraints = originalConstraints;
+            HoldArrivalParking();
+            enabled = false;
+            if (player != null)
+            {
+                PlacePlayerBesideCar();
+                player.SetActive(true);
+            }
+            if (gameFlow != null)
+            {
+                gameFlow.movementLocked = false;
+                gameFlow.ShowMessage("El auto se quedó sin combustible. Acercate a la estación abandonada.");
+            }
+            if (legacyCamera != null && player != null) legacyCamera.SetTarget(player.transform);
+        }
+
+        private void PlacePlayerBesideCar()
+        {
+            Bounds bounds = new Bounds(transform.position, Vector3.zero);
+            foreach (Collider item in GetComponentsInChildren<Collider>())
+                if (item.enabled && !item.isTrigger) bounds.Encapsulate(item.bounds);
+            Vector3 side = Vector3.ProjectOnPlane(-transform.right, Vector3.up).normalized;
+            CharacterController controller = player.GetComponent<CharacterController>();
+            float radius = controller != null ? controller.radius * Mathf.Abs(player.transform.lossyScale.x) : 0.4f;
+            float halfWidth = Vector3.Dot(bounds.extents, new Vector3(Mathf.Abs(side.x), 0f, Mathf.Abs(side.z)));
+            Vector3 position = bounds.center + side * (halfWidth + radius + 0.65f);
+            RaycastHit[] hits = Physics.RaycastAll(position + Vector3.up * 5f, Vector3.down, 30f,
+                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            float ground = float.NegativeInfinity;
+            foreach (RaycastHit hit in hits)
+            {
+                if (hit.normal.y < 0.5f || hit.transform == transform || hit.transform.IsChildOf(transform) ||
+                    hit.transform == player.transform || hit.transform.IsChildOf(player.transform)) continue;
+                ground = Mathf.Max(ground, hit.point.y);
+            }
+            if (!float.IsNegativeInfinity(ground))
+            {
+                float footOffset = controller != null
+                    ? (controller.center.y - controller.height * 0.5f) * player.transform.lossyScale.y : 0f;
+                position.y = ground - footOffset + 0.04f;
+            }
+            bool wasEnabled = controller != null && controller.enabled;
+            if (controller != null) controller.enabled = false;
+            player.transform.SetPositionAndRotation(position, exitPoint != null ? exitPoint.rotation : transform.rotation);
+            PlayerController movement = player.GetComponent<PlayerController>();
+            if (movement != null) movement.ResetFallTracking();
+            if (controller != null) controller.enabled = wasEnabled;
         }
 
         public void SetArrivalFuel(float ratio) => fuelRatio = Mathf.Clamp01(ratio);
@@ -235,31 +394,29 @@ namespace EnElCamino
                 vehicleBody.angularVelocity = Vector3.zero;
                 vehicleBody.WakeUp();
             }
-            // Re-enter the same control mode used during the fuel-starved
-            // coast. GameFlow.driving is the mission state; this local flag
-            // must stay false so Update/FixedUpdate keep reading the same
-            // keyboard path as the initial coast.
-            driving = false;
-            arrivalControl = true;
+            // From this point on the car is controlled by Vehicle Physics Pro.
+            // The arrival/coast bridge is only for the scripted fuel cut-off;
+            // after refuelling VPP must receive its own steering and gearbox
+            // state again.
+            driving = true;
+            arrivalControl = false;
             if (vehicleBody != null)
             {
-                vehicleBody.constraints = RigidbodyConstraints.None;
+                // Restore the prefab's original constraints. Releasing every
+                // axis here made the parked car slide/rotate as a solid block
+                // after refuelling, unlike during the initial coast.
+                vehicleBody.constraints = drivingConstraints;
                 vehicleBody.angularVelocity = Vector3.zero;
                 vehicleBody.WakeUp();
             }
-            fuelRatio = 1f;
-            if (introEngine != null) introEngine.allowedFuelRatio = 1f;
+            RestoreFuelForNativeControl();
             RestoreStartupAudioClip();
             StartEngineAudio(true);
-            // Keep the same automatic Drive gear used while coasting under
-            // player control; do not switch to the separate native handoff.
-            if (vehicleController != null)
-                vehicleController.gearbox.type = Gearbox.Type.Automatic;
-            PrepareScriptedPlayerControls();
+            RearmNativeVehicleController();
             if (player != null) player.SetActive(false);
-            ThirdPersonCamera legacyCamera = cameraFollow != null
+            CamaraJugador legacyCamera = cameraFollow != null
                 ? cameraFollow
-                : FindFirstObjectByType<ThirdPersonCamera>(FindObjectsInactive.Include);
+                : FindFirstObjectByType<CamaraJugador>(FindObjectsInactive.Include);
             if (legacyCamera != null)
             {
                 legacyCamera.enabled = true;
@@ -269,16 +426,39 @@ namespace EnElCamino
             gameFlow.StartDriving();
 
             // The arrival sequence disabled this component while the car was
-            // parked. Re-enable it so the same coast controls continue after
-            // refueling and boarding.
+            // parked. Re-enable it so the VPP bus receives the player controls.
             enabled = true;
+        }
+
+        private void RearmNativeVehicleController()
+        {
+            if (nativeInput != null)
+                nativeInput.enabled = false;
+            if (vehicleController != null)
+                vehicleController.enabled = false;
+            StartCoroutine(EnableNativeVehicleController());
+        }
+
+        private IEnumerator EnableNativeVehicleController()
+        {
+            // Let VPP run its disable callbacks first. This clears the previous
+            // stalled input/gear state instead of carrying it into the new trip.
+            yield return null;
+
+            if (vehicleController != null)
+            {
+                vehicleController.gearbox.type = Gearbox.Type.Automatic;
+                vehicleController.enabled = true;
+            }
+            if (nativeInput != null)
+            {
+                nativeInput.enabled = true;
+                SetNativeControls(true);
+            }
         }
 
         private void Update()
         {
-            if (restoreStartupAudioAt >= 0f && Time.time >= restoreStartupAudioAt)
-                RestoreStartupAudioClip();
-
             if (gameFlow != null && (gameFlow.gameOver || gameFlow.finished))
             {
                 StopEngineAudio();
@@ -292,11 +472,42 @@ namespace EnElCamino
             if (!driving && !arrivalControl) return;
             if (driving)
             {
-                // Vehicle Physics Pro is the only owner of the vehicle while
-                // the player is driving. Its VPStandardInput reads the asset's
-                // original WASD/arrow bindings and writes the steering bus for
-                // the front wheel colliders. Do not inject a second input path
-                // or rotate the vehicle transform from this script.
+                // Keep VPP as the only system that applies forces and turns the
+                // front wheels. The asset reads the old Unity input axes, while
+                // this project also uses the new Input System for the player;
+                // feed only the missing steering value through VPP's supported
+                // external input, instead of rotating the car transform.
+                if (Keyboard.current == null)
+                {
+                    if (nativeInput != null)
+                    {
+                        nativeInput.externalThrottle = 0f;
+                        nativeInput.externalSteer = 0f;
+                        nativeInput.externalBrake = 0f;
+                        nativeInput.reverse = false;
+                    }
+                    return;
+                }
+
+                if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) steerInput = -1f;
+                if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) steerInput = 1f;
+                if (Keyboard.current.spaceKey.isPressed) brakeInput = 1f;
+
+                if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed)
+                    brakeInput = 1f;
+
+                if (nativeInput != null)
+                {
+                    bool reverse = Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed;
+                    bool forward = Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed;
+                    nativeInput.externalSteer = steerInput;
+                    nativeInput.externalThrottle = forward || reverse ? 1f : 0f;
+                    nativeInput.externalBrake = brakeInput;
+                    nativeInput.reverse = reverse && !forward;
+                    nativeInput.externalIgnition = engineRequested
+                        ? Time.time < starterUntil ? VPStandardInput.IgnitionKey.Start : VPStandardInput.IgnitionKey.AccOn
+                        : VPStandardInput.IgnitionKey.Off;
+                }
                 return;
             }
             if (Keyboard.current == null) return;
@@ -323,9 +534,6 @@ namespace EnElCamino
             if (!vehicleController.initialized)
                 return;
 
-            if (!automaticTransmissionConfigured)
-                automaticTransmissionConfigured = true;
-
             if (introEngine == null)
             {
                 foreach (FieldInfo field in typeof(VPVehicleController).GetFields(BindingFlags.Instance | BindingFlags.NonPublic))
@@ -343,7 +551,10 @@ namespace EnElCamino
                 introEngine.allowedFuelRatio = fuelRatio;
             }
 
-            if (driving && nativeInput != null && nativeInput.enabled)
+            // During player driving VPStandardInput is the only writer of VPP's
+            // input channel. Mixing this scripted bridge with it makes the car
+            // steer as a rigid block after refuelling.
+            if (driving)
                 return;
 
             int[] input = vehicleController.data.Get(Channel.Input);
@@ -367,7 +578,7 @@ namespace EnElCamino
             input[InputData.Brake] = (!driving && !arrivalControl && vehicleReady) || stopped
                 ? 10000
                 : Mathf.RoundToInt(brakeInput * 10000f);
-            input[InputData.Handbrake] = !driving && vehicleReady ? 10000 : 0;
+            input[InputData.Handbrake] = !driving && !arrivalControl && vehicleReady ? 10000 : 0;
             input[InputData.Clutch] = arrivalControl && fuelRatio <= 0f ? 10000 : 0;
             input[InputData.ManualGear] = 0;
             // VPP automatic modes: P=1, R=2, N=3, D=4. The scripted arrival
@@ -419,7 +630,6 @@ namespace EnElCamino
                 if (entry.audioComponent != null && entry.clipField != null)
                     entry.clipField.SetValue(entry.audioComponent, entry.originalClip);
             }
-            restoreStartupAudioAt = -1f;
         }
     }
 }

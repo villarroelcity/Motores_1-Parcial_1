@@ -42,7 +42,7 @@ Derrotas vigentes: agotar el tiempo general/noche, agotar el combustible del gen
 - Cámara de tercera persona con Cinemachine.
 - Interacción por Raycast e interfaz `IInteractable`.
 - Flujo de misión secuencial en `GameFlow`.
-- Auto con Vehicle Physics Pro y llegada controlada por `CarArrivalSequence`.
+- Auto con Vehicle Physics Pro; llegada, carga y control reunidos en `CarDriver`.
 - Interacciones de generador, tablero, interruptor, portón, bidón, surtidor y salida.
 - UI uGUI adaptada a pantalla para objetivos, mensajes, tiempo y combustible del generador.
 - Ciclo tarde–noche con Enviro 3, iluminación y audio ambiental/espacial.
@@ -57,7 +57,7 @@ El ambiente exterior, generador, surtidor, portón, acciones del auto, música d
 
 ## IA — pendiente de definición e integración
 
-La consigna exige IA y navegación. Hay una base `StationThreatAI`, pero la persecución no forma parte del flujo activo actual porque se retiró mientras se corrigieron secuencias y audio. Antes de la entrega se debe elegir una amenaza coherente, darle una presencia visual, configurar NavMesh y comprobar una condición de derrota reproducible. No debe presentarse como funcional hasta probar el recorrido completo.
+La consigna exige IA y navegación. El código de una amenaza que no se activaba fue retirado durante la limpieza para no conservar referencias falsas ni un prefab inexistente. Antes de la entrega se debe elegir una amenaza coherente, darle una presencia visual, configurar NavMesh y comprobar una condición de derrota reproducible. No debe presentarse como funcional hasta probar el recorrido completo.
 
 ## Criterios de entrega
 

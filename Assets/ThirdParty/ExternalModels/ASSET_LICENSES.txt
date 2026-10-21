@@ -3,11 +3,3 @@ Parcial 2 - modelos 3D externos
 PortableGenerator_CC0.fbx
 Fuente: https://grab3d.com/models/electronics/generator/
 Licencia: CC0 1.0. Generador portátil low-poly, sin atribución obligatoria.
-
-GhostGltf/lowpolyghost/lowpolyghost.glb
-Fuente: https://opengameart.org/content/low-poly-ghost-0
-Licencia: CC0 1.0. Fantasma low-poly de Robin Lamb; se conserva esta referencia de origen.
-
-FuelCanister_CC0.glb
-Fuente: https://pixor.art/library/scifi/sci-barrel/
-Licencia: CC0. Bidón/canister low-poly, sin atribución obligatoria.

@@ -134,9 +134,6 @@ GameObject:
   m_Component:
   - component: {fileID: 7153599}
   - component: {fileID: 7153598}
-  - component: {fileID: 7153600}
-  - component: {fileID: 7153601}
-  - component: {fileID: 7153602}
   m_Layer: 0
   m_Name: GameFlow
   m_TagString: Untagged
@@ -161,6 +158,13 @@ MonoBehaviour:
   victorySource: {fileID: 1120866015}
   generatorFuelSeconds: 60
   streetLightsRoot: {fileID: 0}
+  sun: {fileID: 1532110263}
+  timerText: {fileID: 2134242396}
+  duration: 180
+  skyboxMaterial: {fileID: 0}
+  controlLegacyLighting: 0
+  enviroStartHour: 17.25
+  enviroNightHour: 23
   generatorOn: 0
   stationPowerConnected: 0
   hasFuelCan: 0
@@ -188,51 +192,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7153600
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7153597}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2202c1fbeba7e414fa4451945d44a0aa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.VerticalSliceDirector
-  gameFlow: {fileID: 0}
-  vehicle: {fileID: 470211924}
-  exit: {fileID: 0}
-  threatPrefab: {fileID: 7449782648777001352, guid: d195d78751f44af48b3af52354d36591, type: 3}
-  warningLights: []
-  challengeDuration: 35
---- !u!114 &7153601
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7153597}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 460d97cb8adbe2946b9e4dbc8bd93b2d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.GameplayAudioController
-  ambientClip: {fileID: 8300000, guid: 94b96caf429a3ac4598bf31740a6b5a6, type: 3}
-  garageOpen: {fileID: 8300000, guid: f8aeaaec2e331204f8eee5c14498ff9b, type: 3}
-  mixer: {fileID: 24100000, guid: c59ce946207622c4ead36e65cf15c523, type: 2}
---- !u!114 &7153602
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7153597}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8c1f2ad4c86b4d8594cb6ce2d5a13f71, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.VppDirectControlSetup
 --- !u!1 &9220162
 GameObject:
   m_ObjectHideFlags: 0
@@ -912,7 +871,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 60ef57c8a30b50247a495172ee785823, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.GarageDoorInteractable
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.PortonTaller
   gameFlow: {fileID: 7153598}
   garageDoor: {fileID: 724371180}
   travelDuration: 2.2
@@ -1154,7 +1113,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e75c0927e9492af4a870e05030fb0870, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.GeneratorInteractable
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.Generador
   gameFlow: {fileID: 7153598}
   indicator: {fileID: 143399325}
   indicatorLight: {fileID: 1012924242}
@@ -1690,13 +1649,7 @@ PrefabInstance:
       addedObject: {fileID: 218067659}
     - targetCorrespondingSourceObject: {fileID: 2069814030545375925, guid: f7a352f52c0b4034a8e157c2e33e54c4, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 218067658}
-    - targetCorrespondingSourceObject: {fileID: 2069814030545375925, guid: f7a352f52c0b4034a8e157c2e33e54c4, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 218067657}
-    - targetCorrespondingSourceObject: {fileID: 2069814030545375925, guid: f7a352f52c0b4034a8e157c2e33e54c4, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 218067656}
   m_SourcePrefab: {fileID: 100100000, guid: f7a352f52c0b4034a8e157c2e33e54c4, type: 3}
 --- !u!4 &218067654 stripped
 Transform:
@@ -1708,25 +1661,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 2069814030545375925, guid: f7a352f52c0b4034a8e157c2e33e54c4, type: 3}
   m_PrefabInstance: {fileID: 218067653}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &218067656
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 218067655}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eb4bcecaeaf0eef4a97892c064f6555e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.CarArrivalSequence
-  gameFlow: {fileID: 7153598}
-  player: {fileID: 1262591741}
-  stopPoint: {fileID: 184789708}
-  exitPoint: {fileID: 1953924722}
-  cruiseSpeed: 18
-  coastDistance: 180
-  fuelStarvationDuration: 1.2
 --- !u!114 &218067657
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1742,24 +1676,12 @@ MonoBehaviour:
   gameFlow: {fileID: 7153598}
   player: {fileID: 1262591741}
   cameraFollow: {fileID: 490530026}
-  speed: 7
-  turnSpeed: 75
---- !u!114 &218067658
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 218067655}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 23e80727df127664ab999c39dbe1d00c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.CarInteractable
-  gameFlow: {fileID: 7153598}
+  stopPoint: {fileID: 184789708}
+  exitPoint: {fileID: 1953924722}
+  cruiseSpeed: 18
+  coastDistance: 180
+  fuelStarvationDuration: 1.2
   fuelCan: {fileID: 284828479}
-  carDriver: {fileID: 218067657}
-  startSound: {fileID: 0}
 --- !u!82 &218067659
 AudioSource:
   m_ObjectHideFlags: 0
@@ -2272,8 +2194,6 @@ Transform:
   m_LocalScale: {x: 0.45, y: 0.6, z: 0.28}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1185034028}
-  - {fileID: 1628511271}
   - {fileID: 650663743}
   m_Father: {fileID: 670144095}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2368,7 +2288,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4cd5c864832f1f54aaeac2ca3cbf41d1, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.FuelCan
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.Surtidor
   gameFlow: {fileID: 7153598}
   fuelCanRenderer: {fileID: 284828476}
   player: {fileID: 1262591742}
@@ -2974,14 +2894,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 406157876}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b1d08e1291857814582e1ea0d4632cd6, type: 3}
+  m_Script: {fileID: 11500000, guid: 4cd5c864832f1f54aaeac2ca3cbf41d1, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.FuelPumpInteractable
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.Surtidor
   gameFlow: {fileID: 7153598}
   fuelCan: {fileID: 284828479}
   pumpSound: {fileID: 8300000, guid: dff8a7b9c6395e744bb4a60940df05c9, type: 3}
   pitchVariation: {x: 0.97, y: 1.03}
   volumeVariation: {x: 0.95, y: 1}
+  pumpMode: 1
 --- !u!23 &406157879
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3761,12 +3682,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2069814030545375925, guid: f7a352f52c0b4034a8e157c2e33e54c4, type: 3}
       insertIndex: -1
       addedObject: {fileID: 470211927}
-    - targetCorrespondingSourceObject: {fileID: 2069814030545375925, guid: f7a352f52c0b4034a8e157c2e33e54c4, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 470211928}
-    - targetCorrespondingSourceObject: {fileID: 2069814030545375925, guid: f7a352f52c0b4034a8e157c2e33e54c4, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 470211929}
   m_SourcePrefab: {fileID: 100100000, guid: f7a352f52c0b4034a8e157c2e33e54c4, type: 3}
 --- !u!4 &470211924 stripped
 Transform:
@@ -3817,43 +3732,12 @@ MonoBehaviour:
   gameFlow: {fileID: 7153598}
   player: {fileID: 1262591741}
   cameraFollow: {fileID: 490530026}
-  speed: 7
-  turnSpeed: 75
---- !u!114 &470211928
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 470211925}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eb4bcecaeaf0eef4a97892c064f6555e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.CarArrivalSequence
-  gameFlow: {fileID: 7153598}
-  player: {fileID: 1262591741}
   stopPoint: {fileID: 184789708}
   exitPoint: {fileID: 1953924722}
   cruiseSpeed: 18
   coastDistance: 180
   fuelStarvationDuration: 1.2
---- !u!114 &470211929
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 470211925}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 23e80727df127664ab999c39dbe1d00c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.CarInteractable
-  gameFlow: {fileID: 7153598}
   fuelCan: {fileID: 284828479}
-  carDriver: {fileID: 470211927}
-  startSound: {fileID: 0}
 --- !u!1 &474680181
 GameObject:
   m_ObjectHideFlags: 0
@@ -4067,7 +3951,6 @@ GameObject:
   - component: {fileID: 490530028}
   - component: {fileID: 490530027}
   - component: {fileID: 490530026}
-  - component: {fileID: 490530029}
   - component: {fileID: 490530030}
   - component: {fileID: 490530031}
   m_Layer: 0
@@ -4088,7 +3971,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2b9f8b46db81b6f489c2b052a5b0775e, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.ThirdPersonCamera
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.CamaraJugador
    target: {fileID: 470211924}
   distance: 4.2
   height: 1.9
@@ -4164,24 +4047,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &490530029
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 490530025}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4bff6624175351741b928dc96283fc71, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.CinemachineFollowSetup
-  target: {fileID: 0}
-  vehicle: {fileID: 470211924}
-  distance: 5.5
-  height: 2.4
-  collisionRadius: 0.18
-  minimumCameraDistance: 0.12
 --- !u!81 &490530030
 AudioListener:
   m_ObjectHideFlags: 0
@@ -6954,26 +6819,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c032e8702a162b44ebce13a37a0729ea, type: 3}
---- !u!1 &849338170
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 5974108025106222633, guid: 034be1e108cfd6c48958a5151b988d4b, type: 3}
-  m_PrefabInstance: {fileID: 1628511270}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1628511271}
-  - component: {fileID: 1628511275}
-  - component: {fileID: 1628511274}
-  - component: {fileID: 1628511273}
-  - component: {fileID: 1628511272}
-  m_Layer: 0
-  m_Name: PlasticFuelCan_Visual
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
 --- !u!4 &859570504 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 459816, guid: aae542b8a65f39b49b008fa689ce9804, type: 3}
@@ -7133,7 +6978,6 @@ GameObject:
   - component: {fileID: 888963562}
   - component: {fileID: 888963564}
   - component: {fileID: 888963563}
-  - component: {fileID: 888963565}
   m_Layer: 0
   m_Name: CajaElectricaEstacion
   m_TagString: Untagged
@@ -7182,10 +7026,19 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1b73de8d6fd02584685de62d358d23a9, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.StationPowerBoxInteractable
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TableroElectrico
   gameFlow: {fileID: 7153598}
   statusLight: {fileID: 364614332}
-  cableVisual: {fileID: 888963565}
+  generatorOutlet: {fileID: 897063449}
+  boxSocket: {fileID: 1983602702}
+  wallPassThrough: {fileID: 0}
+  wallThickness: 0.4
+  cable: {fileID: 1730426198}
+  plugIndicator: {fileID: 617870245}
+  statusLamp: {fileID: 1965051350}
+  unpluggedCableLength: 1.15
+  connectionDuration: 0.6
+  routeThroughWall: 0
 --- !u!65 &888963564
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -7207,28 +7060,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.15, y: 1.45, z: 0.65}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &888963565
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 888963561}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fbceaa4c33ca4d04988c916e45f31d14, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.StationPowerCableVisual
-  generatorOutlet: {fileID: 897063449}
-  boxSocket: {fileID: 1983602702}
-  wallPassThrough: {fileID: 0}
-  wallThickness: 0.4
-  cable: {fileID: 1730426198}
-  plugIndicator: {fileID: 617870245}
-  statusLamp: {fileID: 1965051350}
-  unpluggedCableLength: 1.15
-  connectionDuration: 0.6
-  routeThroughWall: 0
 --- !u!1001 &892985653
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9522,84 +9353,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1001 &1185034027
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 284828475}
-    m_Modifications:
-    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 4.5267415
-      objectReference: {fileID: 0}
-    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 2.5946276
-      objectReference: {fileID: 0}
-    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 8.503438
-      objectReference: {fileID: 0}
-    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.9999998
-      objectReference: {fileID: 0}
-    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8771091787928289351, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
-      propertyPath: m_Name
-      value: Generated_FuelCanister_CC0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8771091787928289351, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: -4161369568681901532, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
---- !u!4 &1185034028 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -3910990755373119420, guid: 40a7da24ba767ce418bc6296aa4381d9, type: 3}
-  m_PrefabInstance: {fileID: 1185034027}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1188236591
 GameObject:
   m_ObjectHideFlags: 0
@@ -10126,7 +9879,6 @@ GameObject:
   - component: {fileID: 1262591745}
   - component: {fileID: 1262591744}
   - component: {fileID: 1262591743}
-  - component: {fileID: 1262591746}
   m_Layer: 0
   m_Name: Jugador
   m_TagString: Untagged
@@ -10162,7 +9914,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5d31903a502b6d64bb67f4e1706fba72, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.RaycastInteractor
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.DetectorDeInteracciones
   gameUI: {fileID: 2024991111}
   gameFlow: {fileID: 7153598}
   generatorButton: {fileID: 143399328}
@@ -10172,7 +9924,7 @@ MonoBehaviour:
   garageDoor: {fileID: 104564684}
   fuelCan: {fileID: 284828479}
   fuelPump: {fileID: 406157878}
-  car: {fileID: 470211929}
+  car: {fileID: 470211927}
   powerBox: {fileID: 888963563}
   gateSwitch: {fileID: 1288614118}
   interactionDistance: 2.4
@@ -10195,6 +9947,9 @@ MonoBehaviour:
   gravity: -18
   turnDegreesPerSecond: 90
   fallDeathHeight: -3
+  walkCycleSpeed: 8
+  limbSwing: 28
+  stepVolume: 0.32
 --- !u!143 &1262591745
 CharacterController:
   m_ObjectHideFlags: 0
@@ -10220,21 +9975,6 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0.9, z: 0}
---- !u!114 &1262591746
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1262591741}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a187f15812637b742a1cf583834809ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.PlayerVisualAnimator
-  walkCycleSpeed: 8
-  limbSwing: 28
-  stepVolume: 0.32
 --- !u!1 &1265757922
 GameObject:
   m_ObjectHideFlags: 0
@@ -10546,7 +10286,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f460e5f6ca0b34e4baf1f479d916a319, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.GateSwitchInteractable
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.Interruptores
   gameFlow: {fileID: 7153598}
   garageDoor: {fileID: 104564684}
   lever: {fileID: 1111502492}
@@ -10599,9 +10339,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 1311583147}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fcc330572b7428245b5ed8967df65352, type: 3}
+  m_Script: {fileID: 11500000, guid: 460d97cb8adbe2946b9e4dbc8bd93b2d, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.AdaptiveMusicController
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.AudioController
+  ambientClip: {fileID: 8300000, guid: 94b96caf429a3ac4598bf31740a6b5a6, type: 3}
+  garageOpen: {fileID: 8300000, guid: f8aeaaec2e331204f8eee5c14498ff9b, type: 3}
+  mixer: {fileID: 24100000, guid: c59ce946207622c4ead36e65cf15c523, type: 2}
   explorationSource: {fileID: 1311583149}
   tensionSource: {fileID: 1957589535}
   explorationClip: {fileID: 8300000, guid: ed6c8ae61e622b2458030bea459f2a6d, type: 3}
@@ -12775,190 +12518,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &1628511270
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 284828475}
-    m_Modifications:
-    - target: {fileID: 5974108025106222633, guid: 034be1e108cfd6c48958a5151b988d4b, type: 3}
-      propertyPath: m_Name
-      value: PlasticFuelCan_Visual
-      objectReference: {fileID: 0}
-    - target: {fileID: 5974108025106222633, guid: 034be1e108cfd6c48958a5151b988d4b, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7555340615353231042, guid: 034be1e108cfd6c48958a5151b988d4b, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 0.7
-      objectReference: {fileID: 0}
-    - target: {fileID: 7555340615353231042, guid: 034be1e108cfd6c48958a5151b988d4b, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 0.75
-      objectReference: {fileID: 0}
-    - target: {fileID: 7555340615353231042, guid: 034be1e108cfd6c48958a5151b988d4b, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 0.7
-      objectReference: {fileID: 0}
-    - target: {fileID: 7555340615353231042, guid: 034be1e108cfd6c48958a5151b988d4b, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7555340615353231042, guid: 034be1e108cfd6c48958a5151b988d4b, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7555340615353231042, guid: 034be1e108cfd6c48958a5151b988d4b, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7555340615353231042, guid: 034be1e108cfd6c48958a5151b988d4b, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7555340615353231042, guid: 034be1e108cfd6c48958a5151b988d4b, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7555340615353231042, guid: 034be1e108cfd6c48958a5151b988d4b, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7555340615353231042, guid: 034be1e108cfd6c48958a5151b988d4b, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7555340615353231042, guid: 034be1e108cfd6c48958a5151b988d4b, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7555340615353231042, guid: 034be1e108cfd6c48958a5151b988d4b, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7555340615353231042, guid: 034be1e108cfd6c48958a5151b988d4b, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 034be1e108cfd6c48958a5151b988d4b, type: 3}
---- !u!4 &1628511271
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 7555340615353231042, guid: 034be1e108cfd6c48958a5151b988d4b, type: 3}
-  m_PrefabInstance: {fileID: 1628511270}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 849338170}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.7, y: 0.75, z: 0.7}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 284828475}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1628511272
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 2807859813299298014, guid: 034be1e108cfd6c48958a5151b988d4b, type: 3}
-  m_PrefabInstance: {fileID: 1628511270}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 849338170}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4cd5c864832f1f54aaeac2ca3cbf41d1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.FuelCan
-  gameFlow: {fileID: 0}
-  fuelCanRenderer: {fileID: 0}
-  player: {fileID: 0}
-  groundClearance: 0.025
---- !u!23 &1628511273
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 7306767546226377120, guid: 034be1e108cfd6c48958a5151b988d4b, type: 3}
-  m_PrefabInstance: {fileID: 1628511270}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 849338170}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 1e6dfad3831bea844902849f9378f606, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 1
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_MaskInteraction: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &1628511274
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 6085624412586349715, guid: 034be1e108cfd6c48958a5151b988d4b, type: 3}
-  m_PrefabInstance: {fileID: 1628511270}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 849338170}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!33 &1628511275
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 8039442345625184490, guid: 034be1e108cfd6c48958a5151b988d4b, type: 3}
-  m_PrefabInstance: {fileID: 1628511270}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 849338170}
-  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &1630258270
 GameObject:
   m_ObjectHideFlags: 0
@@ -13120,10 +12679,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 1654939573}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a3ed9bff9ffb27c4ca43fd318b196b4e, type: 3}
+  m_Script: {fileID: 11500000, guid: 1c6348ad7d24d7d429352b7b7fca65fe, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.LadderPlacementInteractable
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.Escalera
   gameFlow: {fileID: 7153598}
+  player: {fileID: 1262591742}
+  destination: {fileID: 0}
+  entersGarage: 0
+  promptText: '[E] Colgarse del borde y bajar'
+  portableExterior: 0
+  lowerDestination: {fileID: 0}
+  hangPause: 0.3
+  edgeStandOff: 0.45
+  hangLowering: 2.1
+  dropGravity: 18
+  holeInteraction: 1
   exteriorLadder: {fileID: 1701382744}
 --- !u!1 &1668978921
 GameObject:
@@ -13356,7 +12926,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1c6348ad7d24d7d429352b7b7fca65fe, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.LadderInteractable
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.Escalera
   gameFlow: {fileID: 7153598}
   player: {fileID: 1262591742}
   destination: {fileID: 1062265423}
@@ -14388,7 +13958,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1c6348ad7d24d7d429352b7b7fca65fe, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.LadderInteractable
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.Escalera
   gameFlow: {fileID: 7153598}
   player: {fileID: 1262591742}
   destination: {fileID: 333591356}
@@ -15367,7 +14937,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1969458113}
   - component: {fileID: 1969458115}
-  - component: {fileID: 1969458114}
   m_Layer: 0
   m_Name: HoyoTechoCaida
   m_TagString: Untagged
@@ -15390,19 +14959,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 670144095}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1969458114
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1969458112}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fa5154a60ffa46b4ca6f0ad88b26ee53, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.RoofHoleFallTrigger
-  gameFlow: {fileID: 7153598}
 --- !u!65 &1969458115
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -15762,22 +15318,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &1994254018
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1994254016}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 23e80727df127664ab999c39dbe1d00c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.CarInteractable
-  gameFlow: {fileID: 7153598}
-  fuelCan: {fileID: 284828479}
-  carDriver: {fileID: 218067657}
-  startSound: {fileID: 0}
 --- !u!82 &1994254019
 AudioSource:
   m_ObjectHideFlags: 0
@@ -15875,25 +15415,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &1994254020
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1994254016}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eb4bcecaeaf0eef4a97892c064f6555e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.CarArrivalSequence
-  gameFlow: {fileID: 7153598}
-  player: {fileID: 1262591741}
-  stopPoint: {fileID: 184789708}
-  exitPoint: {fileID: 1953924722}
-  cruiseSpeed: 18
-  coastDistance: 180
-  fuelStarvationDuration: 1.2
 --- !u!114 &1994254021
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15909,8 +15430,12 @@ MonoBehaviour:
   gameFlow: {fileID: 7153598}
   player: {fileID: 1262591741}
   cameraFollow: {fileID: 490530026}
-  speed: 7
-  turnSpeed: 75
+  stopPoint: {fileID: 184789708}
+  exitPoint: {fileID: 1953924722}
+  cruiseSpeed: 18
+  coastDistance: 180
+  fuelStarvationDuration: 1.2
+  fuelCan: {fileID: 284828479}
 --- !u!21 &1997808788
 Material:
   serializedVersion: 8
@@ -16193,7 +15718,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2003027315}
-  - component: {fileID: 2003027314}
   m_Layer: 0
   m_Name: RelojDelDia
   m_TagString: Untagged
@@ -16201,26 +15725,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &2003027314
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2003027313}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7bbaefa98be3e364f89e765025b038d1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.DayTimer
-  gameFlow: {fileID: 7153598}
-  sun: {fileID: 1532110263}
-  timerText: {fileID: 2134242396}
-  duration: 180
-  skyboxMaterial: {fileID: 0}
-  controlLegacyLighting: 0
-  enviroStartHour: 17.25
-  enviroNightHour: 23
 --- !u!4 &2003027315
 Transform:
   m_ObjectHideFlags: 0
@@ -16301,13 +15805,7 @@ PrefabInstance:
       addedObject: {fileID: 2010583190}
     - targetCorrespondingSourceObject: {fileID: 2069814030545375925, guid: f7a352f52c0b4034a8e157c2e33e54c4, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2010583189}
-    - targetCorrespondingSourceObject: {fileID: 2069814030545375925, guid: f7a352f52c0b4034a8e157c2e33e54c4, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 2010583188}
-    - targetCorrespondingSourceObject: {fileID: 2069814030545375925, guid: f7a352f52c0b4034a8e157c2e33e54c4, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2010583187}
     - targetCorrespondingSourceObject: {fileID: 2069814030545375925, guid: f7a352f52c0b4034a8e157c2e33e54c4, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2010583186}
@@ -16419,22 +15917,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &2010583187
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2010583185}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 23e80727df127664ab999c39dbe1d00c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.CarInteractable
-  gameFlow: {fileID: 7153598}
-  fuelCan: {fileID: 284828479}
-  carDriver: {fileID: 218067657}
-  startSound: {fileID: 0}
 --- !u!82 &2010583188
 AudioSource:
   m_ObjectHideFlags: 0
@@ -16532,25 +16014,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &2010583189
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2010583185}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eb4bcecaeaf0eef4a97892c064f6555e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.CarArrivalSequence
-  gameFlow: {fileID: 7153598}
-  player: {fileID: 1262591741}
-  stopPoint: {fileID: 184789708}
-  exitPoint: {fileID: 1953924722}
-  cruiseSpeed: 18
-  coastDistance: 180
-  fuelStarvationDuration: 1.2
 --- !u!114 &2010583190
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16566,8 +16029,12 @@ MonoBehaviour:
   gameFlow: {fileID: 7153598}
   player: {fileID: 1262591741}
   cameraFollow: {fileID: 490530026}
-  speed: 7
-  turnSpeed: 75
+  stopPoint: {fileID: 184789708}
+  exitPoint: {fileID: 1953924722}
+  cruiseSpeed: 18
+  coastDistance: 180
+  fuelStarvationDuration: 1.2
+  fuelCan: {fileID: 284828479}
 --- !u!4 &2023557500
 Transform:
   m_ObjectHideFlags: 0
@@ -17649,7 +17116,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c2926279144005245a7d81a2c60bd489, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.ExitTrigger
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.CheckPoint
   gameFlow: {fileID: 7153598}
 --- !u!65 &2112740016
 BoxCollider:

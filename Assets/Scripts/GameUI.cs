@@ -20,6 +20,23 @@ namespace EnElCamino
         private RectTransform objectivePanel;
         private int lastScreenWidth;
         private int lastScreenHeight;
+        private CanvasGroup gameplayVisibility;
+        private bool gameplayVisible;
+        private float messageExpiresAt;
+
+        public void SetGameplayVisible(bool visible)
+        {
+            gameplayVisible = visible;
+            if (gameplayVisibility == null)
+            {
+                gameplayVisibility = GetComponent<CanvasGroup>();
+                if (gameplayVisibility == null) gameplayVisibility = gameObject.AddComponent<CanvasGroup>();
+            }
+            gameplayVisibility.alpha = visible ? 1f : 0f;
+            gameplayVisibility.interactable = visible;
+            gameplayVisibility.blocksRaycasts = visible;
+            if (!visible && messageText != null) messageText.gameObject.SetActive(false);
+        }
 
         private void Awake()
         {
@@ -32,10 +49,13 @@ namespace EnElCamino
             if (messageText != null) messageText.gameObject.SetActive(false);
             CreateGeneratorFuelPanel();
             ApplyResponsiveLayout();
+            SetGameplayVisible(false);
         }
 
         private void LateUpdate()
         {
+            if (messageText != null && messageText.gameObject.activeSelf && Time.time >= messageExpiresAt)
+                messageText.gameObject.SetActive(false);
             if (lastScreenWidth == Screen.width && lastScreenHeight == Screen.height) return;
             ApplyResponsiveLayout();
         }
@@ -50,6 +70,7 @@ namespace EnElCamino
 
         public void ShowPrompt(string text)
         {
+            if (!gameplayVisible) return;
             if (promptText == null) return;
             promptText.text = text;
             promptText.gameObject.SetActive(true);
@@ -62,9 +83,11 @@ namespace EnElCamino
 
         public void ShowMessage(string text)
         {
+            if (!gameplayVisible) return;
             if (messageText == null) return;
             messageText.text = text;
             messageText.gameObject.SetActive(true);
+            messageExpiresAt = Time.time + 4.5f;
         }
 
         public void SetGeneratorFuelTime(float secondsRemaining)

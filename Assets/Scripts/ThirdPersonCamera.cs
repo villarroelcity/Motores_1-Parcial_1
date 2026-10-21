@@ -20,6 +20,12 @@ namespace EnElCamino
         private float distanceVelocity;
         private readonly RaycastHit[] cameraHits = new RaycastHit[24];
 
+        private void Awake()
+        {
+            if (collisionMask.value == 0) collisionMask = Physics.DefaultRaycastLayers;
+            smoothedDistance = distance;
+        }
+
         public void SetTarget(Transform value)
         {
             target = value;

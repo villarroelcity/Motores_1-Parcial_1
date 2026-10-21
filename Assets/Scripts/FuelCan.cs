@@ -9,10 +9,27 @@ namespace EnElCamino
         [SerializeField] private Transform player;
         [SerializeField] private float groundClearance = 0.025f;
         private bool taken;
+        private Transform carryAnchor;
+        private Vector3 carriedLocalPosition;
+        private Vector3 carriedLocalScale;
 
         private void Start()
         {
             if (!taken) PlaceOnGround();
+        }
+
+        private void LateUpdate()
+        {
+            if (!taken) return;
+            if (carryAnchor == null) AttachToHand();
+            if (carryAnchor == null) return;
+
+            // Keep the visual attached even while the procedural arm animation
+            // is changing the shoulder and hand transforms.
+            if (transform.parent != carryAnchor) transform.SetParent(carryAnchor, false);
+            transform.localPosition = carriedLocalPosition;
+            transform.localRotation = Quaternion.identity;
+            transform.localScale = carriedLocalScale;
         }
 
         public string Prompt
@@ -43,31 +60,35 @@ namespace EnElCamino
             taken = true;
             Collider canCollider = GetComponent<Collider>();
             if (canCollider != null) canCollider.enabled = false;
-
-            // Parent the can to the actual hand, not the shoulder. Compensate
-            // for the hand's small visual scale so the can keeps its authored size.
-            Transform carryAnchor = player != null ? player.Find("PlayerModel/HombroDerecho") : null;
-            if (carryAnchor != null)
-            {
-                Transform hand = carryAnchor.Find("ManoDerecha");
-                if (hand != null) carryAnchor = hand;
-            }
-            Vector3 canScale = transform.localScale;
-            transform.SetParent(carryAnchor != null ? carryAnchor : player, false);
-            transform.localPosition = carryAnchor != null
-                ? new Vector3(0f, -0.32f, 0.02f)
-                : new Vector3(0.43f, 0.99f, 0.06f);
-            transform.localRotation = Quaternion.identity;
-            if (carryAnchor != null)
-            {
-                Vector3 parentScale = carryAnchor.lossyScale;
-                transform.localScale = new Vector3(
-                    canScale.x / Mathf.Max(0.001f, parentScale.x),
-                    canScale.y / Mathf.Max(0.001f, parentScale.y),
-                    canScale.z / Mathf.Max(0.001f, parentScale.z));
-            }
-            else transform.localScale = canScale;
+            AttachToHand();
             gameFlow.TakeFuelCan();
+        }
+
+        private void AttachToHand()
+        {
+            if (player == null)
+            {
+                GameObject playerObject = GameObject.Find("Jugador");
+                if (playerObject != null) player = playerObject.transform;
+            }
+            if (player == null) return;
+
+            Transform hand = player.Find("PlayerModel/HombroDerecho/ManoDerecha");
+            if (hand == null) hand = player.Find("PlayerModel/HombroDerecho");
+            if (hand == null) return;
+
+            Vector3 authoredScale = transform.localScale;
+            carryAnchor = hand;
+            transform.SetParent(carryAnchor, false);
+            carriedLocalPosition = new Vector3(0f, -0.25f, 0.02f);
+            transform.localPosition = carriedLocalPosition;
+            transform.localRotation = Quaternion.identity;
+            Vector3 parentScale = carryAnchor.lossyScale;
+            carriedLocalScale = new Vector3(
+                authoredScale.x / Mathf.Max(0.001f, parentScale.x),
+                authoredScale.y / Mathf.Max(0.001f, parentScale.y),
+                authoredScale.z / Mathf.Max(0.001f, parentScale.z));
+            transform.localScale = carriedLocalScale;
         }
 
         public void Fill()

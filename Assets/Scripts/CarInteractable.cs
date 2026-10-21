@@ -79,6 +79,7 @@ namespace EnElCamino
                 input[InputData.Brake] = 0;
                 input[InputData.Handbrake] = 0;
                 input[InputData.Clutch] = 0;
+                input[InputData.Key] = 0;
             }
 
             VPStandardInput nativeInput = GetComponent<VPStandardInput>();

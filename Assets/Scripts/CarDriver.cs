@@ -48,7 +48,16 @@ namespace EnElCamino
             // Do not overwrite any of the steering or pedal settings authored
             // in Vehicle Physics Pro. VPStandardInput is the sole owner of the
             // controls after the player gets in the car.
-            nativeInput.enabled = enabled;
+            // Keep VPStandardInput alive for the whole scene. Disabling and
+            // re-enabling it after the scripted arrival can leave VPP's input
+            // registration stale, which makes the car accelerate but not steer.
+            nativeInput.enabled = true;
+            nativeInput.disableSteerInput = !enabled;
+            nativeInput.disableThrottleInput = !enabled;
+            nativeInput.disableBrakeInput = !enabled;
+            nativeInput.disableHandbrakeInput = !enabled;
+            nativeInput.disableClutchInput = !enabled;
+            nativeInput.disableGearShiftInputs = !enabled;
 
             // The isolated VPP test uses the asset's automatic transmission.
             // Apply the same setting only when player control is handed over;
@@ -216,7 +225,7 @@ namespace EnElCamino
                 // the front wheel colliders. Do not inject a second input path
                 // or rotate the vehicle transform from this script.
                 if (nativeInput != null && !nativeInput.enabled)
-                    nativeInput.enabled = true;
+                    SetNativeControls(true);
                 return;
             }
             if (Keyboard.current == null) return;

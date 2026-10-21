@@ -199,21 +199,13 @@ namespace EnElCamino
             if (!driving && !arrivalControl) return;
             if (driving)
             {
-                // VPP is the only owner of the vehicle controls. Its
-                // VPStandardInput reads the configured WASD/arrow bindings and
-                // writes the steering bus that turns the front wheel colliders.
-                // Do not add a second Keyboard/InputSystem path here.
-                if (nativeInput != null)
-                {
-                    nativeInput.externalThrottle = 0f;
-                    nativeInput.externalBrake = 0f;
-                    nativeInput.externalHandbrake = 0f;
-                    nativeInput.externalSteer = 0f;
-                    nativeInput.externalClutch = 0f;
-                    nativeInput.externalIgnition = engineRequested
-                        ? Time.time < starterUntil ? VPStandardInput.IgnitionKey.Start : VPStandardInput.IgnitionKey.AccOn
-                        : VPStandardInput.IgnitionKey.Off;
-                }
+                // Vehicle Physics Pro is the only owner of the vehicle while
+                // the player is driving. Its VPStandardInput reads the asset's
+                // original WASD/arrow bindings and writes the steering bus for
+                // the front wheel colliders. Do not inject a second input path
+                // or rotate the vehicle transform from this script.
+                if (nativeInput != null && !nativeInput.enabled)
+                    nativeInput.enabled = true;
                 return;
             }
             if (Keyboard.current == null) return;
@@ -232,11 +224,6 @@ namespace EnElCamino
                 brakeInput = 1f;
             }
             if (Keyboard.current.spaceKey.isPressed) brakeInput = 1f;
-            if (vehicleController == null)
-            {
-                transform.Rotate(0f, steerInput * turnSpeed * Time.deltaTime, 0f);
-                transform.Translate(Vector3.forward * throttleInput * speed * Time.deltaTime);
-            }
         }
 
         private void FixedUpdate()

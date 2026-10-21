@@ -20,6 +20,7 @@ namespace EnElCamino
             CarDriver driver = GetComponent<CarDriver>();
             Rigidbody body = GetComponent<Rigidbody>();
             VPVehicleController vehicle = GetComponent<VPVehicleController>();
+            driver.LockNativeInputForArrival();
             driver.SetVehicleReady(false);
             driver.SetIntroFullThrottle(true);
             driver.StartEngineAudio(false);

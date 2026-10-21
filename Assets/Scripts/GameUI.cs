@@ -368,7 +368,7 @@ namespace EnElCamino
 
             int current = Mathf.Max(0, Mathf.FloorToInt(currentDistance));
             int required = Mathf.Max(1, Mathf.CeilToInt(requiredDistance));
-            pursuitDistanceText.text = $"DISTANCIA DE ESCAPE\n{current} / {required} m";
+            pursuitDistanceText.text = $"VENTAJA\n{current} / {required} m";
             pursuitDistancePanel.SetActive(true);
             rearViewPanel.SetActive(true);
             if (rearViewCamera != null) rearViewCamera.enabled = true;
@@ -428,14 +428,14 @@ namespace EnElCamino
         {
             rearViewPanel = CreateEditorPreviewPanel(
                 "RearViewMirrorPanel",
-                "ESPEJO RETROVISOR\n(ARRASTRAME EN LA VISTA SCENE)",
-                new Color(0.01f, 0.015f, 0.025f, 0.94f),
+                "",
+                Color.clear,
                 rearViewPanelPosition,
                 new Vector2(320f, 156f));
 
             pursuitDistancePanel = CreateEditorPreviewPanel(
                 "PursuitDistancePanel",
-                "DISTANCIA DE ESCAPE\n0 / 100 m",
+                "VENTAJA\n0 / 100 m",
                 new Color(0.035f, 0.045f, 0.06f, 0.88f),
                 pursuitDistancePanelPosition,
                 new Vector2(320f, 58f));
@@ -466,6 +466,7 @@ namespace EnElCamino
                 previewText = CreateUiText(objectName + "Label", panel.transform, label, 18, TextAnchor.MiddleCenter);
 
             previewText.text = label;
+            previewText.gameObject.SetActive(!string.IsNullOrEmpty(label));
             previewText.color = new Color(0.65f, 0.85f, 1f, 1f);
             previewText.raycastTarget = false;
             previewText.rectTransform.anchorMin = Vector2.zero;
@@ -647,26 +648,21 @@ namespace EnElCamino
             panel.transform.SetParent(transform, false);
             RawImage background = panel.GetComponent<RawImage>();
             background.texture = Texture2D.whiteTexture;
-            background.color = new Color(0.01f, 0.015f, 0.025f, 0.94f);
+            background.color = Color.clear;
             background.raycastTarget = false;
 
             GameObject imageObject = new GameObject("RearViewMirrorImage", typeof(RectTransform), typeof(CanvasRenderer), typeof(RawImage));
             imageObject.transform.SetParent(panel.transform, false);
             RectTransform imageRect = imageObject.GetComponent<RectTransform>();
-            imageRect.anchorMin = new Vector2(0.03f, 0.12f);
-            imageRect.anchorMax = new Vector2(0.97f, 0.97f);
+            imageRect.anchorMin = Vector2.zero;
+            imageRect.anchorMax = Vector2.one;
             imageRect.offsetMin = Vector2.zero;
             imageRect.offsetMax = Vector2.zero;
             rearViewImage = imageObject.GetComponent<RawImage>();
             rearViewImage.color = Color.white;
             rearViewImage.raycastTarget = false;
 
-            Text label = CreateUiText("RearViewMirrorLabel", panel.transform, "ESPEJO RETROVISOR", 14, TextAnchor.MiddleCenter);
-            label.rectTransform.anchorMin = new Vector2(0f, 0f);
-            label.rectTransform.anchorMax = new Vector2(1f, 0.16f);
-            label.rectTransform.offsetMin = Vector2.zero;
-            label.rectTransform.offsetMax = Vector2.zero;
-            label.color = new Color(0.65f, 0.85f, 1f, 1f);
+            RemovePanelChild(panel.transform, "RearViewMirrorLabel");
 
             rearViewTexture = new RenderTexture(480, 240, 16, RenderTextureFormat.ARGB32);
             rearViewTexture.name = "RearViewMirrorTexture";
@@ -685,6 +681,12 @@ namespace EnElCamino
 
             rearViewPanel = panel;
             rearViewPanel.SetActive(false);
+        }
+
+        private static void RemovePanelChild(Transform panel, string childName)
+        {
+            Transform child = panel != null ? panel.Find(childName) : null;
+            if (child != null) Destroy(child.gameObject);
         }
 
         private void UpdateRearViewCamera()

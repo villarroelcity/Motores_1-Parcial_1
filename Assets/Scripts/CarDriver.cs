@@ -189,11 +189,14 @@ namespace EnElCamino
                 vehicleBody.angularVelocity = Vector3.zero;
                 vehicleBody.WakeUp();
             }
-            SetNativeControls(true);
             fuelRatio = 1f;
             if (introEngine != null) introEngine.allowedFuelRatio = 1f;
             RestoreStartupAudioClip();
             StartEngineAudio(true);
+            // VPP must receive the ignition request after engineRequested is
+            // set. Otherwise the handoff leaves externalIgnition at Off,
+            // unlike the working pure VPP test scene.
+            SetNativeControls(true);
             if (player != null) player.SetActive(false);
             CinemachineFollowSetup cameraRig = FindFirstObjectByType<CinemachineFollowSetup>();
             if (cameraRig != null) cameraRig.SetTarget(transform);
@@ -226,6 +229,10 @@ namespace EnElCamino
                 // or rotate the vehicle transform from this script.
                 if (nativeInput != null && !nativeInput.enabled)
                     SetNativeControls(true);
+                if (nativeInput != null)
+                    nativeInput.externalIgnition = engineRequested
+                        ? Time.time < starterUntil ? VPStandardInput.IgnitionKey.Start : VPStandardInput.IgnitionKey.AccOn
+                        : VPStandardInput.IgnitionKey.Off;
                 return;
             }
             if (Keyboard.current == null) return;

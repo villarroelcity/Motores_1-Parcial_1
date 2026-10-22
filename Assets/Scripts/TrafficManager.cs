@@ -141,8 +141,62 @@ namespace EnElCamino
                 behaviour.enabled = false;
             }
 
+            AddTrafficCollision(vehicle);
             TrafficVehicle trafficVehicle = vehicle.AddComponent<TrafficVehicle>();
             trafficVehicle.Configure(direction, speedMetersPerSecond, minZ, maxZ, height, FindWheels(vehicle));
+        }
+
+        private void AddTrafficCollision(GameObject vehicle)
+        {
+            BoxCollider boxCollider = vehicle.AddComponent<BoxCollider>();
+            Bounds bounds = GetLocalBounds(vehicle);
+            boxCollider.center = bounds.center;
+            boxCollider.size = bounds.size;
+
+            Rigidbody rigidbody = vehicle.AddComponent<Rigidbody>();
+            rigidbody.isKinematic = true;
+            rigidbody.useGravity = false;
+            rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+        }
+
+        private Bounds GetLocalBounds(GameObject vehicle)
+        {
+            Renderer[] renderers = vehicle.GetComponentsInChildren<Renderer>(true);
+            if (renderers.Length == 0) return new Bounds(Vector3.zero, Vector3.one);
+
+            bool hasBounds = false;
+            Bounds localBounds = new Bounds(Vector3.zero, Vector3.zero);
+            foreach (Renderer renderer in renderers)
+            {
+                Bounds worldBounds = renderer.bounds;
+                Vector3[] corners =
+                {
+                    new Vector3(worldBounds.min.x, worldBounds.min.y, worldBounds.min.z),
+                    new Vector3(worldBounds.min.x, worldBounds.min.y, worldBounds.max.z),
+                    new Vector3(worldBounds.min.x, worldBounds.max.y, worldBounds.min.z),
+                    new Vector3(worldBounds.min.x, worldBounds.max.y, worldBounds.max.z),
+                    new Vector3(worldBounds.max.x, worldBounds.min.y, worldBounds.min.z),
+                    new Vector3(worldBounds.max.x, worldBounds.min.y, worldBounds.max.z),
+                    new Vector3(worldBounds.max.x, worldBounds.max.y, worldBounds.min.z),
+                    new Vector3(worldBounds.max.x, worldBounds.max.y, worldBounds.max.z)
+                };
+
+                foreach (Vector3 corner in corners)
+                {
+                    Vector3 localCorner = vehicle.transform.InverseTransformPoint(corner);
+                    if (!hasBounds)
+                    {
+                        localBounds = new Bounds(localCorner, Vector3.zero);
+                        hasBounds = true;
+                    }
+                    else
+                    {
+                        localBounds.Encapsulate(localCorner);
+                    }
+                }
+            }
+
+            return hasBounds ? localBounds : new Bounds(Vector3.zero, Vector3.one);
         }
 
         private GameObject CreateVisualVehicle(Vector3 position, Quaternion rotation, int index)

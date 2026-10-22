@@ -4,7 +4,6 @@ namespace EnElCamino
 {
     /// <summary>
     /// Mueve un vehiculo visual de trafico a velocidad constante.
-    /// Los vehiculos de trafico usan la carroceria de VPP, pero no su controlador fisico.
     /// </summary>
     public class TrafficVehicle : MonoBehaviour
     {
@@ -14,6 +13,8 @@ namespace EnElCamino
         private float minZ;
         private float maxZ;
         private float roadHeight;
+        private Transform[] wheels;
+        private const float WheelRadius = 0.32f;
 
         private void Awake()
         {
@@ -34,13 +35,15 @@ namespace EnElCamino
             }
         }
 
-        public void Configure(Vector3 moveDirection, float speedMetersPerSecond, float lowerZ, float upperZ, float height)
+        public void Configure(Vector3 moveDirection, float speedMetersPerSecond, float lowerZ, float upperZ,
+            float height, Transform[] wheelTransforms)
         {
             direction = moveDirection.normalized;
             speed = speedMetersPerSecond;
             minZ = lowerZ;
             maxZ = upperZ;
             roadHeight = height;
+            wheels = wheelTransforms;
 
             transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
         }
@@ -52,8 +55,9 @@ namespace EnElCamino
                 return;
             }
 
+            float distance = speed * Time.fixedDeltaTime;
             Vector3 nextPosition = body != null ? body.position : transform.position;
-            nextPosition += direction * speed * Time.fixedDeltaTime;
+            nextPosition += direction * distance;
             nextPosition.y = roadHeight;
 
             if (direction.z > 0f && nextPosition.z > maxZ)
@@ -74,6 +78,15 @@ namespace EnElCamino
             else
             {
                 transform.SetPositionAndRotation(nextPosition, nextRotation);
+            }
+
+            float wheelDegrees = distance / (2f * Mathf.PI * WheelRadius) * 360f;
+            if (wheels != null)
+            {
+                foreach (Transform wheel in wheels)
+                {
+                    if (wheel != null) wheel.Rotate(Vector3.right, wheelDegrees, Space.Self);
+                }
             }
         }
     }

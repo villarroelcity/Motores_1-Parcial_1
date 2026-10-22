@@ -36,6 +36,9 @@ namespace EnElCamino
         private Renderer rightBeaconRenderer;
         private AudioSource sirenSource;
         private bool policeEffectsActive;
+        private const float MinimumChaseSpeed = 32f;
+        private const float MinimumAcceleration = 18f;
+        private const float RequiredEscapeDistance = 200f;
 
         private void Awake()
         {
@@ -153,8 +156,9 @@ namespace EnElCamino
             offset.y = 0f;
             float distanceBehindPlayer = Mathf.Max(0f,
                 Vector3.Dot(targetCar.transform.forward, offset));
+            float requiredEscapeDistance = Mathf.Max(escapeDistance, RequiredEscapeDistance);
             if (gameFlow != null)
-                gameFlow.UpdatePursuitDistance(distanceBehindPlayer, escapeDistance);
+                gameFlow.UpdatePursuitDistance(distanceBehindPlayer, requiredEscapeDistance);
 
             // Passing alongside the parked patrol is not a defeat. The patrol
             // only defeats the player if it actually collides with the car or
@@ -168,7 +172,7 @@ namespace EnElCamino
             // separation is not an escape: only count it after the patrol has
             // actually fallen behind the player's forward direction.
             bool patrolBehindPlayer = Vector3.Dot(targetCar.transform.forward, offset) > 0f;
-            if (distanceBehindPlayer >= escapeDistance && patrolBehindPlayer)
+            if (distanceBehindPlayer >= requiredEscapeDistance && patrolBehindPlayer)
             {
                 chasing = false;
                 SetPoliceEffects(false);
@@ -179,7 +183,9 @@ namespace EnElCamino
             Vector3 direction = GetRoadChaseDirection();
             direction = AvoidObstacles(direction);
             direction = KeepInsideRoad(direction);
-            speed = Mathf.MoveTowards(speed, chaseSpeed, acceleration * Time.fixedDeltaTime);
+            float targetSpeed = Mathf.Max(chaseSpeed, MinimumChaseSpeed);
+            float targetAcceleration = Mathf.Max(acceleration, MinimumAcceleration);
+            speed = Mathf.MoveTowards(speed, targetSpeed, targetAcceleration * Time.fixedDeltaTime);
             body.MovePosition(body.position + direction * speed * Time.fixedDeltaTime);
             Quaternion wantedRotation = Quaternion.LookRotation(direction, Vector3.up);
             body.MoveRotation(Quaternion.RotateTowards(body.rotation, wantedRotation, 120f * Time.fixedDeltaTime));

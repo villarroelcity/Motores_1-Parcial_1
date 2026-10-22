@@ -378,7 +378,7 @@ namespace EnElCamino
             {
                 gameUI.SetObjective("PERSECUCION ACTIVADA\nEL PATRULLERO TE SIGUE\nEscapa y llega a la salida.");
                 gameUI.ShowMessage("El patrullero te detecto. Acelera y escapa.");
-                gameUI.SetPursuitDistance(0f, 100f);
+                gameUI.SetPursuitDistance(0f, 200f);
             }
             PursuitStarted?.Invoke();
         }

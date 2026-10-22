@@ -9,21 +9,35 @@ namespace EnElCamino
     public class TrafficManager : MonoBehaviour
     {
         [SerializeField] private GameObject trafficSourceVehicle;
+        [SerializeField] private GameFlow gameFlow;
         [SerializeField] private Transform road;
         [SerializeField] private Transform spawnReference;
-        [SerializeField] private int vehiclesPerDirection = 4;
+        [SerializeField] private int vehiclesPerDirection = 8;
+        [SerializeField] private int pursuitVehiclesPerDirection = 6;
         [SerializeField] private float speedKmh = 60f;
         [SerializeField] private float laneOffset = 1.5f;
         [SerializeField] private float spacing = 120f;
+        [SerializeField] private float pursuitSpacing = 90f;
         [SerializeField] private float firstSpawnDistance = 160f;
         [SerializeField] private float routePadding = 40f;
         [SerializeField] private float vehicleHeight = 0.55f;
 
         private const float MetersPerKilometer = 1000f;
         private const float SecondsPerHour = 3600f;
+        private const int MinimumVehiclesPerDirection = 8;
+        private float minZ;
+        private float maxZ;
+        private float height;
+        private float centerX;
+        private float startZ;
+        private float speedMetersPerSecond;
+        private int nextVehicleIndex;
+        private bool pursuitTrafficSpawned;
 
         private void Start()
         {
+            if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
+
             if (road == null)
             {
                 GameObject roadObject = GameObject.Find("Ruta");
@@ -52,24 +66,52 @@ namespace EnElCamino
             if (spawnReference == null) spawnReference = road;
 
             Bounds roadBounds = GetRoadBounds();
-            float minZ = roadBounds.min.z + routePadding;
-            float maxZ = roadBounds.max.z - routePadding;
+            minZ = roadBounds.min.z + routePadding;
+            maxZ = roadBounds.max.z - routePadding;
             if (minZ >= maxZ)
             {
                 minZ = road.position.z - 5000f;
                 maxZ = road.position.z + 5000f;
             }
 
-            float speedMetersPerSecond = speedKmh * MetersPerKilometer / SecondsPerHour;
-            float centerX = road.position.x;
-            float startZ = Mathf.Clamp(spawnReference.position.z + firstSpawnDistance, minZ, maxZ);
-            float height = road.position.y + vehicleHeight;
+            speedMetersPerSecond = speedKmh * MetersPerKilometer / SecondsPerHour;
+            centerX = road.position.x;
+            startZ = Mathf.Clamp(spawnReference.position.z + firstSpawnDistance, minZ, maxZ);
+            height = road.position.y + vehicleHeight;
 
-            for (int i = 0; i < vehiclesPerDirection; i++)
+            int initialVehicles = Mathf.Max(vehiclesPerDirection, MinimumVehiclesPerDirection);
+            SpawnTraffic(initialVehicles, spacing, 0f);
+
+            if (gameFlow != null)
             {
-                SpawnVehicle(i, centerX + laneOffset, startZ + i * spacing, Vector3.forward,
+                gameFlow.PursuitStarted += SpawnPursuitTraffic;
+                if (gameFlow.pursuitActive) SpawnPursuitTraffic();
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (gameFlow != null) gameFlow.PursuitStarted -= SpawnPursuitTraffic;
+        }
+
+        private void SpawnPursuitTraffic()
+        {
+            if (pursuitTrafficSpawned) return;
+            pursuitTrafficSpawned = true;
+
+            int initialVehicles = Mathf.Max(vehiclesPerDirection, MinimumVehiclesPerDirection);
+            int extraVehicles = Mathf.Max(0, pursuitVehiclesPerDirection);
+            SpawnTraffic(extraVehicles, pursuitSpacing, initialVehicles * spacing);
+        }
+
+        private void SpawnTraffic(int vehiclesPerDirectionToSpawn, float vehicleSpacing, float startOffset)
+        {
+            for (int i = 0; i < vehiclesPerDirectionToSpawn; i++)
+            {
+                float z = startZ + startOffset + i * vehicleSpacing;
+                SpawnVehicle(nextVehicleIndex++, centerX + laneOffset, z, Vector3.forward,
                     speedMetersPerSecond, minZ, maxZ, height);
-                SpawnVehicle(i + vehiclesPerDirection, centerX - laneOffset, startZ + i * spacing, -Vector3.forward,
+                SpawnVehicle(nextVehicleIndex++, centerX - laneOffset, z, -Vector3.forward,
                     speedMetersPerSecond, minZ, maxZ, height);
             }
         }

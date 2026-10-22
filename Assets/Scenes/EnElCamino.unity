@@ -107220,6 +107220,62 @@ Transform:
   m_Children: []
   m_Father: {fileID: 9062032133094046665}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &3478912301001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3478912301002}
+  - component: {fileID: 3478912301003}
+  m_Layer: 0
+  m_Name: TraficoVPP
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3478912301002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3478912301001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3478912301003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3478912301001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b24afee155749298fd9910fcdbe1570, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficManager
+  vehiclePrefabs:
+  - {fileID: 100100000, guid: dec548cfbfb14ceb832d8bf5fb2d3c90, type: 3}
+  - {fileID: 100100000, guid: ed68862154c94c809a54216a29885b59, type: 3}
+  road: {fileID: 899273846}
+  spawnReference: {fileID: 1625979351}
+  vehiclesPerDirection: 4
+  speedKmh: 60
+  laneOffset: 1.5
+  spacing: 120
+  firstSpawnDistance: 160
+  routePadding: 40
+  vehicleHeight: 0.55
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -107248,3 +107304,4 @@ SceneRoots:
   - {fileID: 1547856348}
   - {fileID: 1791871496}
   - {fileID: 492914389}
+  - {fileID: 3478912301001}

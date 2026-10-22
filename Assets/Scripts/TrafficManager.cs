@@ -12,11 +12,9 @@ namespace EnElCamino
         [SerializeField] private GameFlow gameFlow;
         [SerializeField] private Transform road;
         [SerializeField] private Transform spawnReference;
-        [SerializeField] private int vehiclesPerDirection = 8;
-        [SerializeField] private int pursuitVehiclesPerDirection = 6;
+        [SerializeField] private int pursuitVehiclesPerDirection = 8;
         [SerializeField] private float speedKmh = 60f;
         [SerializeField] private float laneOffset = 1.5f;
-        [SerializeField] private float spacing = 120f;
         [SerializeField] private float pursuitSpacing = 90f;
         [SerializeField] private float firstSpawnDistance = 160f;
         [SerializeField] private float routePadding = 40f;
@@ -24,7 +22,7 @@ namespace EnElCamino
 
         private const float MetersPerKilometer = 1000f;
         private const float SecondsPerHour = 3600f;
-        private const int MinimumVehiclesPerDirection = 8;
+        private const int MinimumPursuitVehiclesPerDirection = 8;
         private float minZ;
         private float maxZ;
         private float height;
@@ -79,9 +77,6 @@ namespace EnElCamino
             startZ = Mathf.Clamp(spawnReference.position.z + firstSpawnDistance, minZ, maxZ);
             height = road.position.y + vehicleHeight;
 
-            int initialVehicles = Mathf.Max(vehiclesPerDirection, MinimumVehiclesPerDirection);
-            SpawnTraffic(initialVehicles, spacing, 0f);
-
             if (gameFlow != null)
             {
                 gameFlow.PursuitStarted += SpawnPursuitTraffic;
@@ -99,9 +94,8 @@ namespace EnElCamino
             if (pursuitTrafficSpawned) return;
             pursuitTrafficSpawned = true;
 
-            int initialVehicles = Mathf.Max(vehiclesPerDirection, MinimumVehiclesPerDirection);
-            int extraVehicles = Mathf.Max(0, pursuitVehiclesPerDirection);
-            SpawnTraffic(extraVehicles, pursuitSpacing, initialVehicles * spacing);
+            int vehicles = Mathf.Max(pursuitVehiclesPerDirection, MinimumPursuitVehiclesPerDirection);
+            SpawnTraffic(vehicles, pursuitSpacing, 0f);
         }
 
         private void SpawnTraffic(int vehiclesPerDirectionToSpawn, float vehicleSpacing, float startOffset)

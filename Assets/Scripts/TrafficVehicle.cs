@@ -14,6 +14,7 @@ namespace EnElCamino
         private float maxZ;
         private float roadHeight;
         private Transform[] wheels;
+        private bool stoppedByCollision;
         private const float WheelRadius = 0.32f;
 
         private void Awake()
@@ -50,6 +51,11 @@ namespace EnElCamino
 
         private void FixedUpdate()
         {
+            if (stoppedByCollision)
+            {
+                return;
+            }
+
             if (direction.sqrMagnitude < 0.01f || speed <= 0f)
             {
                 return;
@@ -87,6 +93,30 @@ namespace EnElCamino
                 {
                     if (wheel != null) wheel.Rotate(Vector3.right, wheelDegrees, Space.Self);
                 }
+            }
+        }
+
+        private void OnCollisionEnter(Collision collision)
+        {
+            StopWhenHittingPlayableVehicle(collision.collider);
+        }
+
+        private void OnCollisionStay(Collision collision)
+        {
+            StopWhenHittingPlayableVehicle(collision.collider);
+        }
+
+        private void StopWhenHittingPlayableVehicle(Collider other)
+        {
+            if (other == null || other.GetComponentInParent<TrafficVehicle>() != null) return;
+
+            if (other.GetComponentInParent<CarDriver>() != null ||
+                other.GetComponentInParent<PatrulleroIA>() != null)
+            {
+                // Keep the collider in place so VPP can receive the impact,
+                // but stop this vehicle after the first contact so it cannot
+                // keep pushing the player or form a moving traffic train.
+                stoppedByCollision = true;
             }
         }
     }

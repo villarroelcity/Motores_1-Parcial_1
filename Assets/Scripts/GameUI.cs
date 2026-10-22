@@ -465,14 +465,14 @@ namespace EnElCamino
             Image background = objectivePanel.GetComponent<Image>();
             if (background != null)
             {
-                background.color = new Color(0.018f, 0.035f, 0.06f, 0.58f);
+                background.color = new Color(0.018f, 0.035f, 0.06f, 0.94f);
                 background.raycastTarget = false;
             }
 
             Outline outline = objectivePanel.GetComponent<Outline>();
             if (outline == null) outline = objectivePanel.gameObject.AddComponent<Outline>();
-            outline.effectColor = new Color(0.12f, 0.55f, 0.86f, 0.45f);
-            outline.effectDistance = new Vector2(1f, -1f);
+            outline.effectColor = new Color(0.12f, 0.55f, 0.86f, 0.75f);
+            outline.effectDistance = new Vector2(2f, -2f);
             outline.useGraphicAlpha = true;
 
             Transform accentTransform = objectivePanel.Find("MissionAccent");
@@ -488,7 +488,7 @@ namespace EnElCamino
                 accentRect.sizeDelta = new Vector2(6f, 0f);
                 accent = accentObject.GetComponent<Image>();
             }
-            accent.color = new Color(1f, 0.67f, 0.12f, 0.82f);
+            accent.color = new Color(1f, 0.67f, 0.12f, 1f);
             accent.raycastTarget = false;
 
             Text heading = FindText("EtiquetaObjetivo");
@@ -496,7 +496,7 @@ namespace EnElCamino
             {
                 heading.color = new Color(1f, 0.72f, 0.18f, 1f);
                 heading.fontStyle = FontStyle.Bold;
-                heading.fontSize = 18;
+                heading.fontSize = 20;
                 heading.alignment = TextAnchor.UpperLeft;
                 heading.raycastTarget = false;
             }
@@ -504,7 +504,7 @@ namespace EnElCamino
             if (objectiveText != null)
             {
                 objectiveText.color = new Color(0.94f, 0.97f, 1f, 1f);
-                objectiveText.fontSize = 18;
+                objectiveText.fontSize = 21;
                 objectiveText.fontStyle = FontStyle.Normal;
                 objectiveText.alignment = TextAnchor.UpperLeft;
                 objectiveText.raycastTarget = false;
@@ -769,8 +769,8 @@ namespace EnElCamino
             float scale = Mathf.Sqrt(widthScale * heightScale);
             float width = Screen.width / scale;
             float height = Screen.height / scale;
-            float clockWidth = Mathf.Clamp(width * 0.18f, 215f, 260f);
-            float clockHeight = Mathf.Clamp(height * 0.14f, 90f, 108f);
+            float clockWidth = Mathf.Clamp(width * 0.23f, 250f, 330f);
+            float clockHeight = Mathf.Clamp(height * 0.19f, 132f, 150f);
 
             if (clockPanel != null)
             {
@@ -781,10 +781,10 @@ namespace EnElCamino
             {
                 clockText.enabled = true;
                 if (countdownVisible && !clockText.gameObject.activeSelf) clockText.gameObject.SetActive(true);
-                clockText.fontSize = 24;
+                clockText.fontSize = 30;
                 clockText.resizeTextForBestFit = true;
-                clockText.resizeTextMinSize = 18;
-                clockText.resizeTextMaxSize = 26;
+                clockText.resizeTextMinSize = 22;
+                clockText.resizeTextMaxSize = 32;
                 clockText.alignment = TextAnchor.MiddleCenter;
                 clockText.horizontalOverflow = HorizontalWrapMode.Wrap;
                 clockText.verticalOverflow = VerticalWrapMode.Overflow;
@@ -813,13 +813,13 @@ namespace EnElCamino
             }
             if (objectivePanel != null)
             {
-                float panelWidth = Mathf.Clamp(width * 0.44f, 430f, 570f);
-                float panelHeight = Mathf.Clamp(height * 0.17f, 108f, 126f);
+                float panelWidth = Mathf.Clamp(width * 0.40f, 310f, 520f);
+                float panelHeight = Mathf.Clamp(height * 0.25f, 168f, 205f);
                 RectTransform panelRect = objectivePanel;
-                panelRect.anchorMin = new Vector2(1f, 0f);
-                panelRect.anchorMax = new Vector2(1f, 0f);
-                panelRect.pivot = new Vector2(1f, 0f);
-                panelRect.anchoredPosition = new Vector2(-24f, 24f);
+                panelRect.anchorMin = Vector2.one;
+                panelRect.anchorMax = Vector2.one;
+                panelRect.pivot = Vector2.one;
+                panelRect.anchoredPosition = new Vector2(-24f, -24f);
                 panelRect.sizeDelta = new Vector2(panelWidth, panelHeight);
                 panelRect.gameObject.SetActive(true);
             }
@@ -828,11 +828,11 @@ namespace EnElCamino
                 RectTransform objectiveRect = objectiveText.rectTransform;
                 objectiveRect.anchorMin = Vector2.zero;
                 objectiveRect.anchorMax = Vector2.one;
-                objectiveRect.offsetMin = new Vector2(20f, 10f);
-                objectiveRect.offsetMax = new Vector2(-16f, -34f);
+                objectiveRect.offsetMin = new Vector2(16f, 12f);
+                objectiveRect.offsetMax = new Vector2(-16f, -42f);
                 objectiveText.resizeTextForBestFit = true;
-                objectiveText.resizeTextMinSize = 13;
-                objectiveText.resizeTextMaxSize = 19;
+                objectiveText.resizeTextMinSize = 14;
+                objectiveText.resizeTextMaxSize = 22;
                 objectiveText.horizontalOverflow = HorizontalWrapMode.Wrap;
                 objectiveText.verticalOverflow = VerticalWrapMode.Overflow;
                 objectiveText.raycastTarget = false;
@@ -845,11 +845,11 @@ namespace EnElCamino
                 headingRect.anchorMin = new Vector2(0f, 1f);
                 headingRect.anchorMax = new Vector2(1f, 1f);
                 headingRect.pivot = new Vector2(0f, 1f);
-                headingRect.anchoredPosition = new Vector2(20f, -9f);
-                headingRect.sizeDelta = new Vector2(-36f, 24f);
+                headingRect.anchoredPosition = new Vector2(16f, -12f);
+                headingRect.sizeDelta = new Vector2(-32f, 28f);
                 objectiveHeading.resizeTextForBestFit = true;
-                objectiveHeading.resizeTextMinSize = 14;
-                objectiveHeading.resizeTextMaxSize = 19;
+                objectiveHeading.resizeTextMinSize = 16;
+                objectiveHeading.resizeTextMaxSize = 22;
                 objectiveHeading.raycastTarget = false;
             }
 

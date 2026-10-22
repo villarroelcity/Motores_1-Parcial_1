@@ -13,7 +13,6 @@ namespace EnElCamino
         [SerializeField] private CarDriver targetCar;
         [SerializeField] private float chaseSpeed = 22f;
         [SerializeField] private float acceleration = 10f;
-        [SerializeField] private float catchDistance = 5f;
         [SerializeField] private float escapeDistance = 100f;
         [SerializeField] private float maxChaseSeconds = 60f;
         [SerializeField] private AudioClip sirenClip;
@@ -152,13 +151,15 @@ namespace EnElCamino
             chaseTime += Time.fixedDeltaTime;
             Vector3 offset = targetCar.transform.position - body.position;
             offset.y = 0f;
-            float distance = offset.magnitude;
             float distanceBehindPlayer = Mathf.Max(0f,
                 Vector3.Dot(targetCar.transform.forward, offset));
             if (gameFlow != null)
                 gameFlow.UpdatePursuitDistance(distanceBehindPlayer, escapeDistance);
 
-            if (distance <= catchDistance || chaseTime >= maxChaseSeconds)
+            // Passing alongside the parked patrol is not a defeat. The patrol
+            // only defeats the player if it actually collides with the car or
+            // the chase timeout is reached.
+            if (chaseTime >= maxChaseSeconds)
             {
                 gameFlow.GameOver();
                 return;
@@ -186,7 +187,7 @@ namespace EnElCamino
 
         private void OnCollisionEnter(Collision collision)
         {
-            if (!chasing || gameFlow == null) return;
+            if (!chasing || waitingForPlayerToPass || chaseTime < 1f || gameFlow == null) return;
             if (collision.collider.GetComponentInParent<CarDriver>() != null)
                 gameFlow.GameOver();
         }

@@ -8,7 +8,7 @@ namespace EnElCamino
     /// </summary>
     public class TrafficManager : MonoBehaviour
     {
-        [SerializeField] private GameObject[] vehiclePrefabs;
+        [SerializeField] private UnityEngine.Object[] vehiclePrefabs;
         [SerializeField] private Transform road;
         [SerializeField] private Transform spawnReference;
         [SerializeField] private int vehiclesPerDirection = 4;
@@ -82,19 +82,26 @@ namespace EnElCamino
 
         private void SpawnVehicle(int index, float x, float z, Vector3 direction, float speedMetersPerSecond, float minZ, float maxZ, float height)
         {
-            GameObject prefab = vehiclePrefabs[index % vehiclePrefabs.Length];
+            UnityEngine.Object prefab = vehiclePrefabs[index % vehiclePrefabs.Length];
             if (prefab == null) return;
 
             Vector3 position = new Vector3(x, height, WrapZ(z, minZ, maxZ));
-            GameObject vehicle = GameObject.Instantiate(
+            UnityEngine.Object instance = UnityEngine.Object.Instantiate(
                 prefab,
                 position,
                 Quaternion.LookRotation(direction, Vector3.up),
                 transform);
 
+            GameObject vehicle = instance as GameObject;
+            if (vehicle == null && instance is Component component)
+            {
+                vehicle = component.gameObject;
+            }
+
             if (vehicle == null)
             {
-                Debug.LogError("El prefab de trafico no es un GameObject valido: " + prefab.name, this);
+                Debug.LogError("El prefab de trafico no es un GameObject valido: " + prefab.name +
+                    " (tipo: " + prefab.GetType().Name + ")", this);
                 return;
             }
 

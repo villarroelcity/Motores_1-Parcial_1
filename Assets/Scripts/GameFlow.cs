@@ -11,7 +11,7 @@ namespace EnElCamino
         [SerializeField] private GameUI gameUI;
         [SerializeField] private AudioSource gameOverSource;
         [SerializeField] private AudioSource victorySource;
-        [SerializeField] private float generatorFuelSeconds = 60f;
+        private const float GeneratorFuelSeconds = 30f;
         [SerializeField] private Transform streetLightsRoot;
         [SerializeField] private Light sun;
         [SerializeField] private Text timerText;
@@ -118,10 +118,6 @@ namespace EnElCamino
                 {
                     ShowMessage("El generador se quedo sin combustible antes de llenar el bidon.");
                     GameOver();
-                }
-                else
-                {
-                    ShowMessage("El generador se quedo sin combustible. La estacion quedo sin electricidad.");
                 }
             }
         }
@@ -258,7 +254,7 @@ namespace EnElCamino
             }
 
             generatorOn = true;
-            generatorFuelRemaining = generatorFuelSeconds;
+            generatorFuelRemaining = GeneratorFuelSeconds;
             stationPowerConnected = false;
             SetStreetLights(true);
             if (gameUI != null)

@@ -47,6 +47,11 @@ namespace EnElCamino
         private Vector2 rearViewPanelPosition = new Vector2(0f, -6f);
         private Vector2 pursuitDistancePanelPosition = new Vector2(0f, -655f);
 
+        private bool IsGameOverOrFinished()
+        {
+            return gameFlow != null && (gameFlow.gameOver || gameFlow.finished);
+        }
+
         public void SetGameplayVisible(bool visible)
         {
             gameplayVisible = visible;
@@ -285,6 +290,7 @@ namespace EnElCamino
 
         public void SetObjective(string text)
         {
+            if (IsGameOverOrFinished()) return;
             if (objectiveText == null) return;
             objectiveText.text = text;
             objectiveText.enabled = true;
@@ -320,6 +326,7 @@ namespace EnElCamino
 
         public void ShowPrompt(string text)
         {
+            if (IsGameOverOrFinished()) return;
             if (!gameplayVisible) return;
             if (promptText == null) return;
             promptText.text = text;
@@ -333,6 +340,7 @@ namespace EnElCamino
 
         public void ShowMessage(string text)
         {
+            if (IsGameOverOrFinished()) return;
             if (!gameplayVisible) return;
             if (messageText == null) return;
             messageText.text = text;
@@ -347,6 +355,7 @@ namespace EnElCamino
 
         public void SetGeneratorFuelTime(float secondsRemaining)
         {
+            if (IsGameOverOrFinished()) return;
             if (generatorFuelPanel == null) CreateGeneratorFuelPanel();
             int seconds = Mathf.Max(0, Mathf.CeilToInt(secondsRemaining));
             if (seconds != displayedGeneratorFuelSeconds)
@@ -367,6 +376,7 @@ namespace EnElCamino
 
         public void SetPursuitDistance(float currentDistance, float requiredDistance)
         {
+            if (IsGameOverOrFinished()) return;
             EnableGameplayOverlay();
             if (pursuitDistancePanel == null) CreatePursuitDistancePanel();
             if (rearViewPanel == null) CreateRearViewMirror();
@@ -395,12 +405,16 @@ namespace EnElCamino
             if (outcomeRestartButton != null) outcomeRestartButton.SetActive(false);
             HideGeneratorFuelTime();
             HidePursuitDistance();
+            HideObjective();
             HidePrompt();
-            if (messageText != null) messageText.gameObject.SetActive(false);
+            HideMessage();
         }
 
         public void ShowGameOver()
         {
+            paused = true;
+            Time.timeScale = 0f;
+            AudioListener.pause = true;
             CreateOutcomePanel();
             if (finalText != null) finalText.text = "GAME OVER";
             PrepareOutcomeForInput();
@@ -413,8 +427,9 @@ namespace EnElCamino
             }
             HideGeneratorFuelTime();
             HidePursuitDistance();
+            HideObjective();
             HidePrompt();
-            if (messageText != null) messageText.gameObject.SetActive(false);
+            HideMessage();
         }
 
         private void CreateOutcomeRestartButton()

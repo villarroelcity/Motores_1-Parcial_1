@@ -818,7 +818,7 @@ namespace EnElCamino
                 RectTransform panelRect = objectivePanel;
                 panelRect.anchorMin = new Vector2(1f, 0f);
                 panelRect.anchorMax = new Vector2(1f, 0f);
-                panelRect.pivot = Vector2.one;
+                panelRect.pivot = new Vector2(1f, 0f);
                 panelRect.anchoredPosition = new Vector2(-24f, 24f);
                 panelRect.sizeDelta = new Vector2(panelWidth, panelHeight);
                 panelRect.gameObject.SetActive(true);

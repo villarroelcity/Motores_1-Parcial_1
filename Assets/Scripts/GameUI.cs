@@ -758,8 +758,8 @@ namespace EnElCamino
             }
             if (objectivePanel != null)
             {
-                float panelWidth = Mathf.Clamp(width * 0.40f, 310f, 520f);
-                float panelHeight = Mathf.Clamp(height * 0.25f, 168f, 205f);
+                float panelWidth = Mathf.Clamp(width * 0.34f, 320f, 440f);
+                float panelHeight = Mathf.Clamp(height * 0.19f, 125f, 150f);
                 RectTransform panelRect = objectivePanel;
                 panelRect.anchorMin = Vector2.one;
                 panelRect.anchorMax = Vector2.one;
@@ -776,8 +776,8 @@ namespace EnElCamino
                 objectiveRect.offsetMin = new Vector2(16f, 12f);
                 objectiveRect.offsetMax = new Vector2(-16f, -42f);
                 objectiveText.resizeTextForBestFit = true;
-                objectiveText.resizeTextMinSize = 14;
-                objectiveText.resizeTextMaxSize = 22;
+                objectiveText.resizeTextMinSize = 13;
+                objectiveText.resizeTextMaxSize = 19;
                 objectiveText.horizontalOverflow = HorizontalWrapMode.Wrap;
                 objectiveText.verticalOverflow = VerticalWrapMode.Overflow;
                 objectiveText.raycastTarget = false;
@@ -793,8 +793,8 @@ namespace EnElCamino
                 headingRect.anchoredPosition = new Vector2(16f, -12f);
                 headingRect.sizeDelta = new Vector2(-32f, 28f);
                 objectiveHeading.resizeTextForBestFit = true;
-                objectiveHeading.resizeTextMinSize = 16;
-                objectiveHeading.resizeTextMaxSize = 22;
+                objectiveHeading.resizeTextMinSize = 14;
+                objectiveHeading.resizeTextMaxSize = 20;
                 objectiveHeading.raycastTarget = false;
             }
 

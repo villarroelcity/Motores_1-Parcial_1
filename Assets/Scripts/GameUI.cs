@@ -816,8 +816,8 @@ namespace EnElCamino
                 float panelWidth = Mathf.Clamp(width * 0.44f, 430f, 570f);
                 float panelHeight = Mathf.Clamp(height * 0.17f, 108f, 126f);
                 RectTransform panelRect = objectivePanel;
-                panelRect.anchorMin = Vector2.one;
-                panelRect.anchorMax = Vector2.one;
+                panelRect.anchorMin = new Vector2(1f, 0f);
+                panelRect.anchorMax = new Vector2(1f, 0f);
                 panelRect.pivot = Vector2.one;
                 panelRect.anchoredPosition = new Vector2(-24f, 24f);
                 panelRect.sizeDelta = new Vector2(panelWidth, panelHeight);

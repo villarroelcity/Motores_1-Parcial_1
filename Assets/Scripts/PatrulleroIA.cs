@@ -53,6 +53,7 @@ namespace EnElCamino
             // starts the chase. The player's VPP controls are unaffected.
             body.isKinematic = true;
             body.useGravity = false;
+            body.interpolation = RigidbodyInterpolation.Interpolate;
             body.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
             foreach (VPStandardInput input in GetComponentsInChildren<VPStandardInput>(true))
                 input.enabled = false;
@@ -144,7 +145,6 @@ namespace EnElCamino
                 if (Vector3.Dot(targetCar.transform.forward, relativePosition) > 1f) return;
 
                 waitingForPlayerToPass = false;
-                AlignToRoadBeforeChase();
                 SetPoliceEffects(true);
             }
 
@@ -222,19 +222,6 @@ namespace EnElCamino
             Vector3 roadOffset = targetPosition - body.position;
             roadOffset.y = 0f;
             return roadOffset.sqrMagnitude > 0.01f ? roadOffset.normalized : transform.forward;
-        }
-
-        private void AlignToRoadBeforeChase()
-        {
-            if (road == null) return;
-
-            float centerX = road.position.x;
-            float halfWidth = Mathf.Max(roadHalfWidth, road.lossyScale.x * 0.5f);
-            Vector3 position = body.position;
-            position.x = Mathf.Clamp(position.x, centerX - halfWidth * 0.65f,
-                centerX + halfWidth * 0.65f);
-            body.position = position;
-            transform.position = position;
         }
 
         private Vector3 KeepInsideRoad(Vector3 direction)

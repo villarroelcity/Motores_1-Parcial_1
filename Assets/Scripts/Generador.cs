@@ -62,7 +62,7 @@ namespace EnElCamino
             get
             {
                 if (generatorOn) return "Generador encendido";
-                return "[E] Presionar boton rojo";
+                return "[E] Encender generador";
             }
         }
 
@@ -71,7 +71,7 @@ namespace EnElCamino
             if (generatorOn || gameFlow == null || gameFlow.gameOver || gameFlow.finished) return;
             if (!gameFlow.insideGarage)
             {
-                gameFlow.ShowMessage("Primero entra al taller por el hueco del techo y baja por la escalera.");
+                gameFlow.ShowMessage("Primero entra al taller por el hueco del techo.");
                 return;
             }
 

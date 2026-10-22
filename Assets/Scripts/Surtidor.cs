@@ -115,7 +115,7 @@ namespace EnElCamino
 
             if (!gameFlow.garageOpen)
             {
-                gameFlow.ShowMessage("Primero abri el porton desde adentro del garage.");
+                gameFlow.ShowMessage("Primero abri el porton desde adentro del taller.");
                 return;
             }
 

@@ -55,7 +55,7 @@ namespace EnElCamino
 
             if (!gameFlow.insideGarage)
             {
-                gameFlow.ShowMessage("Tenes que entrar al garage para abrir el porton.");
+                gameFlow.ShowMessage("Tenes que entrar al taller para abrir el porton.");
                 return false;
             }
 

@@ -184,7 +184,7 @@ namespace EnElCamino
                 if (!pursuitActive)
                 {
                     gameUI.SetObjective("RUTA ALCANZADA\nSEGUI POR LA RUTA\nLa persecucion comienza mas adelante.");
-                    gameUI.ShowMessage("Llegaste a la ruta. El reloj ya no provoca derrota; segui avanzando.");
+                    gameUI.HideMessage();
                 }
             }
         }
@@ -261,7 +261,7 @@ namespace EnElCamino
             {
                 gameUI.SetGeneratorFuelTime(generatorFuelRemaining);
                 gameUI.SetObjective("OBJETIVO 3/8\nCONECTA EL GENERADOR\nUsa la caja electrica para darle energia a la estacion.");
-                gameUI.ShowMessage("Tenes 60 segundos de combustible. Conectalo a la caja electrica, abri el porton y llena el bidon.");
+                gameUI.ShowMessage("Tenes 30 segundos de combustible. Conectalo a la caja electrica, abri el porton y llena el bidon.");
             }
             return true;
         }
@@ -285,7 +285,7 @@ namespace EnElCamino
             insideGarage = true;
             if (gameUI != null)
             {
-                gameUI.SetObjective("OBJETIVO 2/8\nENCENDE EL GENERADOR\nEsta dentro del taller; presiona [E] en el boton rojo.");
+                gameUI.SetObjective("OBJETIVO 2/8\nENCENDE EL GENERADOR\nEsta dentro del taller; presiona [E] en el generador.");
                 gameUI.ShowMessage("Bajaste al taller. Ahora podes encender el generador.");
             }
         }

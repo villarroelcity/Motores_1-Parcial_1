@@ -18,9 +18,6 @@ namespace EnElCamino
 
         private GameObject generatorFuelPanel;
         private Text generatorFuelText;
-        private GameObject vehicleSpeedPanel;
-        private Text vehicleSpeedText;
-        private int displayedVehicleSpeed = -1;
         private GameObject pursuitDistancePanel;
         private Text pursuitDistanceText;
         private GameObject rearViewPanel;
@@ -89,7 +86,6 @@ namespace EnElCamino
             if (completedPanel != null) completedPanel.SetActive(false);
             if (messageText != null) messageText.gameObject.SetActive(false);
             CreateGeneratorFuelPanel();
-            CreateVehicleSpeedPanel();
             CreatePursuitDistancePanel();
             CreateRearViewMirror();
             ApplyResponsiveLayout();
@@ -322,6 +318,11 @@ namespace EnElCamino
             messageExpiresAt = Time.time + 4.5f;
         }
 
+        public void HideMessage()
+        {
+            if (messageText != null) messageText.gameObject.SetActive(false);
+        }
+
         public void SetGeneratorFuelTime(float secondsRemaining)
         {
             if (generatorFuelPanel == null) CreateGeneratorFuelPanel();
@@ -340,26 +341,6 @@ namespace EnElCamino
         {
             if (generatorFuelPanel != null) generatorFuelPanel.SetActive(false);
             displayedGeneratorFuelSeconds = -1;
-        }
-
-        public void SetVehicleSpeed(float speedKmh)
-        {
-            if (!gameplayVisible) return;
-            if (vehicleSpeedPanel == null) CreateVehicleSpeedPanel();
-
-            int speed = Mathf.Max(0, Mathf.RoundToInt(speedKmh));
-            if (speed != displayedVehicleSpeed)
-            {
-                vehicleSpeedText.text = $"VELOCIDAD\n{speed} km/h";
-                displayedVehicleSpeed = speed;
-            }
-            vehicleSpeedPanel.SetActive(true);
-        }
-
-        public void HideVehicleSpeed()
-        {
-            if (vehicleSpeedPanel != null) vehicleSpeedPanel.SetActive(false);
-            displayedVehicleSpeed = -1;
         }
 
         public void SetPursuitDistance(float currentDistance, float requiredDistance)
@@ -391,7 +372,6 @@ namespace EnElCamino
             if (completedPanel != null) completedPanel.SetActive(true);
             if (outcomeRestartButton != null) outcomeRestartButton.SetActive(false);
             HideGeneratorFuelTime();
-            HideVehicleSpeed();
             HidePursuitDistance();
             HidePrompt();
             if (messageText != null) messageText.gameObject.SetActive(false);
@@ -410,7 +390,6 @@ namespace EnElCamino
                 if (button != null) button.interactable = true;
             }
             HideGeneratorFuelTime();
-            HideVehicleSpeed();
             HidePursuitDistance();
             HidePrompt();
             if (messageText != null) messageText.gameObject.SetActive(false);
@@ -555,50 +534,6 @@ namespace EnElCamino
             generatorFuelPanel.SetActive(false);
         }
 
-        private void CreateVehicleSpeedPanel()
-        {
-            if (vehicleSpeedPanel != null) return;
-
-            GameObject panel = new GameObject("VehicleSpeedPanel", typeof(RectTransform), typeof(CanvasRenderer), typeof(RawImage));
-            panel.transform.SetParent(transform, false);
-            RectTransform panelRect = panel.GetComponent<RectTransform>();
-            panelRect.anchorMin = new Vector2(0f, 1f);
-            panelRect.anchorMax = new Vector2(0f, 1f);
-            panelRect.pivot = new Vector2(0f, 1f);
-            panelRect.anchoredPosition = new Vector2(24f, -270f);
-            panelRect.sizeDelta = new Vector2(270f, 92f);
-
-            RawImage background = panel.GetComponent<RawImage>();
-            background.texture = Texture2D.whiteTexture;
-            background.color = new Color(0.035f, 0.045f, 0.06f, 0.82f);
-            background.raycastTarget = false;
-
-            GameObject textObject = new GameObject("VehicleSpeedText", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
-            textObject.transform.SetParent(panel.transform, false);
-            RectTransform textRect = textObject.GetComponent<RectTransform>();
-            textRect.anchorMin = Vector2.zero;
-            textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = new Vector2(12f, 5f);
-            textRect.offsetMax = new Vector2(-8f, -5f);
-
-            vehicleSpeedText = textObject.GetComponent<Text>();
-            Text referenceText = GameObject.Find("RelojTexto")?.GetComponent<Text>();
-            vehicleSpeedText.font = referenceText != null ? referenceText.font : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            vehicleSpeedText.fontSize = 20;
-            vehicleSpeedText.resizeTextForBestFit = true;
-            vehicleSpeedText.resizeTextMinSize = 16;
-            vehicleSpeedText.resizeTextMaxSize = 22;
-            vehicleSpeedText.fontStyle = FontStyle.Bold;
-            vehicleSpeedText.alignment = TextAnchor.MiddleLeft;
-            vehicleSpeedText.color = Color.white;
-            vehicleSpeedText.raycastTarget = false;
-            vehicleSpeedText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            vehicleSpeedText.verticalOverflow = VerticalWrapMode.Overflow;
-
-            vehicleSpeedPanel = panel;
-            vehicleSpeedPanel.SetActive(false);
-        }
-
         private void CreatePursuitDistancePanel()
         {
             if (pursuitDistancePanel != null) return;
@@ -741,11 +676,6 @@ namespace EnElCamino
                 RectTransform fuelRect = generatorFuelPanel.GetComponent<RectTransform>();
                 SetTopLeft(fuelRect, new Vector2(24f, -24f - clockHeight - 12f), new Vector2(clockWidth, 92f));
             }
-            if (vehicleSpeedPanel != null)
-            {
-                RectTransform speedRect = vehicleSpeedPanel.GetComponent<RectTransform>();
-                SetTopLeft(speedRect, new Vector2(24f, -24f - clockHeight - 116f), new Vector2(clockWidth, 92f));
-            }
             if (rearViewPanel != null)
             {
                 float mirrorWidth = Mathf.Clamp(width * 0.25f, 260f, 340f);
@@ -804,13 +734,6 @@ namespace EnElCamino
                 generatorFuelText.resizeTextForBestFit = true;
                 generatorFuelText.resizeTextMinSize = 16;
                 generatorFuelText.resizeTextMaxSize = 22;
-            }
-            if (vehicleSpeedText != null)
-            {
-                vehicleSpeedText.fontSize = 20;
-                vehicleSpeedText.resizeTextForBestFit = true;
-                vehicleSpeedText.resizeTextMinSize = 16;
-                vehicleSpeedText.resizeTextMaxSize = 22;
             }
         }
 

@@ -39,6 +39,7 @@ namespace EnElCamino
         private const float MinimumChaseSpeed = 32f;
         private const float MinimumAcceleration = 18f;
         private const float RequiredEscapeDistance = 200f;
+        private const float RoadEdgeMargin = 0.65f;
 
         private void Awake()
         {
@@ -186,8 +187,12 @@ namespace EnElCamino
             float targetSpeed = Mathf.Max(chaseSpeed, MinimumChaseSpeed);
             float targetAcceleration = Mathf.Max(acceleration, MinimumAcceleration);
             speed = Mathf.MoveTowards(speed, targetSpeed, targetAcceleration * Time.fixedDeltaTime);
-            body.MovePosition(body.position + direction * speed * Time.fixedDeltaTime);
-            Quaternion wantedRotation = Quaternion.LookRotation(direction, Vector3.up);
+            Vector3 nextPosition = body.position + direction * speed * Time.fixedDeltaTime;
+            nextPosition = LimitToRoad(nextPosition);
+            body.MovePosition(nextPosition);
+            Vector3 travelDirection = Vector3.ProjectOnPlane(nextPosition - body.position, Vector3.up).normalized;
+            if (travelDirection.sqrMagnitude < 0.01f) travelDirection = direction;
+            Quaternion wantedRotation = Quaternion.LookRotation(travelDirection, Vector3.up);
             body.MoveRotation(Quaternion.RotateTowards(body.rotation, wantedRotation, 120f * Time.fixedDeltaTime));
         }
 
@@ -220,9 +225,15 @@ namespace EnElCamino
             if (road != null)
             {
                 float centerX = road.position.x;
-                float halfWidth = Mathf.Max(roadHalfWidth, road.lossyScale.x * 0.5f);
-                targetPosition.x = Mathf.Clamp(targetPosition.x, centerX - halfWidth * 0.65f,
-                    centerX + halfWidth * 0.65f);
+                float halfWidth = GetRoadHalfWidth();
+                float leftEdge = centerX - halfWidth + RoadEdgeMargin;
+                float rightEdge = centerX + halfWidth - RoadEdgeMargin;
+                targetPosition.x = Mathf.Clamp(targetPosition.x, leftEdge, rightEdge);
+
+                // If the patrol starts or is pushed onto the grass, return to
+                // the road first instead of chasing diagonally across it.
+                if (body.position.x < leftEdge || body.position.x > rightEdge)
+                    targetPosition.x = centerX;
             }
 
             Vector3 roadOffset = targetPosition - body.position;
@@ -235,12 +246,29 @@ namespace EnElCamino
             if (road == null) return direction;
 
             float centerX = road.position.x;
-            float halfWidth = Mathf.Max(roadHalfWidth, road.lossyScale.x * 0.5f);
-            float leftEdge = centerX - halfWidth;
-            float rightEdge = centerX + halfWidth;
+            float halfWidth = GetRoadHalfWidth();
+            float leftEdge = centerX - halfWidth + RoadEdgeMargin;
+            float rightEdge = centerX + halfWidth - RoadEdgeMargin;
             if (body.position.x <= leftEdge && direction.x < 0f) direction.x = 0f;
             if (body.position.x >= rightEdge && direction.x > 0f) direction.x = 0f;
             return direction.sqrMagnitude > 0.01f ? direction.normalized : transform.forward;
+        }
+
+        private Vector3 LimitToRoad(Vector3 position)
+        {
+            if (road == null) return position;
+
+            float centerX = road.position.x;
+            float halfWidth = GetRoadHalfWidth();
+            position.x = Mathf.Clamp(position.x,
+                centerX - halfWidth + RoadEdgeMargin,
+                centerX + halfWidth - RoadEdgeMargin);
+            return position;
+        }
+
+        private float GetRoadHalfWidth()
+        {
+            return Mathf.Max(roadHalfWidth, road.lossyScale.x * 0.5f);
         }
 
         private float GetClearance(Vector3 origin, Vector3 direction)

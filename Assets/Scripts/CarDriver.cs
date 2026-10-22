@@ -324,8 +324,7 @@ namespace EnElCamino
             if (gameFlow != null)
             {
                 gameFlow.movementLocked = false;
-                        gameFlow.ShowMessage("El auto se quedo sin combustible. Acercate a la estacion abandonada.");
-                if (gameFlow.UI != null) gameFlow.UI.HideVehicleSpeed();
+                gameFlow.ShowMessage("El auto se quedo sin combustible. Acercate a la estacion abandonada.");
             }
             if (legacyCamera != null && player != null) legacyCamera.SetTarget(player.transform);
         }
@@ -496,11 +495,6 @@ namespace EnElCamino
                 driving = false;
                 SetNativeControls(false);
                 return;
-            }
-            if (gameFlow != null && gameFlow.UI != null)
-            {
-                if (HasPlayerControl) gameFlow.UI.SetVehicleSpeed(SpeedKmh);
-                else gameFlow.UI.HideVehicleSpeed();
             }
             throttleInput = 0f;
             steerInput = 0f;

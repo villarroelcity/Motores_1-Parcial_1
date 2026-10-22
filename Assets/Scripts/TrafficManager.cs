@@ -12,17 +12,17 @@ namespace EnElCamino
         [SerializeField] private GameFlow gameFlow;
         [SerializeField] private Transform road;
         [SerializeField] private Transform spawnReference;
-        [SerializeField] private int pursuitVehiclesPerDirection = 8;
+        [SerializeField] private int trafficVehiclesPerDirection = 8;
         [SerializeField] private float speedKmh = 60f;
         [SerializeField] private float laneOffset = 1.5f;
-        [SerializeField] private float pursuitSpacing = 90f;
+        [SerializeField] private float trafficSpacing = 90f;
         [SerializeField] private float firstSpawnDistance = 160f;
         [SerializeField] private float routePadding = 40f;
         [SerializeField] private float vehicleHeight = 0.55f;
 
         private const float MetersPerKilometer = 1000f;
         private const float SecondsPerHour = 3600f;
-        private const int MinimumPursuitVehiclesPerDirection = 8;
+        private const int MinimumTrafficVehiclesPerDirection = 8;
         private float minZ;
         private float maxZ;
         private float height;
@@ -30,7 +30,7 @@ namespace EnElCamino
         private float startZ;
         private float speedMetersPerSecond;
         private int nextVehicleIndex;
-        private bool pursuitTrafficSpawned;
+        private bool trafficSpawned;
 
         private void Start()
         {
@@ -79,23 +79,23 @@ namespace EnElCamino
 
             if (gameFlow != null)
             {
-                gameFlow.PursuitStarted += SpawnPursuitTraffic;
-                if (gameFlow.pursuitActive) SpawnPursuitTraffic();
+                gameFlow.DrivingStarted += SpawnDrivingTraffic;
+                if (gameFlow.driving) SpawnDrivingTraffic();
             }
         }
 
         private void OnDestroy()
         {
-            if (gameFlow != null) gameFlow.PursuitStarted -= SpawnPursuitTraffic;
+            if (gameFlow != null) gameFlow.DrivingStarted -= SpawnDrivingTraffic;
         }
 
-        private void SpawnPursuitTraffic()
+        private void SpawnDrivingTraffic()
         {
-            if (pursuitTrafficSpawned) return;
-            pursuitTrafficSpawned = true;
+            if (trafficSpawned) return;
+            trafficSpawned = true;
 
-            int vehicles = Mathf.Max(pursuitVehiclesPerDirection, MinimumPursuitVehiclesPerDirection);
-            SpawnTraffic(vehicles, pursuitSpacing, 0f);
+            int vehicles = Mathf.Max(trafficVehiclesPerDirection, MinimumTrafficVehiclesPerDirection);
+            SpawnTraffic(vehicles, trafficSpacing, 0f);
         }
 
         private void SpawnTraffic(int vehiclesPerDirectionToSpawn, float vehicleSpacing, float startOffset)

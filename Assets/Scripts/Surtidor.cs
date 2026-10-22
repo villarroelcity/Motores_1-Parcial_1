@@ -141,16 +141,31 @@ namespace EnElCamino
 
             pumpUsed = true;
             gameFlow.fueling = true;
-            if (pumpSound != null)
+            bool previousMovementLock = gameFlow.movementLocked;
+            gameFlow.movementLocked = true;
+            PlayerController playerController = player != null
+                ? player.GetComponent<PlayerController>()
+                : FindFirstObjectByType<PlayerController>();
+            if (playerController != null) playerController.SetInteractionPoseLocked(true);
+
+            try
             {
-                audioSource.pitch = Random.Range(pitchVariation.x, pitchVariation.y);
-                audioSource.volume = Random.Range(volumeVariation.x, volumeVariation.y);
-                audioSource.PlayOneShot(pumpSound);
-                yield return new WaitForSeconds(pumpSound.length);
+                if (pumpSound != null)
+                {
+                    audioSource.pitch = Random.Range(pitchVariation.x, pitchVariation.y);
+                    audioSource.volume = Random.Range(volumeVariation.x, volumeVariation.y);
+                    audioSource.PlayOneShot(pumpSound);
+                    yield return new WaitForSeconds(pumpSound.length);
+                }
+                if (fuelCan != null) fuelCan.Fill();
+                gameFlow.FillFuelCan();
             }
-            if (fuelCan != null) fuelCan.Fill();
-            gameFlow.FillFuelCan();
-            gameFlow.fueling = false;
+            finally
+            {
+                if (playerController != null) playerController.SetInteractionPoseLocked(false);
+                gameFlow.movementLocked = previousMovementLock;
+                gameFlow.fueling = false;
+            }
         }
 
         private void AttachToHand()

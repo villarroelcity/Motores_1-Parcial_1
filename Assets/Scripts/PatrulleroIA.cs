@@ -23,6 +23,8 @@ namespace EnElCamino
         [SerializeField] private float obstacleDetectionRadius = 1.2f;
         [SerializeField] private float obstacleSideCheckDistance = 4f;
         [SerializeField] private float obstacleAvoidanceStrength = 1.8f;
+        [SerializeField] private Transform road;
+        [SerializeField] private float roadHalfWidth = 3.2f;
 
         private Rigidbody body;
         private bool chasing;
@@ -41,6 +43,11 @@ namespace EnElCamino
             body = GetComponent<Rigidbody>();
             if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
             if (targetCar == null) targetCar = FindFirstObjectByType<CarDriver>();
+            if (road == null)
+            {
+                GameObject roadObject = GameObject.Find("Ruta");
+                if (roadObject != null) road = roadObject.transform;
+            }
             DisableVppTelemetry();
 
             // Keep the patrol parked and silent until the trigger/speed limit
@@ -138,6 +145,7 @@ namespace EnElCamino
                 if (Vector3.Dot(targetCar.transform.forward, relativePosition) > 1f) return;
 
                 waitingForPlayerToPass = false;
+                AlignToRoadBeforeChase();
                 SetPoliceEffects(true);
             }
 
@@ -167,8 +175,9 @@ namespace EnElCamino
                 return;
             }
 
-            Vector3 direction = offset.sqrMagnitude > 0.01f ? offset.normalized : transform.forward;
+            Vector3 direction = GetRoadChaseDirection();
             direction = AvoidObstacles(direction);
+            direction = KeepInsideRoad(direction);
             speed = Mathf.MoveTowards(speed, chaseSpeed, acceleration * Time.fixedDeltaTime);
             body.MovePosition(body.position + direction * speed * Time.fixedDeltaTime);
             Quaternion wantedRotation = Quaternion.LookRotation(direction, Vector3.up);
@@ -198,6 +207,48 @@ namespace EnElCamino
             return (desiredDirection + preferredSide * obstacleAvoidanceStrength).normalized;
         }
 
+        private Vector3 GetRoadChaseDirection()
+        {
+            Vector3 targetPosition = targetCar.transform.position;
+            if (road != null)
+            {
+                float centerX = road.position.x;
+                float halfWidth = Mathf.Max(roadHalfWidth, road.lossyScale.x * 0.5f);
+                targetPosition.x = Mathf.Clamp(targetPosition.x, centerX - halfWidth * 0.65f,
+                    centerX + halfWidth * 0.65f);
+            }
+
+            Vector3 roadOffset = targetPosition - body.position;
+            roadOffset.y = 0f;
+            return roadOffset.sqrMagnitude > 0.01f ? roadOffset.normalized : transform.forward;
+        }
+
+        private void AlignToRoadBeforeChase()
+        {
+            if (road == null) return;
+
+            float centerX = road.position.x;
+            float halfWidth = Mathf.Max(roadHalfWidth, road.lossyScale.x * 0.5f);
+            Vector3 position = body.position;
+            position.x = Mathf.Clamp(position.x, centerX - halfWidth * 0.65f,
+                centerX + halfWidth * 0.65f);
+            body.position = position;
+            transform.position = position;
+        }
+
+        private Vector3 KeepInsideRoad(Vector3 direction)
+        {
+            if (road == null) return direction;
+
+            float centerX = road.position.x;
+            float halfWidth = Mathf.Max(roadHalfWidth, road.lossyScale.x * 0.5f);
+            float leftEdge = centerX - halfWidth;
+            float rightEdge = centerX + halfWidth;
+            if (body.position.x <= leftEdge && direction.x < 0f) direction.x = 0f;
+            if (body.position.x >= rightEdge && direction.x > 0f) direction.x = 0f;
+            return direction.sqrMagnitude > 0.01f ? direction.normalized : transform.forward;
+        }
+
         private float GetClearance(Vector3 origin, Vector3 direction)
         {
             return FindObstacle(origin, direction, obstacleSideCheckDistance, out RaycastHit hit)
@@ -223,6 +274,7 @@ namespace EnElCamino
                 Collider collider = hit.collider;
                 if (collider == null || collider.transform.IsChildOf(transform)) continue;
                 if (collider.GetComponentInParent<CarDriver>() != null) continue;
+                if (hit.normal.y > 0.7f) continue;
                 if (hit.distance >= nearestDistance) continue;
 
                 nearestDistance = hit.distance;

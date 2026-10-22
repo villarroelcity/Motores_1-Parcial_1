@@ -82,6 +82,7 @@ namespace EnElCamino
             clockPanel = FindRectTransform("RelojPanel");
             clockText = FindText("RelojTexto");
             objectivePanel = FindRectTransform("PanelObjetivo");
+            StyleMissionPanel();
             CreatePauseMenu();
             CreateOutcomePanel();
             CreateOutcomeRestartButton();
@@ -277,6 +278,7 @@ namespace EnElCamino
         public void SetObjective(string text)
         {
             if (objectiveText == null) return;
+            StyleMissionPanel();
             objectiveText.text = text;
             objectiveText.enabled = true;
             if (!objectiveText.gameObject.activeSelf) objectiveText.gameObject.SetActive(true);
@@ -453,6 +455,59 @@ namespace EnElCamino
                     finalText.rectTransform.offsetMin = new Vector2(24f, 38f);
                     finalText.rectTransform.offsetMax = new Vector2(-24f, -24f);
                 }
+            }
+        }
+
+        private void StyleMissionPanel()
+        {
+            if (objectivePanel == null) return;
+
+            Image background = objectivePanel.GetComponent<Image>();
+            if (background != null)
+            {
+                background.color = new Color(0.018f, 0.035f, 0.06f, 0.94f);
+                background.raycastTarget = false;
+            }
+
+            Outline outline = objectivePanel.GetComponent<Outline>();
+            if (outline == null) outline = objectivePanel.gameObject.AddComponent<Outline>();
+            outline.effectColor = new Color(0.12f, 0.55f, 0.86f, 0.75f);
+            outline.effectDistance = new Vector2(2f, -2f);
+            outline.useGraphicAlpha = true;
+
+            Transform accentTransform = objectivePanel.Find("MissionAccent");
+            Image accent = accentTransform != null ? accentTransform.GetComponent<Image>() : null;
+            if (accent == null)
+            {
+                GameObject accentObject = CreateUiObject("MissionAccent", objectivePanel, typeof(Image));
+                RectTransform accentRect = accentObject.GetComponent<RectTransform>();
+                accentRect.anchorMin = new Vector2(0f, 0f);
+                accentRect.anchorMax = new Vector2(0f, 1f);
+                accentRect.pivot = new Vector2(0f, 0.5f);
+                accentRect.anchoredPosition = Vector2.zero;
+                accentRect.sizeDelta = new Vector2(6f, 0f);
+                accent = accentObject.GetComponent<Image>();
+            }
+            accent.color = new Color(1f, 0.67f, 0.12f, 1f);
+            accent.raycastTarget = false;
+
+            Text heading = FindText("EtiquetaObjetivo");
+            if (heading != null)
+            {
+                heading.color = new Color(1f, 0.72f, 0.18f, 1f);
+                heading.fontStyle = FontStyle.Bold;
+                heading.fontSize = 20;
+                heading.alignment = TextAnchor.UpperLeft;
+                heading.raycastTarget = false;
+            }
+
+            if (objectiveText != null)
+            {
+                objectiveText.color = new Color(0.94f, 0.97f, 1f, 1f);
+                objectiveText.fontSize = 21;
+                objectiveText.fontStyle = FontStyle.Normal;
+                objectiveText.alignment = TextAnchor.UpperLeft;
+                objectiveText.raycastTarget = false;
             }
         }
 

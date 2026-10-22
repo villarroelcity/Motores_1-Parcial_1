@@ -39,6 +39,9 @@ namespace EnElCamino
         private bool built;
         private bool hanging;
         private bool falling;
+        private bool interactionPoseLocked;
+        private Vector3 interactionPosition;
+        private Quaternion interactionRotation;
 
         private void Awake()
         {
@@ -57,6 +60,13 @@ namespace EnElCamino
             if (!Application.isPlaying)
             {
                 if (!built) BuildCharacterVisual();
+                return;
+            }
+
+            if (interactionPoseLocked)
+            {
+                transform.SetPositionAndRotation(interactionPosition, interactionRotation);
+                verticalVelocity = Vector3.zero;
                 return;
             }
 
@@ -148,6 +158,17 @@ namespace EnElCamino
         public void SetHanging(bool value) => hanging = value;
 
         public void SetFalling(bool value) => falling = value;
+
+        public void SetInteractionPoseLocked(bool locked)
+        {
+            interactionPoseLocked = locked;
+            if (!locked) return;
+
+            interactionPosition = transform.position;
+            interactionRotation = transform.rotation;
+            verticalVelocity = Vector3.zero;
+            walkPhase = 0f;
+        }
 
         private void AnimateBody()
         {

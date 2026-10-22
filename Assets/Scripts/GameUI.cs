@@ -149,12 +149,21 @@ namespace EnElCamino
             AudioListener.pause = false;
         }
 
-        private void RestartGame()
+        public void RestartGame()
         {
             paused = false;
             Time.timeScale = 1f;
             AudioListener.pause = false;
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+
+            Scene activeScene = SceneManager.GetActiveScene();
+            if (!string.IsNullOrEmpty(activeScene.path))
+            {
+                SceneManager.LoadScene(activeScene.path, LoadSceneMode.Single);
+                return;
+            }
+
+            if (activeScene.buildIndex >= 0)
+                SceneManager.LoadScene(activeScene.buildIndex, LoadSceneMode.Single);
         }
 
         private void ShowControls()

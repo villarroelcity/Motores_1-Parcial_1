@@ -105,6 +105,11 @@ namespace EnElCamino
                 return;
             }
 
+            foreach (Behaviour behaviour in vehicle.GetComponentsInChildren<Behaviour>(true))
+            {
+                behaviour.enabled = false;
+            }
+
             vehicle.name = "Trafico_" + (index + 1).ToString("00");
 
             TrafficVehicle trafficVehicle = vehicle.AddComponent<TrafficVehicle>();

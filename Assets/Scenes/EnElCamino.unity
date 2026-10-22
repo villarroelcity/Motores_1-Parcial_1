@@ -107265,8 +107265,8 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficManager
   vehiclePrefabs:
-  - {fileID: 100100000, guid: dec548cfbfb14ceb832d8bf5fb2d3c90, type: 3}
-  - {fileID: 100100000, guid: ed68862154c94c809a54216a29885b59, type: 3}
+  - {fileID: 100100000, guid: f7a352f52c0b4034a8e157c2e33e54c4, type: 3}
+  - {fileID: 100100000, guid: 4a383ea4a8bde554a81e12745897d28a, type: 3}
   road: {fileID: 899273846}
   spawnReference: {fileID: 1625979351}
   vehiclesPerDirection: 4

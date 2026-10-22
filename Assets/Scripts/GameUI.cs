@@ -43,6 +43,7 @@ namespace EnElCamino
         private Text controlsText;
         private bool paused;
         private GameObject outcomeRestartButton;
+        private float objectiveExpiresAt;
         private Vector2 rearViewPanelPosition = new Vector2(0f, -6f);
         private Vector2 pursuitDistancePanelPosition = new Vector2(0f, -655f);
 
@@ -89,6 +90,7 @@ namespace EnElCamino
             CreatePursuitDistancePanel();
             CreateRearViewMirror();
             ApplyResponsiveLayout();
+            HideObjective();
             SetGameplayVisible(false);
         }
 
@@ -265,6 +267,8 @@ namespace EnElCamino
             if (!Application.isPlaying) return;
             if (messageText != null && messageText.gameObject.activeSelf && Time.time >= messageExpiresAt)
                 messageText.gameObject.SetActive(false);
+            if (objectivePanel != null && objectivePanel.gameObject.activeSelf && Time.time >= objectiveExpiresAt)
+                HideObjective();
             UpdateRearViewCamera();
             if (lastScreenWidth == Screen.width && lastScreenHeight == Screen.height) return;
             ApplyResponsiveLayout();
@@ -276,6 +280,15 @@ namespace EnElCamino
             objectiveText.text = text;
             objectiveText.enabled = true;
             if (!objectiveText.gameObject.activeSelf) objectiveText.gameObject.SetActive(true);
+            if (objectivePanel != null && !objectivePanel.gameObject.activeSelf)
+                objectivePanel.gameObject.SetActive(true);
+            objectiveExpiresAt = Time.time + 10f;
+        }
+
+        public void HideObjective()
+        {
+            if (objectivePanel != null) objectivePanel.gameObject.SetActive(false);
+            else if (objectiveText != null) objectiveText.gameObject.SetActive(false);
         }
 
         public void HideCountdown()
@@ -696,7 +709,6 @@ namespace EnElCamino
                 panelRect.pivot = Vector2.one;
                 panelRect.anchoredPosition = new Vector2(-24f, -24f);
                 panelRect.sizeDelta = new Vector2(panelWidth, panelHeight);
-                panelRect.gameObject.SetActive(true);
             }
             if (objectiveText != null)
             {

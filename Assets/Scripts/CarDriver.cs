@@ -324,7 +324,7 @@ namespace EnElCamino
             if (gameFlow != null)
             {
                 gameFlow.movementLocked = false;
-                gameFlow.ShowMessage("El auto se quedo sin combustible. Acercate a la estacion abandonada.");
+                gameFlow.ShowInitialMission();
             }
             if (legacyCamera != null && player != null) legacyCamera.SetTarget(player.transform);
         }

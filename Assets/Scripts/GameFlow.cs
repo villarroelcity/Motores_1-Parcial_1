@@ -85,11 +85,6 @@ namespace EnElCamino
                 timerText.enabled = true;
                 if (!timerText.gameObject.activeSelf) timerText.gameObject.SetActive(true);
             }
-            if (gameUI != null)
-            {
-                gameUI.SetObjective("OBJETIVO 1/8\nSUBI AL TECHO Y BAJA POR EL HUECO\nAcercate al borde, colgate y descende lentamente al taller.");
-                gameUI.ShowMessage("El generador esta dentro del taller. Primero tenes que entrar por el techo.");
-            }
         }
 
         private void Update()
@@ -138,6 +133,14 @@ namespace EnElCamino
             startTime = Time.time;
             timeLeft = duration;
             if (gameUI != null) gameUI.SetGameplayVisible(true);
+        }
+
+        public void ShowInitialMission()
+        {
+            if (gameOver || finished || gameUI == null) return;
+
+            gameUI.SetObjective("OBJETIVO 1/8\nSUBI AL TECHO Y BAJA POR EL HUECO\nAcercate al borde, colgate y descende lentamente al taller.");
+            gameUI.ShowMessage("El auto se quedo sin combustible. Acercate a la estacion abandonada.");
         }
 
         private void UpdateDayTimer()

@@ -13,11 +13,11 @@
 
 ## High concept
 
-En un camino rural al anochecer, el auto se queda sin combustible frente a una estación abandonada. Para escapar, el jugador debe atravesar el taller, devolver energía a la estación y abastecer el vehículo antes de que oscurezca.
+El protagonista es un pirata del asfalto sospechado de robar el auto que conduce. En un camino rural al anochecer, se queda sin combustible frente a una estación abandonada. Debe resolver el recorrido del taller, devolver energía a la estación y abastecer el vehículo antes de que oscurezca. Al continuar por la ruta aparece una emboscada policial: la persecución es una sorpresa y el HUD no la anticipa.
 
 ## Bucle principal
 
-Llegada automática → exploración a pie → acceso al taller por el techo → generador → tablero eléctrico → portón → bidón → surtidor → vehículo → salida.
+Llegada con motor encendido → corte de combustible y conducción con el envión → exploración a pie → taller → generador → tablero eléctrico → portón → bidón → surtidor → vehículo → ruta → emboscada policial → escape.
 
 La secuencia es guiada por objetivos del HUD. Cada interacción valida el paso anterior para que no se pueda completar el recorrido en un orden accidental.
 
@@ -32,9 +32,13 @@ La secuencia es guiada por objetivos del HUD. Cada interacción valida el paso a
 | 5 | Recoger el bidón | Permite usar el surtidor |
 | 6 | Llenar el bidón | Combustible disponible para el auto |
 | 7 | Cargar y arrancar el auto | Habilita la conducción |
-| 8 | Llegar a la salida | Victoria |
+| 8 | Llegar a `SalidaAlCamino` | Oculta el reloj de anochecer y permite continuar conduciendo |
+| 9 | Pasar por la zona de emboscada | Inicia la persecución y su reloj de 60 segundos |
+| 10 | Sacar 200 metros de ventaja al patrullero | Victoria |
 
-Derrotas vigentes: agotar el tiempo general/noche, agotar el combustible del generador antes de resolver el taller y caer por el hueco del techo. El mensaje final se normaliza como `GAME OVER` y detiene la mezcla de audio antes de reproducir su feedback.
+Derrotas vigentes: agotar el tiempo hasta la ruta, agotar el generador antes de resolver el taller, una caída peligrosa, captura por contacto de la patrulla, agotar los 60 segundos de persecución y alcanzar el 100% de daño del auto. Victoria y derrota vuelven a estar habilitadas después de la prueba de grabación. `GAME OVER` detiene la partida y deja disponible `REINICIAR`.
+
+El generador tiene 30 segundos de combustible. Su cuenta interna continúa aunque se oculte el indicador tras llenar el bidón. Al agotarse se apagan el audio y la electricidad, sin desenchufar el cable. Alimenta también las luces exteriores. Al alcanzar la ruta desaparece el reloj de anochecer; el ciclo ambiental continúa sin saltar de golpe a la noche y sin causar derrota por ese reloj.
 
 ## Sistemas implementados
 
@@ -57,15 +61,27 @@ El ambiente exterior, generador, surtidor, portón, acciones del auto, música d
 
 ## IA — patrullero
 
-La amenaza elegida es un patrullero (`PatrulleroIA`) que permanece oculto hasta que el jugador supera los 60 km/h y atraviesa el trigger de persecución. No usa el controlador VPP del jugador: se mueve con un `Rigidbody` sencillo para evitar la limitación de la edición Community de Vehicle Physics Pro, que permite un solo vehículo VPP activo en la escena.
+La amenaza es `PatrulleroIA`, oculto junto a la ruta. La persecución se activa al atravesar su trigger, sin exigir superar una velocidad. La patrulla comienza a incorporarse al detectar al jugador aproximándose unos cuatro segundos antes; el trigger inicia el HUD y el reloj. La edición Community de VPP permite un solo vehículo VPP activo: ese controlador queda reservado al jugador. La patrulla usa cuatro `WheelCollider` de Unity, con dirección delantera, suspensión, torque y freno.
 
-Durante la persecución el patrullero sigue al auto del jugador, activa dos luces azules y una sirena espacial, actualiza la ventaja en el HUD y produce `GAME OVER` si alcanza al jugador, choca contra él o se agota el tiempo máximo de persecución. El jugador gana al mantener una distancia de 100 metros. El HUD incluye un indicador `VENTAJA` y un espejo retrovisor renderizado desde una cámara auxiliar.
+La IA compara corredores dentro de la calzada y predice hasta tres segundos el movimiento del tráfico. Ajusta velocidad según la distancia longitudinal con signo: si sobrepasa al jugador, frena en lugar de acelerar alejándose. Puede retroceder tras detenerse para recuperar la posición. Al salir el jugador al pasto, la patrulla conserva un objetivo dentro de la ruta y suaviza el cambio de carril. La aceleración, recuperación y evasión siguen pendientes de validación jugable; no se considera cerrada la IA.
 
-La IA y sus condiciones deben validarse en una prueba completa: superar el límite de velocidad, activar el trigger, comprobar sirena/luces, escapar y comprobar también la derrota por alcance o choque.
+Las balizas son dos cubos de malla guardados en la escena, `PatrulleroIA/BalizaIzquierda` y `BalizaDerecha`. Se pueden mover, rotar y escalar con el juego detenido. El código solo alterna sus luces y su emisión. La sirena es 3D, con volumen máximo hasta 8 m y atenuación lineal hasta silencio a 220 m.
+
+## Tráfico y conducción
+
+El tráfico empieza al recuperar el control tras cargar combustible. Usa carrocerías VPP de coupé y camioneta, colores distintos y circulación en ambos sentidos a unos 60 km/h. Los vehículos aparecen lejos, con intervalos y separaciones aleatorias. Son cuerpos dinámicos con movimiento recto; en esta ruta plana se limita su movimiento vertical para evitar que se apilen.
+
+El control de crucero considera otros vehículos y no el suelo. Un roce entre autos de tráfico provoca una pausa breve y permite retomar la marcha; un impacto del jugador desactiva su avance automático. Se desactivan los componentes VPP que estos autos no usan. La prevención de colas y choques secundarios debe verificarse nuevamente en juego.
+
+El jugador conserva las físicas y la dirección de VPP. La transmisión es automática: mantener abajo/S frena primero y luego selecciona reversa al detenerse; arriba/W vuelve a avanzar. El pasto reduce el agarre respecto del asfalto. Los faros originales permanecen encendidos y se complementan con haces de luz sobre el suelo.
+
+El daño del jugador se acumula por impactos normales a la carrocería superiores a 3 m/s; los apoyos en el suelo y pequeños roces no suman daño. Cada impacto suma aproximadamente 2 puntos por m/s sobre ese umbral, con máximo de 65 por evento y un intervalo mínimo de 0,35 s entre registros. A 100 puntos el vehículo queda destruido y termina la partida. El daño persiste al ocultarse su indicador.
 
 ## Interfaz y controles
 
-La UI usa uGUI y se adapta al tamaño de la pantalla. Incluye objetivos, mensajes, reloj de tarde a noche, combustible restante del generador, velocidad del vehículo durante la conducción, indicador `VENTAJA` y espejo retrovisor durante la persecución. El espejo y el indicador tienen previsualizaciones editables dentro del Canvas (`RearViewMirrorPanel` y `PursuitDistancePanel`) para poder acomodarlos visualmente en la vista Scene; al ejecutar se leen sus posiciones y se reemplazan por el HUD funcional. El espejo muestra solo la imagen, sin marco ni texto.
+La UI usa uGUI y se adapta al tamaño de la pantalla. Incluye objetivos durante un máximo de 10 segundos, mensajes breves, reloj de anochecer, combustible del generador, `VENTAJA` y espejo retrovisor. La primera misión aparece al bajar del auto. No muestra el cartel de velocidad, la telemetría, el título del juego ni avisos que revelen la emboscada. Los textos de gameplay no llevan tildes.
+
+El espejo muestra solo la imagen, sin marco ni texto. Las referencias temporales del editor se retiraron. `VENTAJA 0 / 200 m | TIEMPO 1:00` aparece en una sola línea roja, anclada abajo con margen para no recortarse. La barra `DANO` aparece solo al recibir un impacto y se oculta tras cinco segundos sin nuevos golpes, aunque su valor interno sigue acumulado.
 
 El menú solicitado contiene únicamente:
 
@@ -78,4 +94,8 @@ Los botones se crean en tiempo de ejecución con `EventSystem` e `InputSystemUII
 ## Criterios de entrega
 
 Quedan por producir y validar: build jugable, video de hasta cinco minutos, prueba final completa y documentación de testing actualizada. La lista operativa está en [Informe_Testing_EN_EL_CAMINO.md](Informe_Testing_EN_EL_CAMINO.md).
+
+## Actualización del 22–23 de octubre de 2026
+
+Se revisaron los commits existentes y los cambios pendientes de escena, conducción, tráfico, patrulla, HUD, iluminación e interacciones. La compilación de `Assembly-CSharp.csproj` pasa sin errores; siguen apareciendo advertencias de APIs obsoletas del paquete Nature Starter Kit. Esto verifica compilación, no sustituye la prueba completa de persecución, colisiones y audio en una build.
 

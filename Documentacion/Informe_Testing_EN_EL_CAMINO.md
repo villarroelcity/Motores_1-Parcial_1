@@ -25,14 +25,19 @@ Fecha: 20/10/2026. Rama: `parcial-2`. Esta revisión ordena la base del proyecto
 | Caída | Caer fuera de la bajada controlada | `GAME OVER`, audio global detenido | Pendiente |
 | Energía | Generador → tablero → interruptor | El portón sólo abre con energía y antes del fin del combustible | Pendiente |
 | Combustible | Bidón → surtidor → vehículo | Modelo del bidón acompaña al jugador sin flotar y habilita arrancar | Pendiente |
-| Salida | Conducir a `SalidaAlCamino` | Victoria, UI final y audio final sin sonidos residuales | Pendiente |
+| Salida | Conducir a `SalidaAlCamino` | Oculta el reloj; se sigue conduciendo sin anticipar la emboscada | Pendiente |
+| Persecución | Pasar el trigger, obtener 200 m de ventaja o agotar 60 s | Victoria por ventaja; derrota por captura o tiempo | Pendiente |
+| Daño | Chocar contra vehículos y obstáculos | Suma daño; barra visible 5 s tras cada golpe; derrota al llegar a 100% | Pendiente |
+| Sirena | Comparar sonido cerca, a 100 m y a más de 220 m | Volumen decreciente hasta silencio | Pendiente |
+| Balizas | Mover los dos cubos de la patrulla con el juego detenido | Posiciones conservadas al iniciar; destello sin recrear geometría | Pendiente |
+| Tráfico | Circular en ambos sentidos y provocar un roce entre NPC | Marcha normal; roce no genera detención permanente de ambos | Pendiente |
 | Tiempo | Dejar agotar el reloj | Atardecer a noche, `GAME OVER`, audio detenido | Pendiente |
 | Resolución | Probar 16:9 y una resolución menor | HUD sin recortes ni solapamientos | Pendiente |
 | Build | Compilar y ejecutar build Windows | Mismo flujo y audio que en editor | Pendiente |
 
 ## Riesgos conocidos
 
-- Falta integrar y probar la IA exigida por la consigna; no se considera cerrada.
+- La IA está integrada, pero su evasión, recuperación y conducción cuando el jugador sale al pasto siguen sin validación final.
 - La validación en una build Windows es obligatoria y todavía está pendiente.
 - Los paquetes comerciales deben estar instalados localmente antes de abrir la escena; ver la guía de instalación.
 
@@ -42,4 +47,8 @@ Fecha: 20/10/2026. Rama: `parcial-2`. Esta revisión ordena la base del proyecto
 - Video del recorrido completo, incluida una derrota y la victoria.
 - Build final con fecha/versionado.
 - Resultado de esta tabla actualizado con PASS/FAIL y correcciones aplicadas.
+
+## Revisión del 23/10/2026
+
+Se inspeccionó el video de 108 segundos `Desktop 2026.10.23 - 14.55.07.05.mp4`. Las observaciones del usuario sobre aceleración de la patrulla, pérdida de seguimiento, tráfico detenido y HUD motivaron cambios posteriores; ese video no valida la versión actual. La compilación externa de Unity mediante `dotnet build Assembly-CSharp.csproj` termina con 0 errores y 17 advertencias de APIs obsoletas de terceros. No se ejecutó Play ni una build para validar las últimas modificaciones de sirena y balizas. Los casos de la tabla continúan pendientes.
 

@@ -97,6 +97,7 @@ namespace EnElCamino
             if (candidate == exteriorLadder) return !gameFlow.insideGarage && exteriorLadder.CanClimb;
             if (candidate == fuelCan) return !fuelCan.IsTaken() && gameFlow.garageOpen;
             if (candidate == fuelPump) return gameFlow.hasFuelCan && !gameFlow.fuelCanFull;
+            if (candidate == car) return car.CanInteract;
             return true;
         }
 

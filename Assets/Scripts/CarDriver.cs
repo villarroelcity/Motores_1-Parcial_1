@@ -39,6 +39,40 @@ namespace EnElCamino
         private float brakeInput;
         private VPStandardInput nativeInput;
         private bool used;
+        private FieldInfo tireFrictionField;
+        private FieldInfo tireGripField;
+        private MethodInfo setupTireFrictionMethod;
+        private float originalTireGrip;
+        private bool originalTireGripSaved;
+        private readonly RaycastHit[] surfaceHits = new RaycastHit[16];
+        private static readonly Vector3[] grassProbeOffsets =
+        {
+            new Vector3(-0.65f, 0f, -1.25f), new Vector3(0.65f, 0f, -1.25f),
+            new Vector3(-0.65f, 0f, 1.25f), new Vector3(0.65f, 0f, 1.25f)
+        };
+        private const float GrassGripMultiplier = 0.45f;
+        private float damage;
+        private float nextDamageTime;
+        public float DamageHudUntil { get; private set; }
+        public float Damage => damage;
+
+        private void OnCollisionEnter(Collision collision)
+        {
+            if (!HasPlayerControl || gameFlow == null || gameFlow.gameOver || gameFlow.finished ||
+                vehicleBody == null || Time.time < nextDamageTime) return;
+            float impact = 0f;
+            foreach (ContactPoint contact in collision.contacts)
+            {
+                // Resting on the road and suspension loads do not damage the car.
+                if (Mathf.Abs(contact.normal.y) > 0.65f) continue;
+                impact = Mathf.Max(impact, Mathf.Abs(Vector3.Dot(collision.relativeVelocity, contact.normal)));
+            }
+            if (impact < 3f) return;
+            nextDamageTime = Time.time + 0.35f;
+            damage = Mathf.Min(100f, damage + Mathf.Clamp((impact - 3f) * 2f, 0f, 65f));
+            DamageHudUntil = Time.time + 5f;
+            if (damage >= 100f) gameFlow.GameOver("El auto quedo destruido.");
+        }
 
         private void SetNativeControls(bool enabled)
         {
@@ -67,7 +101,12 @@ namespace EnElCamino
             // Apply the same setting only when player control is handed over;
             // the scripted arrival keeps its own drive/coast behavior.
             if (enabled && vehicleController != null)
+            {
                 vehicleController.gearbox.type = Gearbox.Type.Automatic;
+                nativeInput.throttleAndBrakeMode = VPStandardInput.ThrottleAndBrakeMode.AutoForwardAndReverse;
+                nativeInput.brakeOnThrottleBackwards = true;
+                nativeInput.reverse = false;
+            }
 
             if (!enabled)
             {
@@ -147,6 +186,8 @@ namespace EnElCamino
         public bool IsReady => vehicleReady;
         public bool EngineRequested => engineRequested;
         public bool HasPlayerControl => driving || arrivalControl;
+        public bool CanInteract => vehicleReady &&
+            (used || gameFlow != null && gameFlow.fuelCanFull);
         public float SpeedKmh
         {
             get
@@ -187,22 +228,12 @@ namespace EnElCamino
 
         private void DisableVppTelemetry()
         {
-            foreach (MonoBehaviour component in GetComponentsInChildren<MonoBehaviour>(true))
-            {
-                if (component == null || component.GetType().Name != "VPTelemetry") continue;
-                FieldInfo field = component.GetType().GetField("showTelemetry", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                if (field != null && field.FieldType == typeof(bool)) field.SetValue(component, false);
-            }
+            VehicleLightUtility.DisableTelemetry(gameObject);
         }
 
         public void SetHeadLights(bool enabled)
         {
-            foreach (VPAudioExtras audio in GetComponentsInChildren<VPAudioExtras>(true))
-            {
-                FieldInfo field = audio.GetType().GetField("headLightsEnabled", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                if (field != null && field.FieldType == typeof(bool))
-                    field.SetValue(audio, enabled);
-            }
+            VehicleLightUtility.SetHeadlights(gameObject, enabled);
         }
 
         public string Prompt
@@ -213,7 +244,7 @@ namespace EnElCamino
                 if (used) return "[E] Subir al auto";
                 return gameFlow != null && gameFlow.fuelCanFull
                     ? "[E] Cargar tanque del auto"
-                    : "Falta llenar el bidon";
+                    : string.Empty;
             }
         }
 
@@ -226,10 +257,7 @@ namespace EnElCamino
                 return;
             }
             if (!gameFlow.fuelCanFull)
-            {
-                gameFlow.ShowMessage("Primero llena el bidon en el surtidor.");
                 return;
-            }
             used = true;
             gameFlow.FillCar();
             if (fuelCan != null) fuelCan.Use();
@@ -293,6 +321,7 @@ namespace EnElCamino
                     {
                         StopEngineAudio();
                         engineStopped = true;
+                        if (gameFlow != null) gameFlow.ShowFuelCutoffMessage();
                     }
                     if (fuel <= 0f && horizontal.magnitude <= 0.25f) break;
                     continue;
@@ -514,6 +543,7 @@ namespace EnElCamino
                         nativeInput.externalThrottle = 0f;
                         nativeInput.externalSteer = 0f;
                         nativeInput.externalBrake = 0f;
+                        nativeInput.externalHandbrake = 0f;
                         nativeInput.reverse = false;
                     }
                     return;
@@ -521,19 +551,18 @@ namespace EnElCamino
 
                 if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) steerInput = -1f;
                 if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) steerInput = 1f;
-                if (Keyboard.current.spaceKey.isPressed) brakeInput = 1f;
-
-                if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed)
-                    brakeInput = 1f;
 
                 if (nativeInput != null)
                 {
                     bool reverse = Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed;
                     bool forward = Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed;
                     nativeInput.externalSteer = steerInput;
-                    nativeInput.externalThrottle = forward || reverse ? 1f : 0f;
-                    nativeInput.externalBrake = brakeInput;
-                    nativeInput.reverse = reverse && !forward;
+                    // VPP brakes first, then selects R at rest while down/S
+                    // stays held. Do not send throttle and brake together.
+                    nativeInput.externalThrottle = forward && !reverse ? 1f : 0f;
+                    nativeInput.externalBrake = reverse && !forward ? 1f : 0f;
+                    nativeInput.externalHandbrake = Keyboard.current.spaceKey.isPressed ? 1f : 0f;
+                    nativeInput.reverse = false;
                     nativeInput.externalIgnition = engineRequested
                         ? Time.time < starterUntil ? VPStandardInput.IgnitionKey.Start : VPStandardInput.IgnitionKey.AccOn
                         : VPStandardInput.IgnitionKey.Off;
@@ -563,6 +592,8 @@ namespace EnElCamino
             if (vehicleController == null) return;
             if (!vehicleController.initialized)
                 return;
+
+            UpdateGripOnGrass();
 
             if (introEngine == null)
             {
@@ -617,6 +648,66 @@ namespace EnElCamino
             input[InputData.AutomaticGear] = driving || arrivalControl
                 ? (reversing ? 2 : 4)
                 : vehicleReady ? 1 : 4;
+        }
+
+        private void UpdateGripOnGrass()
+        {
+            if (tireFrictionField == null)
+                tireFrictionField = typeof(VPVehicleController).GetField("tireFriction",
+                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (tireFrictionField == null) return;
+
+            object tireFriction = tireFrictionField.GetValue(vehicleController);
+            if (tireFriction == null) return;
+            if (tireGripField == null)
+                tireGripField = tireFriction.GetType().GetField("frictionMultiplier",
+                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (tireGripField == null || tireGripField.FieldType != typeof(float)) return;
+            if (setupTireFrictionMethod == null)
+                setupTireFrictionMethod = tireFriction.GetType().GetMethod("SetupFrictionCurves",
+                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+            if (!originalTireGripSaved)
+            {
+                originalTireGrip = (float)tireGripField.GetValue(tireFriction);
+                originalTireGripSaved = true;
+            }
+
+            float targetGrip = originalTireGrip * (IsCarOverGrass() ? GrassGripMultiplier : 1f);
+            if (Mathf.Approximately((float)tireGripField.GetValue(tireFriction), targetGrip)) return;
+
+            tireGripField.SetValue(tireFriction, targetGrip);
+            if (setupTireFrictionMethod != null) setupTireFrictionMethod.Invoke(tireFriction, null);
+            tireFrictionField.SetValue(vehicleController, tireFriction);
+        }
+
+        private bool IsCarOverGrass()
+        {
+            if (gameFlow == null) return false;
+
+            foreach (Vector3 offset in grassProbeOffsets)
+            {
+                Vector3 origin = transform.TransformPoint(offset) + Vector3.up * 2.5f;
+                int hitCount = Physics.RaycastNonAlloc(origin, Vector3.down, surfaceHits, 6f,
+                    ~0, QueryTriggerInteraction.Ignore);
+                float nearestDistance = float.MaxValue;
+                Collider nearestCollider = null;
+
+                for (int i = 0; i < hitCount; i++)
+                {
+                    Collider collider = surfaceHits[i].collider;
+                    if (collider == null || collider.transform == transform || collider.transform.IsChildOf(transform))
+                        continue;
+                    if (surfaceHits[i].distance >= nearestDistance) continue;
+
+                    nearestDistance = surfaceHits[i].distance;
+                    nearestCollider = collider;
+                }
+
+                if (gameFlow.IsGrassSurface(nearestCollider)) return true;
+            }
+
+            return false;
         }
 
         public void StartEngineAudio(bool playStartSound)

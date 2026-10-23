@@ -33,6 +33,9 @@ Fecha: 20/10/2026. Rama: `parcial-2`. Esta revisión ordena la base del proyecto
 | Tráfico | Circular en ambos sentidos y provocar un roce entre NPC | Marcha normal; roce no genera detención permanente de ambos | Pendiente |
 | Tiempo inicial | Iniciar una partida nueva | El reloj comienza en 2:00; la persecución conserva su minuto propio | Pendiente |
 | Congelación por victoria | Sacar 200 m de ventaja | Se muestra la victoria y se congelan inmediatamente autos, física y cámara | Pendiente |
+| Tráfico reducido | Iniciar conducción y recorrer ambos carriles | Menor cantidad y mayor separación; base de 19 por sentido y 125 m | Pendiente |
+| Persecución fuera de ruta | Salir al pasto durante la persecución y regresar | Patrulla sigue fuera de calzada y luego retoma la ruta | Pendiente |
+| Irregularidad del pasto | Conducir sobre pasto despacio, rápido, y volver al asfalto | Sacudidas leves según velocidad; ninguna estando quieto, en el aire o en asfalto | Pendiente |
 | Tiempo | Dejar agotar el reloj | Atardecer a noche, `GAME OVER`, audio detenido | Pendiente |
 | Resolución | Probar 16:9 y una resolución menor | HUD sin recortes ni solapamientos | Pendiente |
 | Build | Compilar y ejecutar build Windows | Mismo flujo y audio que en editor | Pendiente |

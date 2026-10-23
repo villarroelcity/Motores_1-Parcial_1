@@ -17,15 +17,6 @@ Fecha: 20/10/2026. Rama: `parcial-2`. Esta revisión ordena la base del proyecto
 
 ## Prueba manual obligatoria antes de entregar
 
-### Comprobación en Play del 22/10/2026
-
-- Tráfico: ocho vehículos con velocidad positiva sobre Z y ocho con velocidad negativa.
-- Apoyo: distancia máxima entre la base del collider y la superficie de la ruta de 0,015 m.
-- Impacto controlado: el vehículo corta su aceleración y conserva un Rigidbody dinámico.
-- Espejo: producto escalar entre la dirección de su cámara y la del vehículo de -1 (mira hacia atrás).
-- Patrullero: desplazamiento máximo observado entre muestras de 0,552 m durante la incorporación, sin ajuste instantáneo al borde de la ruta.
-- Compilación correcta. La dificultad de evasión y la apariencia final del espejo requieren una prueba de conducción completa.
-
 | Caso | Pasos | Resultado esperado | Estado |
 | --- | --- | --- | --- |
 | Llegada | Ejecutar desde escena limpia | Auto llega encendido, pierde motor y el jugador aparece junto a él | Pendiente |

@@ -31,7 +31,7 @@ namespace EnElCamino
             {
                 if (gameFlow == null || !gameFlow.insideGarage) return "Interruptor del porton (desde adentro)";
                 if (!gameFlow.stationPowerConnected) return "Primero enchufa el generador a la caja electrica";
-                return switchedOn ? "[E] Apagar tecla / cerrar porton" : "[E] Encender tecla / abrir porton";
+                return switchedOn ? "[E] Cerrar porton" : "[E] Abrir porton";
             }
         }
 

@@ -41,14 +41,14 @@ namespace EnElCamino
 
         public string Prompt => gameFlow == null || !gameFlow.generatorOn
             ? "Primero encende el generador"
-            : gameFlow.stationPowerConnected ? "Generador conectado: estacion con energia" : "[E] Conectar generador a la caja electrica";
+            : gameFlow.stationPowerConnected ? "Switch encendido: estacion con energia" : "[E] Enciende la caja electrica";
 
         public void Interact()
         {
             if (gameFlow == null || gameFlow.gameOver || gameFlow.finished) return;
             if (!gameFlow.generatorOn)
             {
-                gameFlow.ShowMessage("Primero encende el generador del taller.");
+                gameFlow.ShowMessage("Primero encende el generador.");
                 return;
             }
             if (!gameFlow.insideGarage)

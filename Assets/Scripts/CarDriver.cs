@@ -51,6 +51,8 @@ namespace EnElCamino
             new Vector3(-0.65f, 0f, 1.25f), new Vector3(0.65f, 0f, 1.25f)
         };
         private const float GrassGripMultiplier = 0.45f;
+        private float grassBumpDistance;
+        private int grassBumpWheel;
         private float damage;
         private float nextDamageTime;
         public float DamageHudUntil { get; private set; }
@@ -594,6 +596,8 @@ namespace EnElCamino
                 return;
 
             UpdateGripOnGrass();
+            if (HasPlayerControl)
+                GrassDriving.ApplyBumps(vehicleBody, gameFlow, ref grassBumpDistance, ref grassBumpWheel);
 
             if (introEngine == null)
             {
@@ -751,6 +755,51 @@ namespace EnElCamino
                 if (entry.audioComponent != null && entry.clipField != null)
                     entry.clipField.SetValue(entry.audioComponent, entry.originalClip);
             }
+        }
+    }
+
+    // Shared physical roughness for the player and patrol, without another component.
+    internal static class GrassDriving
+    {
+        private static readonly RaycastHit[] hits = new RaycastHit[16];
+        private static readonly Vector3[] wheelOffsets =
+        {
+            new Vector3(-0.75f, 0f, 1.65f), new Vector3(0.75f, 0f, 1.65f),
+            new Vector3(-0.75f, 0f, -0.85f), new Vector3(0.75f, 0f, -0.85f)
+        };
+
+        public static void ApplyBumps(Rigidbody body, GameFlow flow, ref float distance, ref int nextWheel)
+        {
+            if (body == null || body.isKinematic || flow == null || flow.finished || flow.gameOver) return;
+            float speed = Vector3.ProjectOnPlane(body.linearVelocity, Vector3.up).magnitude;
+            if (speed < 3f) { distance = 0f; return; }
+            for (int probe = 0; probe < wheelOffsets.Length; probe++)
+            {
+                int wheel = (nextWheel + probe) % wheelOffsets.Length;
+                Vector3 point = body.transform.TransformPoint(wheelOffsets[wheel]);
+                int count = Physics.RaycastNonAlloc(point + Vector3.up * 0.6f, Vector3.down,
+                    hits, 0.9f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+                float nearest = float.PositiveInfinity;
+                RaycastHit ground = default;
+                for (int i = 0; i < count; i++)
+                {
+                    if (hits[i].collider.transform.IsChildOf(body.transform) || hits[i].distance >= nearest) continue;
+                    nearest = hits[i].distance;
+                    ground = hits[i];
+                }
+                if (ground.collider == null || ground.normal.y < 0.55f || !flow.IsGrassSurface(ground.collider)) continue;
+                distance += speed * Time.fixedDeltaTime;
+                float noise = Mathf.PerlinNoise(point.x * 0.3f + 50f, point.z * 0.3f + 50f);
+                float spacing = Mathf.Lerp(1.8f, 3.2f, noise);
+                if (distance < spacing) return;
+                distance -= spacing;
+                float kick = Mathf.Lerp(0.10f, 0.42f, Mathf.InverseLerp(3f, 30f, speed)) * Mathf.Lerp(0.6f, 1f, noise);
+                body.AddForceAtPosition(Vector3.up * (body.mass * kick), point, ForceMode.Impulse);
+                nextWheel = (wheel + 1) % wheelOffsets.Length;
+                return;
+            }
+            // No grass contact: do not carry a pending bump onto the asphalt.
+            distance = 0f;
         }
     }
 }

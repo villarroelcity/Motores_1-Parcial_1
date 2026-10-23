@@ -1,40 +1,45 @@
 using UnityEngine;
+using System.Collections;
 
 namespace EnElCamino
 {
     /// <summary>
-    /// Genera vehiculos visuales de Vehicle Physics Pro en ambos sentidos.
-    /// No usa sus controles ni sus fisicas: solo los mueve recto a velocidad constante.
+    /// Crea trafico de los prefabs incluidos con VPP cuando el jugador empieza a conducir.
     /// </summary>
     public class TrafficManager : MonoBehaviour
     {
-        [SerializeField] private GameObject trafficSourceVehicle;
+        [SerializeField] private GameObject[] trafficVehiclePrefabs;
         [SerializeField] private GameFlow gameFlow;
         [SerializeField] private Transform road;
         [SerializeField] private Transform spawnReference;
-        [SerializeField] private int trafficVehiclesPerDirection = 8;
+        [SerializeField] private int trafficVehiclesPerDirection = 24;
+        [SerializeField] private int initialTrafficPerDirection = 5;
         [SerializeField] private float speedKmh = 60f;
         [SerializeField] private float laneOffset = 1.5f;
-        [SerializeField] private float trafficSpacing = 90f;
-        [SerializeField] private float firstSpawnDistance = 160f;
+        [SerializeField] private float trafficSpacing = 100f;
+        [SerializeField] private float firstSpawnDistance = 420f;
+        [SerializeField] private float oncomingStartDistance = 650f;
+        [SerializeField] private float trafficSpawnDistance = 700f;
+        [SerializeField] private float spawnIntervalMin = 4f;
+        [SerializeField] private float spawnIntervalMax = 7f;
         [SerializeField] private float routePadding = 40f;
-        [SerializeField] private float vehicleHeight = 0.55f;
 
         private const float MetersPerKilometer = 1000f;
         private const float SecondsPerHour = 3600f;
-        private const int MinimumTrafficVehiclesPerDirection = 8;
         private float minZ;
         private float maxZ;
-        private float height;
+        private float roadSurfaceY;
         private float centerX;
         private float startZ;
         private float speedMetersPerSecond;
         private int nextVehicleIndex;
         private bool trafficSpawned;
+        private CarDriver playerCar;
 
         private void Start()
         {
             if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
+            playerCar = FindFirstObjectByType<CarDriver>();
 
             if (road == null)
             {
@@ -42,22 +47,17 @@ namespace EnElCamino
                 if (roadObject != null) road = roadObject.transform;
             }
 
-            if (spawnReference == null)
+            if (playerCar != null)
+                spawnReference = playerCar.transform;
+            else if (spawnReference == null)
             {
                 GameObject referenceObject = GameObject.Find("AutoEntradaRuta");
                 if (referenceObject != null) spawnReference = referenceObject.transform;
             }
 
-            if (trafficSourceVehicle == null)
+            if (road == null || trafficVehiclePrefabs == null || trafficVehiclePrefabs.Length == 0)
             {
-                trafficSourceVehicle = GameObject.Find("VehiculoConRuedas");
-                if (trafficSourceVehicle == null) trafficSourceVehicle = GameObject.Find("VehiculoJugador");
-                if (trafficSourceVehicle == null) trafficSourceVehicle = GameObject.Find("PatrulleroIA");
-            }
-
-            if (road == null || trafficSourceVehicle == null)
-            {
-                Debug.LogWarning("TrafficManager necesita la ruta y un vehiculo VPP en la escena.", this);
+                Debug.LogWarning("TrafficManager necesita la ruta y los prefabs Traffic de VPP.", this);
                 return;
             }
 
@@ -72,10 +72,10 @@ namespace EnElCamino
                 maxZ = road.position.z + 5000f;
             }
 
-            speedMetersPerSecond = speedKmh * MetersPerKilometer / SecondsPerHour;
+            roadSurfaceY = roadBounds.max.y;
             centerX = road.position.x;
             startZ = Mathf.Clamp(spawnReference.position.z + firstSpawnDistance, minZ, maxZ);
-            height = road.position.y + vehicleHeight;
+            speedMetersPerSecond = speedKmh * MetersPerKilometer / SecondsPerHour;
 
             if (gameFlow != null)
             {
@@ -86,7 +86,8 @@ namespace EnElCamino
 
         private void OnDestroy()
         {
-            if (gameFlow != null) gameFlow.DrivingStarted -= SpawnDrivingTraffic;
+            if (gameFlow == null) return;
+            gameFlow.DrivingStarted -= SpawnDrivingTraffic;
         }
 
         private void SpawnDrivingTraffic()
@@ -94,19 +95,61 @@ namespace EnElCamino
             if (trafficSpawned) return;
             trafficSpawned = true;
 
-            int vehicles = Mathf.Max(trafficVehiclesPerDirection, MinimumTrafficVehiclesPerDirection);
-            SpawnTraffic(vehicles, trafficSpacing, 0f);
+            if (playerCar == null) playerCar = FindFirstObjectByType<CarDriver>();
+            float trafficOriginZ = playerCar != null
+                ? playerCar.transform.position.z
+                : spawnReference != null ? spawnReference.position.z : startZ;
+            startZ = Mathf.Clamp(trafficOriginZ + firstSpawnDistance, minZ, maxZ);
+
+            int configuredCount = Mathf.Clamp(trafficVehiclesPerDirection, 8, 32);
+            int variation = Mathf.Max(1, configuredCount / 6);
+            int totalVehicles = Random.Range(Mathf.Max(8, configuredCount - variation),
+                Mathf.Min(33, configuredCount + variation + 1));
+            int initialCount = Mathf.Min(totalVehicles,
+                Mathf.Clamp(initialTrafficPerDirection, 3, 8));
+            float sameDirectionDistance = Random.Range(0f, trafficSpacing * 0.35f);
+            float oncomingDistance = Random.Range(oncomingStartDistance * 0.85f,
+                oncomingStartDistance * 1.15f);
+
+            for (int i = 0; i < initialCount; i++)
+            {
+                float sameDirectionZ = WrapZ(startZ + sameDirectionDistance, minZ, maxZ);
+                float oncomingZ = WrapZ(trafficOriginZ + oncomingDistance, minZ, maxZ);
+
+                SpawnVehicle(centerX + laneOffset, sameDirectionZ, Vector3.forward,
+                    Random.Range(0, trafficVehiclePrefabs.Length));
+                SpawnVehicle(centerX - laneOffset, oncomingZ, Vector3.back,
+                    Random.Range(0, trafficVehiclePrefabs.Length));
+
+                sameDirectionDistance += Random.Range(0.8f, 1.35f) * trafficSpacing;
+                oncomingDistance += Random.Range(0.8f, 1.35f) * trafficSpacing;
+            }
+
+            StartCoroutine(SpawnRemainingTraffic(totalVehicles - initialCount));
         }
 
-        private void SpawnTraffic(int vehiclesPerDirectionToSpawn, float vehicleSpacing, float startOffset)
+        private IEnumerator SpawnRemainingTraffic(int remaining)
         {
-            for (int i = 0; i < vehiclesPerDirectionToSpawn; i++)
+            while (remaining > 0)
             {
-                float z = startZ + startOffset + i * vehicleSpacing;
-                SpawnVehicle(nextVehicleIndex++, centerX + laneOffset, z, Vector3.forward,
-                    speedMetersPerSecond, minZ, maxZ, height);
-                SpawnVehicle(nextVehicleIndex++, centerX - laneOffset, z, -Vector3.forward,
-                    speedMetersPerSecond, minZ, maxZ, height);
+                if (gameFlow != null && (gameFlow.gameOver || gameFlow.finished)) yield break;
+                yield return new WaitForSeconds(Random.Range(spawnIntervalMin, spawnIntervalMax));
+                if (gameFlow != null && (gameFlow.gameOver || gameFlow.finished)) yield break;
+
+                if (playerCar == null) playerCar = FindFirstObjectByType<CarDriver>();
+                float playerZ = playerCar != null
+                    ? playerCar.transform.position.z
+                    : spawnReference != null ? spawnReference.position.z : startZ;
+                float sameDirectionZ = WrapZ(playerZ + Random.Range(trafficSpawnDistance * 0.75f,
+                    trafficSpawnDistance * 0.9f), minZ, maxZ);
+                float oncomingZ = WrapZ(playerZ + Random.Range(trafficSpawnDistance * 1.0f,
+                    trafficSpawnDistance * 1.2f), minZ, maxZ);
+
+                SpawnVehicle(centerX + laneOffset, sameDirectionZ, Vector3.forward,
+                    Random.Range(0, trafficVehiclePrefabs.Length));
+                SpawnVehicle(centerX - laneOffset, oncomingZ, Vector3.back,
+                    Random.Range(0, trafficVehiclePrefabs.Length));
+                remaining--;
             }
         }
 
@@ -114,65 +157,96 @@ namespace EnElCamino
         {
             Renderer roadRenderer = road.GetComponent<Renderer>();
             if (roadRenderer != null) return roadRenderer.bounds;
+
+            Collider roadCollider = road.GetComponent<Collider>();
+            if (roadCollider != null) return roadCollider.bounds;
+
             return new Bounds(road.position, new Vector3(10f, 1f, 10000f));
         }
 
-        private void SpawnVehicle(int index, float x, float z, Vector3 direction,
-            float speedMetersPerSecond, float minZ, float maxZ, float height)
+        private void SpawnVehicle(float x, float z, Vector3 direction, int modelIndex)
         {
-            Vector3 position = new Vector3(x, height, WrapZ(z, minZ, maxZ));
-            GameObject vehicle = CreateVisualVehicle(position,
-                Quaternion.LookRotation(direction, Vector3.up), index);
-
-            if (vehicle == null)
+            GameObject prefab = trafficVehiclePrefabs[modelIndex % trafficVehiclePrefabs.Length];
+            if (prefab == null)
             {
-                Debug.LogError("El vehiculo VPP no tiene mallas visibles para el trafico.", this);
+                nextVehicleIndex++;
                 return;
             }
 
-            foreach (Behaviour behaviour in vehicle.GetComponentsInChildren<Behaviour>(true))
+            Quaternion rotation = Quaternion.LookRotation(direction, Vector3.up);
+            GameObject vehicle = Instantiate(prefab, new Vector3(x, roadSurfaceY, z), rotation, transform);
+            vehicle.name = "TraficoVPP_" + nextVehicleIndex.ToString("00");
+
+            Bounds visualBounds = GetRendererBounds(vehicle);
+            float groundRootY = roadSurfaceY - visualBounds.min.y + 0.025f;
+            vehicle.transform.position += Vector3.up * (groundRootY - vehicle.transform.position.y);
+
+            Bounds localBounds = GetLocalRendererBounds(vehicle);
+            Rigidbody body = vehicle.GetComponent<Rigidbody>();
+            if (body == null) body = vehicle.AddComponent<Rigidbody>();
+
+            foreach (Collider collider in vehicle.GetComponentsInChildren<Collider>(true))
             {
-                behaviour.enabled = false;
+                if (collider != null && !collider.isTrigger) collider.enabled = false;
             }
 
-            AddTrafficCollision(vehicle);
-            TrafficVehicle trafficVehicle = vehicle.AddComponent<TrafficVehicle>();
-            trafficVehicle.Configure(direction, speedMetersPerSecond, minZ, maxZ, height, FindWheels(vehicle));
-        }
-
-        private void AddTrafficCollision(GameObject vehicle)
-        {
             BoxCollider boxCollider = vehicle.AddComponent<BoxCollider>();
-            Bounds bounds = GetLocalBounds(vehicle);
-            boxCollider.center = bounds.center;
-            boxCollider.size = bounds.size;
+            boxCollider.size = new Vector3(Mathf.Max(0.8f, localBounds.size.x * 0.88f),
+                Mathf.Max(0.55f, localBounds.size.y * 0.58f),
+                Mathf.Max(1.8f, localBounds.size.z * 0.84f));
+            boxCollider.center = new Vector3(localBounds.center.x,
+                localBounds.min.y + boxCollider.size.y * 0.55f,
+                localBounds.center.z);
+            boxCollider.sharedMaterial = TrafficVehicle.GetNoBounceMaterial();
 
-            Rigidbody rigidbody = vehicle.AddComponent<Rigidbody>();
-            rigidbody.isKinematic = true;
-            rigidbody.useGravity = false;
-            rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+            body.isKinematic = false;
+            body.useGravity = true;
+            body.interpolation = RigidbodyInterpolation.Interpolate;
+            body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            body.mass = Mathf.Max(body.mass, 1000f);
+            body.maxDepenetrationVelocity = 2.5f;
+            body.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+            body.centerOfMass = new Vector3(localBounds.center.x,
+                localBounds.min.y + localBounds.size.y * 0.28f,
+                localBounds.center.z);
+
+            ApplyTrafficColor(vehicle, nextVehicleIndex);
+            TrafficVehicle trafficVehicle = vehicle.AddComponent<TrafficVehicle>();
+            trafficVehicle.Configure(direction, speedMetersPerSecond, minZ, maxZ,
+                roadSurfaceY, groundRootY, x, FindWheels(vehicle));
+            trafficVehicle.SetHeadlights(true);
+            nextVehicleIndex++;
         }
 
-        private Bounds GetLocalBounds(GameObject vehicle)
+        private static Bounds GetRendererBounds(GameObject vehicle)
         {
             Renderer[] renderers = vehicle.GetComponentsInChildren<Renderer>(true);
-            if (renderers.Length == 0) return new Bounds(Vector3.zero, Vector3.one);
+            if (renderers.Length == 0) return new Bounds(vehicle.transform.position, Vector3.one);
 
+            Bounds bounds = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
+            return bounds;
+        }
+
+        private static Bounds GetLocalRendererBounds(GameObject vehicle)
+        {
+            Renderer[] renderers = vehicle.GetComponentsInChildren<Renderer>(true);
             bool hasBounds = false;
-            Bounds localBounds = new Bounds(Vector3.zero, Vector3.zero);
+            Bounds result = new Bounds(Vector3.zero, Vector3.zero);
+
             foreach (Renderer renderer in renderers)
             {
-                Bounds worldBounds = renderer.bounds;
+                Bounds bounds = renderer.bounds;
                 Vector3[] corners =
                 {
-                    new Vector3(worldBounds.min.x, worldBounds.min.y, worldBounds.min.z),
-                    new Vector3(worldBounds.min.x, worldBounds.min.y, worldBounds.max.z),
-                    new Vector3(worldBounds.min.x, worldBounds.max.y, worldBounds.min.z),
-                    new Vector3(worldBounds.min.x, worldBounds.max.y, worldBounds.max.z),
-                    new Vector3(worldBounds.max.x, worldBounds.min.y, worldBounds.min.z),
-                    new Vector3(worldBounds.max.x, worldBounds.min.y, worldBounds.max.z),
-                    new Vector3(worldBounds.max.x, worldBounds.max.y, worldBounds.min.z),
-                    new Vector3(worldBounds.max.x, worldBounds.max.y, worldBounds.max.z)
+                    new Vector3(bounds.min.x, bounds.min.y, bounds.min.z),
+                    new Vector3(bounds.min.x, bounds.min.y, bounds.max.z),
+                    new Vector3(bounds.min.x, bounds.max.y, bounds.min.z),
+                    new Vector3(bounds.min.x, bounds.max.y, bounds.max.z),
+                    new Vector3(bounds.max.x, bounds.min.y, bounds.min.z),
+                    new Vector3(bounds.max.x, bounds.min.y, bounds.max.z),
+                    new Vector3(bounds.max.x, bounds.max.y, bounds.min.z),
+                    new Vector3(bounds.max.x, bounds.max.y, bounds.max.z)
                 };
 
                 foreach (Vector3 corner in corners)
@@ -180,101 +254,31 @@ namespace EnElCamino
                     Vector3 localCorner = vehicle.transform.InverseTransformPoint(corner);
                     if (!hasBounds)
                     {
-                        localBounds = new Bounds(localCorner, Vector3.zero);
+                        result = new Bounds(localCorner, Vector3.zero);
                         hasBounds = true;
                     }
-                    else
-                    {
-                        localBounds.Encapsulate(localCorner);
-                    }
+                    else result.Encapsulate(localCorner);
                 }
             }
 
-            return hasBounds ? localBounds : new Bounds(Vector3.zero, Vector3.one);
+            return hasBounds ? result : new Bounds(Vector3.zero, Vector3.one);
         }
 
-        private GameObject CreateVisualVehicle(Vector3 position, Quaternion rotation, int index)
+        private static Transform[] FindWheels(GameObject vehicle)
         {
-            GameObject vehicle = new GameObject("TraficoVPP_" + (index + 1).ToString("00"));
-            vehicle.transform.SetParent(transform, false);
-            vehicle.transform.SetPositionAndRotation(position, rotation);
-
-            Transform sourceRoot = trafficSourceVehicle.transform;
-            Vector3 sourceRootScale = sourceRoot.lossyScale;
-            Renderer[] sourceRenderers = trafficSourceVehicle.GetComponentsInChildren<Renderer>(true);
-            if (sourceRenderers.Length == 0)
+            Transform[] wheels = new Transform[4];
+            int count = 0;
+            foreach (Transform item in vehicle.GetComponentsInChildren<Transform>(true))
             {
-                Destroy(vehicle);
-                return null;
+                string name = item.name.Replace("_", "").ToLowerInvariant();
+                if (name != "wheelfl" && name != "wheelfr" && name != "wheelrl" && name != "wheelrr")
+                    continue;
+                if (count < wheels.Length) wheels[count++] = item;
             }
-
-            foreach (Renderer sourceRenderer in sourceRenderers)
-            {
-                GameObject part = CreateRendererCopy(sourceRenderer);
-                if (part == null) continue;
-
-                part.transform.SetParent(vehicle.transform, false);
-                part.transform.localPosition = sourceRoot.InverseTransformPoint(sourceRenderer.transform.position);
-                part.transform.localRotation = Quaternion.Inverse(sourceRoot.rotation) * sourceRenderer.transform.rotation;
-                part.transform.localScale = DivideScale(sourceRenderer.transform.lossyScale, sourceRootScale);
-            }
-
-            ApplyTrafficColor(vehicle, index);
-            return vehicle;
+            return wheels;
         }
 
-        private GameObject CreateRendererCopy(Renderer sourceRenderer)
-        {
-            GameObject part = new GameObject(sourceRenderer.gameObject.name);
-            part.SetActive(sourceRenderer.gameObject.activeSelf);
-
-            MeshFilter sourceMeshFilter = sourceRenderer.GetComponent<MeshFilter>();
-            MeshRenderer sourceMeshRenderer = sourceRenderer as MeshRenderer;
-            if (sourceMeshRenderer != null && sourceMeshFilter != null)
-            {
-                MeshFilter meshFilter = part.AddComponent<MeshFilter>();
-                meshFilter.sharedMesh = sourceMeshFilter.sharedMesh;
-                MeshRenderer meshRenderer = part.AddComponent<MeshRenderer>();
-                CopyRendererSettings(sourceMeshRenderer, meshRenderer);
-                meshRenderer.sharedMaterials = sourceMeshRenderer.sharedMaterials;
-                return part;
-            }
-
-            SkinnedMeshRenderer sourceSkinnedRenderer = sourceRenderer as SkinnedMeshRenderer;
-            if (sourceSkinnedRenderer != null)
-            {
-                SkinnedMeshRenderer skinnedRenderer = part.AddComponent<SkinnedMeshRenderer>();
-                CopyRendererSettings(sourceSkinnedRenderer, skinnedRenderer);
-                skinnedRenderer.sharedMesh = sourceSkinnedRenderer.sharedMesh;
-                skinnedRenderer.sharedMaterials = sourceSkinnedRenderer.sharedMaterials;
-                skinnedRenderer.localBounds = sourceSkinnedRenderer.localBounds;
-                skinnedRenderer.updateWhenOffscreen = sourceSkinnedRenderer.updateWhenOffscreen;
-                return part;
-            }
-
-            Destroy(part);
-            return null;
-        }
-
-        private void CopyRendererSettings(Renderer source, Renderer target)
-        {
-            target.enabled = source.enabled;
-            target.shadowCastingMode = source.shadowCastingMode;
-            target.receiveShadows = source.receiveShadows;
-            target.lightProbeUsage = source.lightProbeUsage;
-            target.reflectionProbeUsage = source.reflectionProbeUsage;
-            target.motionVectorGenerationMode = source.motionVectorGenerationMode;
-        }
-
-        private Vector3 DivideScale(Vector3 value, Vector3 divisor)
-        {
-            return new Vector3(
-                divisor.x == 0f ? value.x : value.x / divisor.x,
-                divisor.y == 0f ? value.y : value.y / divisor.y,
-                divisor.z == 0f ? value.z : value.z / divisor.z);
-        }
-
-        private void ApplyTrafficColor(GameObject vehicle, int index)
+        private static void ApplyTrafficColor(GameObject vehicle, int index)
         {
             Color[] colors =
             {
@@ -287,39 +291,23 @@ namespace EnElCamino
 
             foreach (Renderer renderer in vehicle.GetComponentsInChildren<Renderer>(true))
             {
-                string rendererName = renderer.name.ToLowerInvariant();
-                if (rendererName.Contains("wheel") || rendererName.Contains("tire") ||
-                    rendererName.Contains("glass") || rendererName.Contains("window"))
+                Material[] materials = renderer.materials;
+                for (int i = 0; i < materials.Length; i++)
                 {
-                    continue;
+                    Material material = materials[i];
+                    if (material == null || !material.name.ToLowerInvariant().Contains("paint")) continue;
+                    if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", color);
+                    else if (material.HasProperty("_Color")) material.color = color;
                 }
-
-                Material material = renderer.material;
-                if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", color);
-                else if (material.HasProperty("_Color")) material.color = color;
             }
         }
 
-        private Transform[] FindWheels(GameObject vehicle)
+        private static float WrapZ(float value, float lower, float upper)
         {
-            Transform[] found = new Transform[4];
-            int count = 0;
-            foreach (Transform child in vehicle.GetComponentsInChildren<Transform>(true))
-            {
-                string childName = child.name.ToLowerInvariant();
-                if (!childName.Contains("wheel")) continue;
-                if (count >= found.Length) break;
-                found[count++] = child;
-            }
-            return found;
-        }
-
-        private float WrapZ(float value, float minZ, float maxZ)
-        {
-            float length = maxZ - minZ;
-            if (length <= 0f) return minZ;
-            while (value > maxZ) value -= length;
-            while (value < minZ) value += length;
+            float length = upper - lower;
+            if (length <= 0f) return lower;
+            while (value > upper) value -= length;
+            while (value < lower) value += length;
             return value;
         }
     }

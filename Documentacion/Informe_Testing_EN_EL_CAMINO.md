@@ -36,6 +36,7 @@ Fecha: 20/10/2026. Rama: `parcial-2`. Esta revisión ordena la base del proyecto
 | Tráfico reducido | Iniciar conducción y recorrer ambos carriles | Menor cantidad y mayor separación; base de 19 por sentido y 125 m | Pendiente |
 | Persecución fuera de ruta | Salir al pasto durante la persecución y regresar | Patrulla sigue fuera de calzada y luego retoma la ruta | Pendiente |
 | Irregularidad del pasto | Conducir sobre pasto despacio, rápido, y volver al asfalto | Sacudidas leves según velocidad; ninguna estando quieto, en el aire o en asfalto | Pendiente |
+| Empalmes de Camino | Recorrer los dos codos entre la ruta y la estación | Malla continua, sin caras solapadas, huecos ni cajas de colisión sobrantes | Pendiente |
 | Tiempo | Dejar agotar el reloj | Atardecer a noche, `GAME OVER`, audio detenido | Pendiente |
 | Resolución | Probar 16:9 y una resolución menor | HUD sin recortes ni solapamientos | Pendiente |
 | Build | Compilar y ejecutar build Windows | Mismo flujo y audio que en editor | Pendiente |

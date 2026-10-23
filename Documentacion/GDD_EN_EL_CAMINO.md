@@ -52,6 +52,7 @@ El tiempo inicial hasta alcanzar la ruta es de **120 segundos (dos minutos)**. E
 - Ciclo tarde–noche con Enviro 3, iluminación y audio ambiental/espacial.
 - Audio por mixer, efectos de interacción, motor VPP, música adaptativa y silenciamiento al finalizar.
 - Físicas, colliders, triggers, cajas físicas y partículas de feedback.
+- Acceso de la estación reunido en `Camino`: los antiguos `Camino (2)` y `Camino (3)` se unen al tramo central mediante cortes diagonales. La malla estática `Camino_Unido` conserva el material y los extremos hacia la ruta, con un `MeshCollider` coincidente y sin cajas de colisión superpuestas.
 
 ## Dirección visual y sonora
 

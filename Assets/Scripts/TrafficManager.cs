@@ -12,11 +12,11 @@ namespace EnElCamino
         [SerializeField] private GameFlow gameFlow;
         [SerializeField] private Transform road;
         [SerializeField] private Transform spawnReference;
-        [SerializeField] private int trafficVehiclesPerDirection = 24;
-        [SerializeField] private int initialTrafficPerDirection = 5;
+        [SerializeField] private int trafficVehiclesPerDirection = 19;
+        [SerializeField] private int initialTrafficPerDirection = 4;
         [SerializeField] private float speedKmh = 60f;
         [SerializeField] private float laneOffset = 1.5f;
-        [SerializeField] private float trafficSpacing = 100f;
+        [SerializeField] private float trafficSpacing = 125f;
         [SerializeField] private float firstSpawnDistance = 420f;
         [SerializeField] private float oncomingStartDistance = 650f;
         [SerializeField] private float trafficSpawnDistance = 700f;

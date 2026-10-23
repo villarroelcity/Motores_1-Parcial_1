@@ -107025,11 +107025,11 @@ MonoBehaviour:
   gameFlow: {fileID: 0}
   road: {fileID: 899273846}
   spawnReference: {fileID: 1625979351}
-  trafficVehiclesPerDirection: 24
-  initialTrafficPerDirection: 5
+  trafficVehiclesPerDirection: 19
+  initialTrafficPerDirection: 4
   speedKmh: 60
   laneOffset: 1.5
-  trafficSpacing: 100
+  trafficSpacing: 125
   firstSpawnDistance: 420
   oncomingStartDistance: 650
   trafficSpawnDistance: 700

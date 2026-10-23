@@ -604,7 +604,7 @@ MonoBehaviour:
   streetLightsRoot: {fileID: 0}
   sun: {fileID: 1532110263}
   timerText: {fileID: 2134242396}
-  duration: 180
+  duration: 120
   pursuitDurationSeconds: 60
   skyboxMaterial: {fileID: 0}
   controlLegacyLighting: 0

@@ -442,7 +442,7 @@ namespace EnElCamino
             AudioListener.pause = true;
             CreateOutcomePanel();
             if (finalText != null)
-                finalText.text = string.IsNullOrEmpty(reason) ? "GAME OVER" : "GAME OVER\n" + reason;
+                finalText.text = "GAME OVER";
             PrepareOutcomeForInput();
             if (completedPanel != null) completedPanel.SetActive(true);
             if (outcomeRestartButton != null)

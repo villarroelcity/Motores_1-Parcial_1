@@ -66,6 +66,8 @@ La amenaza es `PatrulleroIA`, oculto junto a la ruta. La persecución se activa 
 
 La IA compara corredores y predice hasta tres segundos el movimiento del tráfico. Ajusta velocidad según la distancia longitudinal con signo: si sobrepasa al jugador, frena en lugar de acelerar alejándose. Puede retroceder tras detenerse para recuperar la posición. Si el jugador sale al pasto, amplía la búsqueda fuera de la calzada y apunta hacia su posición prevista, evitando el límite que antes la retenía sobre el asfalto. Vuelve al comportamiento de ruta cuando ambos vehículos regresan a ella. La aceleración, recuperación y evasión siguen pendientes de validación jugable; no se considera cerrada la IA.
 
+Para rodear tráfico lento o detenido, la predicción parte de la velocidad actual y simula giro delantero y aceleración, en lugar de suponer 12 m/s desde reposo. Evalúa ambos costados y las banquinas, busca completar el cambio lateral antes del obstáculo y mantiene ese espacio hasta haberlo rebasado. A baja velocidad limita la aceleración durante la maniobra; si está demasiado cerca, intenta retroceder solo cuando el sensor trasero deja espacio. Al acercarse a un jugador detenido considera también la separación lateral, no solo la longitudinal. El alcance de detección contempla la velocidad relativa del tráfico de frente.
+
 Las balizas son dos cubos de malla guardados en la escena, `PatrulleroIA/BalizaIzquierda` y `BalizaDerecha`. Se pueden mover, rotar y escalar con el juego detenido. El código solo alterna sus luces y su emisión. La sirena es 3D, con volumen máximo hasta 8 m y atenuación lineal hasta silencio a 220 m.
 
 ## Tráfico y conducción
@@ -77,6 +79,8 @@ El control de crucero considera otros vehículos y no el suelo. Un roce entre au
 El jugador conserva las físicas y la dirección de VPP. La transmisión es automática: mantener abajo/S frena primero y luego selecciona reversa al detenerse; arriba/W vuelve a avanzar. El pasto reduce el agarre respecto del asfalto y aplica pequeños impulsos verticales alternados cerca de las ruedas para representar irregularidades. Los impulsos aumentan con la velocidad, requieren contacto real con el pasto y se suspenden al quedar en el aire o volver al asfalto. La patrulla comparte esa irregularidad y pierde adherencia lateral fuera de la ruta. Los faros originales permanecen encendidos y se complementan con haces de luz sobre el suelo.
 
 El daño del jugador se acumula por impactos normales a la carrocería superiores a 3 m/s; los apoyos en el suelo y pequeños roces no suman daño. Cada impacto suma aproximadamente 2 puntos por m/s sobre ese umbral, con máximo de 65 por evento y un intervalo mínimo de 0,35 s entre registros. A 100 puntos el vehículo queda destruido y termina la partida. El daño persiste al ocultarse su indicador.
+
+Si VPP cala el motor durante la conducción, el puente solicita un nuevo arranque nativo tras confirmar el estado durante 0,35 s. Solo puede hacerlo con combustible, motor solicitado, daño menor a 100 y partida activa. Conserva la dirección, transmisión y física del asset; no reinicializa el controlador ni fuerza las RPM. La secuencia inicial sin combustible no usa esta recuperación.
 
 ## Interfaz y controles
 
@@ -90,7 +94,7 @@ El menú solicitado contiene únicamente:
 - Reinicio de partida con el botón `REINICIAR` o la tecla `R`.
 - Pantalla de `CONTROLES`.
 
-Los botones se crean en tiempo de ejecución con `EventSystem` e `InputSystemUIInputModule`. Al producirse cualquier `GAME OVER` se detienen los audios de juego y queda disponible `REINICIAR`.
+Los botones se crean en tiempo de ejecución con `EventSystem` e `InputSystemUIInputModule`. Al producirse cualquier `GAME OVER` se detienen los audios de juego y queda disponible `REINICIAR`. El cartel siempre dice únicamente `GAME OVER`, sin agregar el motivo de derrota.
 
 Al confirmar la victoria se establece inmediatamente `Time.timeScale = 0`: quedan congeladas la física y las animaciones que usan tiempo de juego. La cámara deja de seguir al vehículo y el menú no puede reanudar una partida finalizada. El reinicio restaura la escala de tiempo normal.
 

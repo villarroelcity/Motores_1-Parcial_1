@@ -28,6 +28,9 @@ Fecha: 20/10/2026. Rama: `parcial-2`. Esta revisión ordena la base del proyecto
 | Salida | Conducir a `SalidaAlCamino` | Oculta el reloj; se sigue conduciendo sin anticipar la emboscada | Pendiente |
 | Persecución | Pasar el trigger, obtener 200 m de ventaja o agotar 60 s | Victoria por ventaja; derrota por captura o tiempo | Pendiente |
 | Daño | Chocar contra vehículos y obstáculos | Suma daño; barra visible 5 s tras cada golpe; derrota al llegar a 100% | Pendiente |
+| Motor tras un choque | Chocar sin alcanzar 100% de daño y volver a acelerar | Si VPP cala el motor, rearranca con combustible; conserva dirección y reversa | Pendiente |
+| Cartel de derrota | Perder por daño, tiempo, captura y caída | Solo `GAME OVER` y botón `REINICIAR`, sin motivo adicional | Pendiente |
+| Evasión lenta | Detener al jugador junto a una cola de tráfico | Patrulla busca costado libre o banquina; no queda frenada indefinidamente detrás | Pendiente |
 | Sirena | Comparar sonido cerca, a 100 m y a más de 220 m | Volumen decreciente hasta silencio | Pendiente |
 | Balizas | Mover los dos cubos de la patrulla con el juego detenido | Posiciones conservadas al iniciar; destello sin recrear geometría | Pendiente |
 | Tráfico | Circular en ambos sentidos y provocar un roce entre NPC | Marcha normal; roce no genera detención permanente de ambos | Pendiente |
@@ -59,4 +62,10 @@ Fecha: 20/10/2026. Rama: `parcial-2`. Esta revisión ordena la base del proyecto
 Se inspeccionó el video de 108 segundos `Desktop 2026.10.23 - 14.55.07.05.mp4`. Las observaciones del usuario sobre aceleración de la patrulla, pérdida de seguimiento, tráfico detenido y HUD motivaron cambios posteriores; ese video no valida la versión actual. La compilación externa de Unity mediante `dotnet build Assembly-CSharp.csproj` termina con 0 errores y 17 advertencias de APIs obsoletas de terceros. No se ejecutó Play ni una build para validar las últimas modificaciones de sirena y balizas. Los casos de la tabla continúan pendientes.
 
 También se inspeccionó el video de 24 segundos `Desktop 2026.10.23 - 18.02.54.06.mp4`: muestra tráfico detenido y la pantalla de victoria sin congelación. Se corrigieron el cálculo de altura mundial al crear tráfico y su material de contacto, se bajó el tiempo inicial a 120 s y se agregó la pausa inmediata de victoria. Los cambios compilan sin errores; su validación física y visual posterior sigue pendiente.
+
+Se inspeccionó el video de 15,67 segundos `Desktop 2026.10.23 - 18.38.41.07.mp4`: el jugador ya está detenido al comenzar y la derrota aparece al agotarse el minuto de persecución. No incluye el choque previo, por lo que no confirma por sí solo la causa del motor detenido. Se agregó recuperación mediante el arranque nativo ante un calado informado por VPP y se unificó el texto final en `GAME OVER`.
+
+Se ejecutaron pruebas aisladas en .NET con los métodos reales de recuperación y planificación, sustituyendo los tipos matemáticos y el mundo físico de Unity. Pasaron diez comprobaciones de arranque: demora mínima, rearranque con daño de 65, intervalo entre intentos y bloqueos por falta de combustible, daño total, derrota, victoria, motor no solicitado, motor funcionando y arranque en curso. El planificador encontró corredores junto a un auto a 10, 12 y 18 m, una banquina ante dos autos detenidos y un paso ante tráfico de frente. También mantuvo el lado elegido, conservó el espacio al circular junto al obstáculo, lo liberó después de rebasarlo y evaluó la marcha atrás. A 6 m no se considera viable girar directamente: debe verificarse la recuperación con retroceso.
+
+Estas pruebas no ejecutan suspensión, contacto de neumáticos, sensores físicos ni audio de Unity. No se abrió Play ni se validó una build con estos cambios: quedan pendientes el choque que cala el motor, la recuperación en un atasco real y la aproximación al costado del jugador.
 

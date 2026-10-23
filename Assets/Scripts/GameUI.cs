@@ -152,6 +152,7 @@ namespace EnElCamino
 
         private void ResumeGame()
         {
+            if (IsGameOverOrFinished()) return;
             if (!paused) return;
             paused = false;
             if (controlsPanel != null) controlsPanel.SetActive(false);
@@ -421,6 +422,8 @@ namespace EnElCamino
 
         public void ShowCompleted()
         {
+            paused = true;
+            Time.timeScale = 0f;
             CreateOutcomePanel();
             if (finalText != null) finalText.text = "ELUDISTE AL PATRULLERO\nVICTORIA...!!!";
             if (completedPanel != null) completedPanel.SetActive(true);

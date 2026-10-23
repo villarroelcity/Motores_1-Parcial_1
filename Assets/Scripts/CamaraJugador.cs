@@ -74,6 +74,7 @@ namespace EnElCamino
         private void LateUpdate()
         {
             if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
+            if (gameFlow != null && (gameFlow.finished || gameFlow.gameOver)) return;
             if (gameFlow != null && gameFlow.driving) RouteToVehicle();
             if (target == null) return;
             yaw = Mathf.LerpAngle(yaw, target.eulerAngles.y, followSpeed * Time.deltaTime);

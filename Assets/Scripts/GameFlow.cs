@@ -15,7 +15,7 @@ namespace EnElCamino
         [SerializeField] private Transform streetLightsRoot;
         [SerializeField] private Light sun;
         [SerializeField] private Text timerText;
-        [SerializeField] private float duration = 180f;
+        [SerializeField] private float duration = 120f;
         [SerializeField] private float pursuitDurationSeconds = 60f;
         public bool PursuitDefeatEnabled => true;
         [SerializeField] private Material skyboxMaterial;
@@ -69,6 +69,7 @@ namespace EnElCamino
 
         private void Start()
         {
+            Time.timeScale = 1f;
             AudioListener.pause = false;
             if (gameUI == null) gameUI = FindFirstObjectByType<GameUI>();
             if (playerCar == null) playerCar = FindFirstObjectByType<CarDriver>();
@@ -449,6 +450,7 @@ namespace EnElCamino
             }
 
             finished = true;
+            Time.timeScale = 0f;
             stationPowerConnected = false;
             SetStreetLights(false);
             StopAllGameplayAudio(victorySource);

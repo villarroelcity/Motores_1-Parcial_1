@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace EnElCamino
 {
@@ -18,7 +19,6 @@ namespace EnElCamino
         [SerializeField] private float trafficSpacing = 90f;
         [SerializeField] private float firstSpawnDistance = 160f;
         [SerializeField] private float routePadding = 40f;
-        [SerializeField] private float vehicleHeight = 0.55f;
 
         private const float MetersPerKilometer = 1000f;
         private const float SecondsPerHour = 3600f;
@@ -31,6 +31,8 @@ namespace EnElCamino
         private float speedMetersPerSecond;
         private int nextVehicleIndex;
         private bool trafficSpawned;
+        private CarDriver playerCar;
+        private readonly List<TrafficVehicle> vehicles = new List<TrafficVehicle>();
 
         private void Start()
         {
@@ -73,9 +75,10 @@ namespace EnElCamino
             }
 
             speedMetersPerSecond = speedKmh * MetersPerKilometer / SecondsPerHour;
-            centerX = road.position.x;
+            centerX = roadBounds.center.x;
             startZ = Mathf.Clamp(spawnReference.position.z + firstSpawnDistance, minZ, maxZ);
-            height = road.position.y + vehicleHeight;
+            height = roadBounds.max.y;
+            playerCar = FindFirstObjectByType<CarDriver>();
 
             if (gameFlow != null)
             {
@@ -93,9 +96,26 @@ namespace EnElCamino
         {
             if (trafficSpawned) return;
             trafficSpawned = true;
+            if (playerCar != null)
+                startZ = Mathf.Clamp(playerCar.transform.position.z + firstSpawnDistance, minZ, maxZ);
 
             int vehicles = Mathf.Max(trafficVehiclesPerDirection, MinimumTrafficVehiclesPerDirection);
             SpawnTraffic(vehicles, trafficSpacing, 0f);
+        }
+
+        private void Update()
+        {
+            if (!trafficSpawned || playerCar == null || gameFlow == null || gameFlow.gameOver || gameFlow.finished) return;
+            float playerZ = playerCar.transform.position.z;
+            for (int i = 0; i < vehicles.Count; i++)
+            {
+                TrafficVehicle vehicle = vehicles[i];
+                if (vehicle == null || !vehicle.CanRecycle) continue;
+                float gap = vehicle.transform.position.z - playerZ;
+                // Reciclar fuera de la vista mantiene trafico de frente durante toda la ruta.
+                if (gap < -180f || gap > 1100f)
+                    vehicle.Recycle(WrapZ(playerZ + 700f + i * 32f, minZ, maxZ));
+            }
         }
 
         private void SpawnTraffic(int vehiclesPerDirectionToSpawn, float vehicleSpacing, float startOffset)
@@ -136,8 +156,14 @@ namespace EnElCamino
             }
 
             AddTrafficCollision(vehicle);
+            // Las mallas de VPP tienen pivotes distintos: apoyar las ruedas, no el pivote.
+            Bounds bounds = GetLocalBounds(vehicle);
+            Vector3 groundedPosition = vehicle.transform.position;
+            groundedPosition.y = height - bounds.min.y + 0.015f;
+            vehicle.transform.position = groundedPosition;
             TrafficVehicle trafficVehicle = vehicle.AddComponent<TrafficVehicle>();
-            trafficVehicle.Configure(direction, speedMetersPerSecond, minZ, maxZ, height, FindWheels(vehicle));
+            trafficVehicle.Configure(direction, speedMetersPerSecond, minZ, maxZ, groundedPosition.y, FindWheels(vehicle));
+            vehicles.Add(trafficVehicle);
         }
 
         private void AddTrafficCollision(GameObject vehicle)
@@ -146,11 +172,16 @@ namespace EnElCamino
             Bounds bounds = GetLocalBounds(vehicle);
             boxCollider.center = bounds.center;
             boxCollider.size = bounds.size;
+            PhysicsMaterial rollingSurface = new PhysicsMaterial("RodaduraTrafico");
+            rollingSurface.dynamicFriction = 0.02f;
+            rollingSurface.staticFriction = 0.02f;
+            rollingSurface.frictionCombine = PhysicsMaterialCombine.Minimum;
+            boxCollider.sharedMaterial = rollingSurface;
 
             Rigidbody rigidbody = vehicle.AddComponent<Rigidbody>();
-            rigidbody.isKinematic = true;
-            rigidbody.useGravity = false;
-            rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+            rigidbody.mass = 1400f;
+            rigidbody.useGravity = true;
+            rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
         }
 
         private Bounds GetLocalBounds(GameObject vehicle)

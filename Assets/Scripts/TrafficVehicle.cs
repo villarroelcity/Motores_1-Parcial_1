@@ -22,10 +22,11 @@ namespace EnElCamino
             body = GetComponent<Rigidbody>();
             if (body != null)
             {
-                body.isKinematic = true;
-                body.useGravity = false;
+                body.isKinematic = false;
+                body.useGravity = true;
+                body.mass = 1400f;
                 body.interpolation = RigidbodyInterpolation.Interpolate;
-                body.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+                body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
                 body.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
             }
 
@@ -47,6 +48,7 @@ namespace EnElCamino
             wheels = wheelTransforms;
 
             transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
+            if (body != null) body.linearVelocity = direction * speed;
         }
 
         private void FixedUpdate()
@@ -61,31 +63,16 @@ namespace EnElCamino
                 return;
             }
 
-            float distance = speed * Time.fixedDeltaTime;
-            Vector3 nextPosition = body != null ? body.position : transform.position;
-            nextPosition += direction * distance;
-            nextPosition.y = roadHeight;
-
-            if (direction.z > 0f && nextPosition.z > maxZ)
-            {
-                nextPosition.z = minZ;
-            }
-            else if (direction.z < 0f && nextPosition.z < minZ)
-            {
-                nextPosition.z = maxZ;
-            }
-
-            Quaternion nextRotation = Quaternion.LookRotation(direction, Vector3.up);
             if (body != null)
             {
-                body.MovePosition(nextPosition);
-                body.MoveRotation(nextRotation);
-            }
-            else
-            {
-                transform.SetPositionAndRotation(nextPosition, nextRotation);
+                Vector3 desiredVelocity = direction * speed;
+                Vector3 velocity = body.linearVelocity;
+                desiredVelocity.y = velocity.y;
+                body.AddForce(Vector3.ClampMagnitude(desiredVelocity - velocity, 4f * Time.fixedDeltaTime),
+                    ForceMode.VelocityChange);
             }
 
+            float distance = (body != null ? Vector3.Dot(body.linearVelocity, direction) : speed) * Time.fixedDeltaTime;
             float wheelDegrees = distance / (2f * Mathf.PI * WheelRadius) * 360f;
             if (wheels != null)
             {
@@ -98,26 +85,45 @@ namespace EnElCamino
 
         private void OnCollisionEnter(Collision collision)
         {
-            StopWhenHittingPlayableVehicle(collision.collider);
+            StopAfterImpact(collision);
         }
 
         private void OnCollisionStay(Collision collision)
         {
-            StopWhenHittingPlayableVehicle(collision.collider);
+            StopAfterImpact(collision);
         }
 
-        private void StopWhenHittingPlayableVehicle(Collider other)
+        private void StopAfterImpact(Collision collision)
         {
-            if (other == null || other.GetComponentInParent<TrafficVehicle>() != null) return;
-
-            if (other.GetComponentInParent<CarDriver>() != null ||
-                other.GetComponentInParent<PatrulleroIA>() != null)
+            if (stoppedByCollision) return;
+            Collider other = collision.collider;
+            if (other == null || other.attachedRigidbody == body) return;
+            // El suelo sostiene el auto; cualquier impacto lateral corta su motor.
+            foreach (ContactPoint contact in collision.contacts)
             {
-                // Keep the collider in place so VPP can receive the impact,
-                // but stop this vehicle after the first contact so it cannot
-                // keep pushing the player or form a moving traffic train.
+                if (Mathf.Abs(contact.normal.y) > 0.7f) continue;
                 stoppedByCollision = true;
+                if (body != null)
+                {
+                    body.constraints = RigidbodyConstraints.None;
+                    body.linearDamping = 0.7f;
+                    body.angularDamping = 1f;
+                }
+                return;
             }
+        }
+
+        public bool CanRecycle => !stoppedByCollision;
+
+        public void Recycle(float z)
+        {
+            Vector3 position = body.position;
+            position.z = Mathf.Clamp(z, minZ, maxZ);
+            position.y = roadHeight;
+            body.position = position;
+            body.rotation = Quaternion.LookRotation(direction, Vector3.up);
+            body.linearVelocity = direction * speed;
+            body.angularVelocity = Vector3.zero;
         }
     }
 }

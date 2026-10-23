@@ -4,8 +4,7 @@ using System.Reflection;
 
 namespace EnElCamino
 {
-    // Simple first-year AI: the patrol follows the player's car, waits if it
-    // is still ahead of the player, and steers around collidable obstacles.
+    // Sale desde su estacionamiento, intercepta al jugador y lo persigue por la ruta.
     [RequireComponent(typeof(Rigidbody))]
     public class PatrulleroIA : MonoBehaviour
     {
@@ -30,6 +29,7 @@ namespace EnElCamino
         private bool waitingForPlayerToPass;
         private float speed;
         private float chaseTime;
+        private float captureTime;
         private Light leftPoliceLight;
         private Light rightPoliceLight;
         private Renderer leftBeaconRenderer;
@@ -112,7 +112,7 @@ namespace EnElCamino
             waitingForPlayerToPass = Vector3.Dot(targetCar.transform.forward, relativePosition) > 1f;
             body.isKinematic = true;
             body.WakeUp();
-            SetPoliceEffects(!waitingForPlayerToPass);
+            SetPoliceEffects(true);
         }
 
         private void Update()
@@ -146,10 +146,8 @@ namespace EnElCamino
             {
                 Vector3 relativePosition = body.position - targetCar.transform.position;
                 relativePosition.y = 0f;
-                if (Vector3.Dot(targetCar.transform.forward, relativePosition) > 1f) return;
-
-                waitingForPlayerToPass = false;
-                SetPoliceEffects(true);
+                if (Vector3.Dot(targetCar.transform.forward, relativePosition) <= 1f)
+                    waitingForPlayerToPass = false;
             }
 
             chaseTime += Time.fixedDeltaTime;
@@ -185,22 +183,30 @@ namespace EnElCamino
             direction = AvoidObstacles(direction);
             direction = KeepInsideRoad(direction);
             float targetSpeed = Mathf.Max(chaseSpeed, MinimumChaseSpeed);
+            targetSpeed = Mathf.Max(targetSpeed, Mathf.Min(targetCar.SpeedKmh / 3.6f + 5f, 44f));
+            Quaternion wantedRotation = Quaternion.LookRotation(direction, Vector3.up);
+            Quaternion nextRotation = Quaternion.RotateTowards(body.rotation, wantedRotation, 100f * Time.fixedDeltaTime);
+            float turnAngle = Quaternion.Angle(body.rotation, wantedRotation);
+            targetSpeed *= Mathf.Lerp(1f, 0.22f, Mathf.Clamp01(turnAngle / 90f));
             float targetAcceleration = Mathf.Max(acceleration, MinimumAcceleration);
             speed = Mathf.MoveTowards(speed, targetSpeed, targetAcceleration * Time.fixedDeltaTime);
-            Vector3 nextPosition = body.position + direction * speed * Time.fixedDeltaTime;
-            nextPosition = LimitToRoad(nextPosition);
+            Vector3 nextPosition = body.position + nextRotation * Vector3.forward * speed * Time.fixedDeltaTime;
             body.MovePosition(nextPosition);
-            Vector3 travelDirection = Vector3.ProjectOnPlane(nextPosition - body.position, Vector3.up).normalized;
-            if (travelDirection.sqrMagnitude < 0.01f) travelDirection = direction;
-            Quaternion wantedRotation = Quaternion.LookRotation(travelDirection, Vector3.up);
-            body.MoveRotation(Quaternion.RotateTowards(body.rotation, wantedRotation, 120f * Time.fixedDeltaTime));
+            body.MoveRotation(nextRotation);
         }
 
-        private void OnCollisionEnter(Collision collision)
+        private void OnCollisionStay(Collision collision)
         {
             if (!chasing || waitingForPlayerToPass || chaseTime < 1f || gameFlow == null) return;
-            if (collision.collider.GetComponentInParent<CarDriver>() != null)
+            if (collision.collider.GetComponentInParent<CarDriver>() == null) return;
+            captureTime = targetCar.SpeedKmh < 12f ? captureTime + Time.fixedDeltaTime : 0f;
+            if (captureTime >= 1.5f)
                 gameFlow.GameOver();
+        }
+
+        private void OnCollisionExit(Collision collision)
+        {
+            if (collision.collider.GetComponentInParent<CarDriver>() != null) captureTime = 0f;
         }
 
         private Vector3 AvoidObstacles(Vector3 desiredDirection)
@@ -222,6 +228,8 @@ namespace EnElCamino
         private Vector3 GetRoadChaseDirection()
         {
             Vector3 targetPosition = targetCar.transform.position;
+            Rigidbody targetBody = targetCar.GetComponent<Rigidbody>();
+            if (targetBody != null) targetPosition += targetBody.linearVelocity * 0.6f;
             if (road != null)
             {
                 float centerX = road.position.x;
@@ -230,10 +238,14 @@ namespace EnElCamino
                 float rightEdge = centerX + halfWidth - RoadEdgeMargin;
                 targetPosition.x = Mathf.Clamp(targetPosition.x, leftEdge, rightEdge);
 
-                // If the patrol starts or is pushed onto the grass, return to
-                // the road first instead of chasing diagonally across it.
+                // Incorporarse hacia un punto adelantado sobre el asfalto.
                 if (body.position.x < leftEdge || body.position.x > rightEdge)
-                    targetPosition.x = centerX;
+                {
+                    targetPosition.x = Mathf.Clamp(targetPosition.x, leftEdge, rightEdge);
+                    float travelSign = targetBody != null && Mathf.Abs(targetBody.linearVelocity.z) > 1f
+                        ? Mathf.Sign(targetBody.linearVelocity.z) : Mathf.Sign(targetCar.transform.forward.z);
+                    targetPosition.z = body.position.z + travelSign * Mathf.Max(8f, Mathf.Abs(body.position.x - centerX));
+                }
             }
 
             Vector3 roadOffset = targetPosition - body.position;
@@ -254,21 +266,10 @@ namespace EnElCamino
             return direction.sqrMagnitude > 0.01f ? direction.normalized : transform.forward;
         }
 
-        private Vector3 LimitToRoad(Vector3 position)
-        {
-            if (road == null) return position;
-
-            float centerX = road.position.x;
-            float halfWidth = GetRoadHalfWidth();
-            position.x = Mathf.Clamp(position.x,
-                centerX - halfWidth + RoadEdgeMargin,
-                centerX + halfWidth - RoadEdgeMargin);
-            return position;
-        }
-
         private float GetRoadHalfWidth()
         {
-            return Mathf.Max(roadHalfWidth, road.lossyScale.x * 0.5f);
+            Renderer roadRenderer = road.GetComponent<Renderer>();
+            return roadRenderer != null ? roadRenderer.bounds.extents.x : roadHalfWidth;
         }
 
         private float GetClearance(Vector3 origin, Vector3 direction)

@@ -625,6 +625,7 @@ namespace EnElCamino
             rearViewImage = imageObject.GetComponent<RawImage>();
             rearViewImage.color = Color.white;
             rearViewImage.raycastTarget = false;
+            rearViewImage.uvRect = new Rect(1f, 0f, -1f, 1f);
 
             RemovePanelChild(panel.transform, "RearViewMirrorLabel");
 
@@ -639,8 +640,9 @@ namespace EnElCamino
             rearViewCamera.clearFlags = CameraClearFlags.Skybox;
             rearViewCamera.cullingMask = ~0;
             rearViewCamera.fieldOfView = 55f;
+            rearViewCamera.aspect = 3f;
             rearViewCamera.nearClipPlane = 0.1f;
-            rearViewCamera.farClipPlane = 160f;
+            rearViewCamera.farClipPlane = 500f;
             rearViewCamera.enabled = false;
 
             rearViewPanel = panel;
@@ -659,11 +661,27 @@ namespace EnElCamino
             if (rearViewTarget == null) rearViewTarget = FindFirstObjectByType<CarDriver>();
             if (rearViewTarget == null) return;
 
-            Vector3 forward = Vector3.ProjectOnPlane(rearViewTarget.transform.forward, Vector3.up).normalized;
+            Rigidbody carBody = rearViewTarget.GetComponent<Rigidbody>();
+            Vector3 forward = Vector3.ProjectOnPlane(
+                carBody != null ? carBody.rotation * Vector3.forward : rearViewTarget.transform.forward,
+                Vector3.up).normalized;
             if (forward.sqrMagnitude < 0.01f) return;
 
+            Vector3 carPosition = rearViewTarget.transform.position;
+            float rearDistance = 2.5f;
+            float roofHeight = carPosition.y + 1.5f;
+            foreach (Renderer renderer in rearViewTarget.GetComponentsInChildren<Renderer>())
+            {
+                Bounds bounds = renderer.bounds;
+                Vector3 extents = bounds.extents;
+                float depth = Mathf.Abs(forward.x) * extents.x + Mathf.Abs(forward.z) * extents.z;
+                rearDistance = Mathf.Max(rearDistance, Vector3.Dot(carPosition - bounds.center, forward) + depth + 0.15f);
+                roofHeight = Mathf.Max(roofHeight, bounds.max.y + 0.1f);
+            }
+            Vector3 mirrorPosition = carPosition - forward * rearDistance;
+            mirrorPosition.y = roofHeight;
             rearViewCamera.transform.SetPositionAndRotation(
-                rearViewTarget.transform.position - forward * 1.5f + Vector3.up * 1.45f,
+                mirrorPosition,
                 Quaternion.LookRotation(-forward, Vector3.up));
         }
 

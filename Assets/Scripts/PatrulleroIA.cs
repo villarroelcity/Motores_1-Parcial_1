@@ -25,6 +25,9 @@ namespace EnElCamino
         private float pursuitDirection = 1f;
         private float chosenLane;
         private float trackedTargetLane;
+        private bool offRoadPursuit;
+        private float grassBumpDistance;
+        private int grassBumpWheel;
         private float nextPlanTime;
         private float plannedClearTime = 3f;
         private float steering;
@@ -313,6 +316,12 @@ namespace EnElCamino
             float signedVelocity = Vector3.Dot(body.linearVelocity, transform.forward);
             float velocity = Mathf.Abs(signedVelocity);
             float gap = Vector3.Dot(targetCar.transform.position - body.position, routeForward);
+            float safeWidth = Mathf.Max(0.5f, GetRoadHalfWidth() - RoadEdgeMargin);
+            float playerLane = Vector3.Dot(targetCar.transform.position - road.position, right);
+            float patrolLane = Vector3.Dot(body.position - road.position, right);
+            if (chasing && Mathf.Abs(playerLane) > safeWidth + 0.8f) offRoadPursuit = true;
+            else if (Mathf.Abs(playerLane) < safeWidth - 0.3f && Mathf.Abs(patrolLane) < safeWidth + 0.5f)
+                offRoadPursuit = false;
             // If the patrol overshoots, brake and back toward the player on the
             // road rather than continuing to chase an imaginary point ahead.
             float playerAlongRoad = targetBody != null ? Vector3.Dot(targetBody.linearVelocity, routeForward) : 0f;
@@ -331,11 +340,18 @@ namespace EnElCamino
             if (chasing) lookAhead = Mathf.Min(lookAhead, Mathf.Max(5f, Mathf.Abs(gap)));
             float lane = Vector3.Dot(body.position - road.position, right);
             Vector3 aim = body.position + movementForward * lookAhead + right * (chosenLane - lane);
+            if (offRoadPursuit)
+            {
+                Vector3 prediction = targetCar.transform.position + (targetBody != null ? targetBody.linearVelocity * 0.35f : Vector3.zero);
+                float targetForward = Mathf.Clamp(Vector3.Dot(prediction - body.position, routeForward), -lookAhead, lookAhead);
+                aim = body.position + routeForward * targetForward + right * (chosenLane - lane);
+            }
             Vector3 localAim = transform.InverseTransformPoint(aim);
             float curvature = 2f * localAim.x / Mathf.Max(1f, localAim.sqrMagnitude);
             float desiredSteer = Mathf.Atan(wheelbase * curvature) * Mathf.Rad2Deg;
+            float lateralAcceleration = offRoadPursuit ? 6.5f : 12f;
             float maxSteer = Mathf.Min(32f,
-                Mathf.Atan(wheelbase * 12f / Mathf.Max(4f, velocity * velocity)) * Mathf.Rad2Deg);
+                Mathf.Atan(wheelbase * lateralAcceleration / Mathf.Max(4f, velocity * velocity)) * Mathf.Rad2Deg);
             steering = Mathf.MoveTowards(steering, Mathf.Clamp(desiredSteer, -maxSteer, maxSteer),
                 55f * Time.fixedDeltaTime);
 
@@ -345,12 +361,22 @@ namespace EnElCamino
                 : Mathf.Max(chaseSpeed, MinimumChaseSpeed);
             if (pursuitDirection < 0f) desiredSpeed = Mathf.Min(desiredSpeed, 16f);
             if (pursuitDirection < 0f && playerAlongRoad > 8f) desiredSpeed = 0f;
+            if (offRoadPursuit)
+            {
+                float distance = Vector3.ProjectOnPlane(targetCar.transform.position - body.position, Vector3.up).magnitude;
+                desiredSpeed = Mathf.Clamp((targetBody != null ? targetBody.linearVelocity.magnitude : 0f) + distance * 0.5f, 0f, 35f);
+            }
             // A parked car first turns onto the road; high-speed corners are
             // limited by available lateral tire grip rather than forced yaw.
             desiredSpeed = Mathf.Min(desiredSpeed,
-                Mathf.Sqrt(12f / Mathf.Max(0.004f, Mathf.Abs(curvature))));
+                Mathf.Sqrt(lateralAcceleration / Mathf.Max(0.004f, Mathf.Abs(curvature))));
             if (plannedClearTime < 1.2f) desiredSpeed = Mathf.Min(desiredSpeed, velocity * 0.6f);
             float driveSign = Vector3.Dot(movementForward, transform.forward) >= 0f ? 1f : -1f;
+            if (offRoadPursuit)
+            {
+                driveSign = localAim.z < -2f ? -1f : 1f;
+                if (driveSign < 0f) desiredSpeed = Mathf.Min(desiredSpeed, 12f);
+            }
             float pedal = Mathf.Clamp((desiredSpeed - signedVelocity * driveSign) * 0.35f, -1f, 1f);
             bool changingDirection = signedVelocity * driveSign < -0.5f;
             if (changingDirection) pedal = -1f;
@@ -370,9 +396,14 @@ namespace EnElCamino
                 wheel.steerAngle = frontWheel ? (reversing ? -steering : steering) : 0f;
                 wheel.motorTorque = reversing ? -driveSign * 650f : driveSign * Mathf.Max(0f, pedal) * (velocity < 20f ? 1400f : 950f);
                 wheel.brakeTorque = reversing ? 0f : Mathf.Max(0f, -pedal) * 2200f;
+                bool grass = wheel.GetGroundHit(out WheelHit hit) && gameFlow.IsGrassSurface(hit.collider);
+                WheelFrictionCurve friction = wheel.sidewaysFriction;
+                friction.stiffness = grass ? 1.15f : 1.8f;
+                wheel.sidewaysFriction = friction;
             }
             // Downforce keeps suspension contact at pursuit speeds.
             body.AddForce(-transform.up * velocity * velocity * 1.8f, ForceMode.Force);
+            GrassDriving.ApplyBumps(body, gameFlow, ref grassBumpDistance, ref grassBumpWheel);
         }
 
         private void PlanPassingLane(Vector3 right, float velocity)
@@ -384,19 +415,22 @@ namespace EnElCamino
             }
             float halfWidth = Mathf.Max(0.5f, GetRoadHalfWidth() - RoadEdgeMargin);
             float lane = Vector3.Dot(body.position - road.position, right);
-            float targetLane = Mathf.Clamp(Vector3.Dot(targetCar.transform.position - road.position, right),
-                -halfWidth, halfWidth);
-            trackedTargetLane = Mathf.MoveTowards(trackedTargetLane, targetLane, 0.35f);
-            targetLane = Mathf.Clamp(trackedTargetLane, -halfWidth, halfWidth);
+            float rawTargetLane = Vector3.Dot(targetCar.transform.position - road.position, right);
+            float minLane = offRoadPursuit ? Mathf.Min(-halfWidth, lane - 1.5f, rawTargetLane - 1.5f) : -halfWidth;
+            float maxLane = offRoadPursuit ? Mathf.Max(halfWidth, lane + 1.5f, rawTargetLane + 1.5f) : halfWidth;
+            float targetLane = Mathf.Clamp(rawTargetLane, minLane, maxLane);
+            trackedTargetLane = Mathf.MoveTowards(trackedTargetLane, targetLane, offRoadPursuit ? 1.2f : 0.35f);
+            targetLane = Mathf.Clamp(trackedTargetLane, minLane, maxLane);
             float bestScore = float.PositiveInfinity;
             float bestLane = chosenLane;
             float bestClearTime = 0f;
             // Five corridors plus the current plan. Keeping a plan has a cost
             // advantage, preventing left/right oscillation at every sensor tick.
-            for (int candidate = 0; candidate < 6; candidate++)
+            for (int candidate = 0; candidate < 8; candidate++)
             {
-                float destination = candidate == 5 ? Mathf.Clamp(chosenLane, -halfWidth, halfWidth)
-                    : Mathf.Lerp(-halfWidth, halfWidth, candidate / 4f);
+                float destination = candidate == 5 ? Mathf.Clamp(chosenLane, minLane, maxLane)
+                    : candidate == 6 ? targetLane : candidate == 7 ? lane
+                    : Mathf.Lerp(minLane, maxLane, candidate / 4f);
                 float clearTime = EvaluateCorridor(destination, lane, right, velocity);
                 float score = Mathf.Abs(destination - targetLane) * 0.8f +
                     (Mathf.Abs(destination - chosenLane) > 0.4f ? 0.6f : 0f);

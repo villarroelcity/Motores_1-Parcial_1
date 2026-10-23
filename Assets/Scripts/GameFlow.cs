@@ -16,11 +16,12 @@ namespace EnElCamino
         [SerializeField] private Light sun;
         [SerializeField] private Text timerText;
         [SerializeField] private float duration = 180f;
+        [SerializeField] private float pursuitDurationSeconds = 60f;
+        public bool PursuitDefeatEnabled => true;
         [SerializeField] private Material skyboxMaterial;
         [SerializeField] private bool controlLegacyLighting;
         [SerializeField] private float enviroStartHour = 17.25f;
         [SerializeField] private float enviroNightHour = 23f;
-        [SerializeField] private float pursuitSpeedLimitKmh = 60f;
 
         public event Action GeneratorFuelDepleted;
         public event Action GarageDoorMotionStarted;
@@ -29,8 +30,10 @@ namespace EnElCamino
         public event Action PursuitStarted;
         public event Action GameFinished;
         public event Action GameLost;
+        public event Action<bool> NightLightingChanged;
 
         public GameUI UI => gameUI;
+        public bool NightLightsOn => carHeadLightsOn;
 
         public bool generatorOn;
         public bool stationPowerConnected;
@@ -49,6 +52,7 @@ namespace EnElCamino
         public bool roadReached;
         private float generatorFuelRemaining;
         private float timeLeft;
+        private float pursuitTimeRemaining;
         private float startTime;
         private float lastSkyProgress = -1f;
         private bool legacySunWasEnabled;
@@ -59,6 +63,7 @@ namespace EnElCamino
         private bool countdownStarted;
         private CarDriver playerCar;
         private bool carHeadLightsOn;
+        private float nextHeadlightRefresh;
         private bool tensionStarted;
         private PhysicsMaterial grassPhysicMaterial;
 
@@ -74,6 +79,9 @@ namespace EnElCamino
             ConfigureGroundGrip();
             roadReached = false;
             carHeadLightsOn = false;
+            // VPP vehicles keep their running lights on from the start; the
+            // day/night transition only changes the world lighting.
+            if (playerCar != null) playerCar.SetHeadLights(true);
             tensionStarted = false;
             timeLeft = duration;
             startTime = Time.time;
@@ -89,12 +97,29 @@ namespace EnElCamino
 
         private void Update()
         {
+            if (Time.time >= nextHeadlightRefresh)
+            {
+                if (playerCar == null) playerCar = FindFirstObjectByType<CarDriver>();
+                if (playerCar != null) playerCar.SetHeadLights(true);
+                nextHeadlightRefresh = Time.time + 1f;
+            }
+
             if (gameOver || finished) return;
             // Keep the same Enviro clock running after the road checkpoint.
             // Only its HUD panel is hidden; the transition to night remains
             // continuous and no second time-out is generated after the road.
             UpdateDayTimer();
             TryStartPursuit();
+            if (pursuitActive)
+            {
+                pursuitTimeRemaining = Mathf.Max(0f, pursuitTimeRemaining - Time.deltaTime);
+                if (gameUI != null) gameUI.SetPursuitTimeRemaining(pursuitTimeRemaining);
+                if (pursuitTimeRemaining <= 0f && PursuitDefeatEnabled)
+                {
+                    GameOver("Se acabo el combustible y el patrullero te atrapo.");
+                    return;
+                }
+            }
             if (!generatorOn) return;
             generatorFuelRemaining = Mathf.Max(0f, generatorFuelRemaining - Time.deltaTime);
             // The HUD is intentionally hidden after filling the can, but the
@@ -139,8 +164,13 @@ namespace EnElCamino
         {
             if (gameOver || finished || gameUI == null) return;
 
-            gameUI.SetObjective("OBJETIVO 1/8\nSUBI AL TECHO Y BAJA POR EL HUECO\nAcercate al borde, colgate y descende lentamente al taller.");
-            gameUI.ShowMessage("El auto se quedo sin combustible. Acercate a la estacion abandonada.");
+            gameUI.SetObjective("OBJETIVO 1/8\nBUSCAR UN BIDON\nAcercate al taller haber si encuentras alguno.");
+        }
+
+        public void ShowFuelCutoffMessage()
+        {
+            if (!gameOver && !finished && gameUI != null)
+                gameUI.ShowMessage("El auto se quedo sin combustible.");
         }
 
         private void UpdateDayTimer()
@@ -169,7 +199,7 @@ namespace EnElCamino
                 timerText.enabled = true;
                 if (!timerText.gameObject.activeSelf) timerText.gameObject.SetActive(true);
                 int seconds = Mathf.Max(0, Mathf.CeilToInt(timeLeft));
-                timerText.text = "TIEMPO RESTANTE\n" + seconds / 60 + ":" + (seconds % 60).ToString("00");
+                timerText.text = "ANOCHESE EN\n" + seconds / 60 + ":" + (seconds % 60).ToString("00");
             }
             if (countdownStarted && timeLeft <= 20f) RequestTension();
             if (countdownStarted && timeLeft <= 0f && !roadReached) GameOver();
@@ -186,7 +216,7 @@ namespace EnElCamino
                 gameUI.HideCountdown();
                 if (!pursuitActive)
                 {
-                    gameUI.SetObjective("RUTA ALCANZADA\nSEGUI POR LA RUTA\nLa persecucion comienza mas adelante.");
+                    gameUI.HideObjective();
                     gameUI.HideMessage();
                 }
             }
@@ -263,8 +293,8 @@ namespace EnElCamino
             if (gameUI != null)
             {
                 gameUI.SetGeneratorFuelTime(generatorFuelRemaining);
-                gameUI.SetObjective("OBJETIVO 3/8\nCONECTA EL GENERADOR\nUsa la caja electrica para darle energia a la estacion.");
-                gameUI.ShowMessage("Tenes 30 segundos de combustible. Conectalo a la caja electrica, abri el porton y llena el bidon.");
+                gameUI.SetObjective("OBJETIVO 3/8\nGIRA EL INTERRUPTOR\nGira el interruptor de la caja electrica para darle energia a la estacion.");
+                gameUI.ShowMessage("Tenes 30 segundos de combustible. Gira el interruptor de la caja electrica, abri el porton y llena el bidon.");
             }
             return true;
         }
@@ -277,7 +307,7 @@ namespace EnElCamino
             if (gameUI != null)
             {
                 gameUI.SetObjective("OBJETIVO 4/8\nABRI EL PORTON\nUsa el interruptor junto al porton.");
-                gameUI.ShowMessage("La estacion tiene energia. Abri el porton y busca el bidon.");
+                gameUI.ShowMessage("La estacion ya tiene energia. Abri el porton y agarra el bidon.");
             }
         }
 
@@ -288,8 +318,7 @@ namespace EnElCamino
             insideGarage = true;
             if (gameUI != null)
             {
-                gameUI.SetObjective("OBJETIVO 2/8\nENCENDE EL GENERADOR\nEsta dentro del taller; presiona [E] en el generador.");
-                gameUI.ShowMessage("Bajaste al taller. Ahora podes encender el generador.");
+                gameUI.SetObjective("OBJETIVO 2/8\nENCENDE EL GENERADOR\npresiona [E] en el generador.");
             }
         }
 
@@ -301,7 +330,7 @@ namespace EnElCamino
             if (gameUI != null)
             {
                 gameUI.SetObjective("OBJETIVO 5/8\nTOMA EL BIDON VACIO\nAcercate y presiona [E].");
-                gameUI.ShowMessage("Porton abierto. Ahora podes tomar el bidon.");
+                gameUI.ShowMessage("Porton abierto. Ahora podes agarrar el bidon.");
             }
         }
 
@@ -317,8 +346,8 @@ namespace EnElCamino
             hasFuelCan = true;
             if (gameUI != null)
             {
-                gameUI.SetObjective("OBJETIVO 6/8\nLLENA EL BIDON\nLlevalo al surtidor antes de que se agote el generador.");
-                gameUI.ShowMessage("Tenes el bidon vacio. El generador se esta consumiendo.");
+                gameUI.SetObjective("OBJETIVO 6/8\nLLENA EL BIDON\nLlevalo al surtidor antes de que se apague el generador.");
+                gameUI.ShowMessage("Tenes el bidon vacio. El generador se esta por apagar.");
             }
         }
 
@@ -342,7 +371,7 @@ namespace EnElCamino
             carHasFuel = true;
             if (gameUI != null)
             {
-                gameUI.SetObjective("OBJETIVO 8/8\nSUBITE AL AUTO\nAcercate al auto y presiona [E] para arrancarlo.");
+                gameUI.SetObjective("OBJETIVO 8/8\nSUBITE AL AUTO\nPresiona [E] para arrancar.");
                 gameUI.ShowMessage("Auto cargado. Subite para salir de la estacion.");
             }
         }
@@ -373,15 +402,16 @@ namespace EnElCamino
             if (pursuitActive || !pursuitTriggerReached || !driving || gameOver || finished) return;
             if (playerCar == null) playerCar = FindFirstObjectByType<CarDriver>();
             if (playerCar == null) return;
-            if (!roadReached && playerCar.SpeedKmh < pursuitSpeedLimitKmh) return;
 
             pursuitActive = true;
+            pursuitTimeRemaining = Mathf.Max(1f, pursuitDurationSeconds);
             RequestTension();
             if (gameUI != null)
             {
-                gameUI.SetObjective("PERSECUCION ACTIVADA\nEL PATRULLERO TE SIGUE\nEscapa y llega a la salida.");
-                gameUI.ShowMessage("El patrullero te detecto. Acelera y escapa.");
+                gameUI.SetObjective("PERSECUCION\nEL PATRULLERO TE SIGUE\nEscapa y evade al patrullero.");
+                gameUI.ShowMessage("El patrullero te persigue. Acelera y escapa.");
                 gameUI.SetPursuitDistance(0f, 200f);
+                gameUI.SetPursuitTimeRemaining(pursuitTimeRemaining);
             }
             PursuitStarted?.Invoke();
         }
@@ -398,7 +428,6 @@ namespace EnElCamino
 
             if (!roadReached)
             {
-                ShowMessage("Primero llega a la ruta y escapa del patrullero.");
                 return;
             }
 
@@ -416,7 +445,6 @@ namespace EnElCamino
 
             if (!pursuitActive)
             {
-                ShowMessage("Primero activa la persecucion del patrullero.");
                 return;
             }
 
@@ -436,6 +464,11 @@ namespace EnElCamino
 
         public void GameOver()
         {
+            GameOver(null);
+        }
+
+        public void GameOver(string reason)
+        {
             if (finished || gameOver) return;
 
             gameOver = true;
@@ -447,7 +480,7 @@ namespace EnElCamino
             if (gameUI != null)
             {
                 gameUI.HidePursuitDistance();
-                gameUI.ShowGameOver();
+                gameUI.ShowGameOver(reason);
             }
             GameLost?.Invoke();
         }
@@ -496,9 +529,6 @@ namespace EnElCamino
                 }
             }
 
-            // LampPost-1 has no Light component: its visible lamp is the
-            // child mesh named "layer 6". Add the real light to all four posts
-            // without changing their transforms or the source prefab.
             foreach (Transform part in FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
                 if (!string.Equals(part.name, "layer 6", StringComparison.OrdinalIgnoreCase) || !IsLampPostPart(part))
@@ -569,17 +599,25 @@ namespace EnElCamino
                     continue;
 
                 foreach (Collider collider in item.GetComponentsInChildren<Collider>(true))
-                    if (collider != null && !collider.isTrigger) collider.sharedMaterial = grassPhysicMaterial;
+                    if (collider != null && !(collider is WheelCollider) && !collider.isTrigger)
+                        collider.sharedMaterial = grassPhysicMaterial;
             }
+        }
+
+        public bool IsGrassSurface(Collider collider)
+        {
+            return collider != null && grassPhysicMaterial != null &&
+                   collider.sharedMaterial == grassPhysicMaterial;
         }
 
         private void SetPlayerHeadLights(bool enabled)
         {
-            if (playerCar == null) playerCar = FindFirstObjectByType<CarDriver>();
-            if (playerCar == null || carHeadLightsOn == enabled) return;
+            if (carHeadLightsOn == enabled) return;
 
             carHeadLightsOn = enabled;
-            playerCar.SetHeadLights(enabled);
+            if (playerCar == null) playerCar = FindFirstObjectByType<CarDriver>();
+            if (playerCar != null) playerCar.SetHeadLights(true);
+            NightLightingChanged?.Invoke(enabled);
         }
 
         public void ShowMessage(string text)

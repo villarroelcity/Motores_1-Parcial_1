@@ -20,12 +20,18 @@ namespace EnElCamino
         private Text generatorFuelText;
         private GameObject pursuitDistancePanel;
         private Text pursuitDistanceText;
+        private GameObject damagePanel;
+        private Text damageText;
+        private RectTransform damageFill;
         private GameObject rearViewPanel;
         private RawImage rearViewImage;
         private RenderTexture rearViewTexture;
         private Camera rearViewCamera;
         private CarDriver rearViewTarget;
         private int displayedGeneratorFuelSeconds = -1;
+        private int pursuitCurrentMeters;
+        private int pursuitRequiredMeters = 200;
+        private int pursuitSecondsRemaining = -1;
         private CanvasScaler canvasScaler;
         private RectTransform clockPanel;
         private Text clockText;
@@ -45,7 +51,6 @@ namespace EnElCamino
         private GameObject outcomeRestartButton;
         private float objectiveExpiresAt;
         private Vector2 rearViewPanelPosition = new Vector2(0f, -6f);
-        private Vector2 pursuitDistancePanelPosition = new Vector2(0f, -655f);
 
         private bool IsGameOverOrFinished()
         {
@@ -94,6 +99,7 @@ namespace EnElCamino
             CreateGeneratorFuelPanel();
             CreatePursuitDistancePanel();
             CreateRearViewMirror();
+            CreateDamagePanel();
             ApplyResponsiveLayout();
             HideObjective();
             SetGameplayVisible(false);
@@ -284,6 +290,7 @@ namespace EnElCamino
             if (objectivePanel != null && objectivePanel.gameObject.activeSelf && Time.time >= objectiveExpiresAt)
                 HideObjective();
             UpdateRearViewCamera();
+            UpdateDamageDisplay();
             if (lastScreenWidth == Screen.width && lastScreenHeight == Screen.height) return;
             ApplyResponsiveLayout();
         }
@@ -360,7 +367,7 @@ namespace EnElCamino
             int seconds = Mathf.Max(0, Mathf.CeilToInt(secondsRemaining));
             if (seconds != displayedGeneratorFuelSeconds)
             {
-                generatorFuelText.text = $"COMBUSTIBLE GENERADOR\n{seconds / 60}:{seconds % 60:00}";
+                generatorFuelText.text = $"COMBUSTIBLE EN\nEL GENERADOR\n{seconds / 60}:{seconds % 60:00}";
                 displayedGeneratorFuelSeconds = seconds;
             }
             generatorFuelText.enabled = true;
@@ -377,14 +384,29 @@ namespace EnElCamino
         public void SetPursuitDistance(float currentDistance, float requiredDistance)
         {
             if (IsGameOverOrFinished()) return;
+            pursuitCurrentMeters = Mathf.Max(0, Mathf.FloorToInt(currentDistance));
+            pursuitRequiredMeters = Mathf.Max(1, Mathf.CeilToInt(requiredDistance));
+            RefreshPursuitDisplay();
+        }
+
+        public void SetPursuitTimeRemaining(float secondsRemaining)
+        {
+            if (IsGameOverOrFinished()) return;
+            pursuitSecondsRemaining = Mathf.Max(0, Mathf.CeilToInt(secondsRemaining));
+            RefreshPursuitDisplay();
+        }
+
+        private void RefreshPursuitDisplay()
+        {
             EnableGameplayOverlay();
             if (pursuitDistancePanel == null) CreatePursuitDistancePanel();
             if (rearViewPanel == null) CreateRearViewMirror();
             if (pursuitDistanceText == null || rearViewPanel == null) return;
 
-            int current = Mathf.Max(0, Mathf.FloorToInt(currentDistance));
-            int required = Mathf.Max(1, Mathf.CeilToInt(requiredDistance));
-            pursuitDistanceText.text = $"VENTAJA\n{current} / {required} m";
+            string timer = pursuitSecondsRemaining >= 0
+                ? $"    |    TIEMPO {pursuitSecondsRemaining / 60}:{pursuitSecondsRemaining % 60:00}"
+                : string.Empty;
+            pursuitDistanceText.text = $"VENTAJA {pursuitCurrentMeters} / {pursuitRequiredMeters} m{timer}";
             pursuitDistancePanel.SetActive(true);
             rearViewPanel.SetActive(true);
             if (rearViewCamera != null) rearViewCamera.enabled = true;
@@ -400,7 +422,7 @@ namespace EnElCamino
         public void ShowCompleted()
         {
             CreateOutcomePanel();
-            if (finalText != null) finalText.text = "LLEGASTE A LA RUTA\nVICTORIA";
+            if (finalText != null) finalText.text = "ELUDISTE AL PATRULLERO\nVICTORIA...!!!";
             if (completedPanel != null) completedPanel.SetActive(true);
             if (outcomeRestartButton != null) outcomeRestartButton.SetActive(false);
             HideGeneratorFuelTime();
@@ -410,13 +432,14 @@ namespace EnElCamino
             HideMessage();
         }
 
-        public void ShowGameOver()
+        public void ShowGameOver(string reason = null)
         {
             paused = true;
             Time.timeScale = 0f;
             AudioListener.pause = true;
             CreateOutcomePanel();
-            if (finalText != null) finalText.text = "GAME OVER";
+            if (finalText != null)
+                finalText.text = string.IsNullOrEmpty(reason) ? "GAME OVER" : "GAME OVER\n" + reason;
             PrepareOutcomeForInput();
             if (completedPanel != null) completedPanel.SetActive(true);
             if (outcomeRestartButton != null)
@@ -597,11 +620,53 @@ namespace EnElCamino
             pursuitDistanceText.resizeTextMaxSize = 22;
             pursuitDistanceText.fontStyle = FontStyle.Bold;
             pursuitDistanceText.alignment = TextAnchor.MiddleCenter;
-            pursuitDistanceText.color = new Color(0.45f, 0.78f, 1f, 1f);
+            pursuitDistanceText.color = new Color(1f, 0.22f, 0.16f, 1f);
+            pursuitDistanceText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            pursuitDistanceText.verticalOverflow = VerticalWrapMode.Truncate;
             pursuitDistanceText.raycastTarget = false;
 
             pursuitDistancePanel = panel;
             pursuitDistancePanel.SetActive(false);
+        }
+
+        private void CreateDamagePanel()
+        {
+            if (damagePanel != null) return;
+            damagePanel = CreateUiObject("DanoVehiculo", transform, typeof(Image));
+            damagePanel.GetComponent<Image>().color = new Color(0.02f, 0.02f, 0.02f, 0.85f);
+            damagePanel.GetComponent<Image>().raycastTarget = false;
+            damageText = CreateUiText("TextoDano", damagePanel.transform, "DANO 0%", 18, TextAnchor.MiddleCenter);
+            damageText.rectTransform.anchorMin = Vector2.zero;
+            damageText.rectTransform.anchorMax = new Vector2(0.38f, 1f);
+            damageText.rectTransform.offsetMin = Vector2.zero;
+            damageText.rectTransform.offsetMax = Vector2.zero;
+            GameObject track = CreateUiObject("FondoBarra", damagePanel.transform, typeof(Image));
+            RectTransform rect = track.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.4f, 0.3f);
+            rect.anchorMax = new Vector2(0.96f, 0.7f);
+            rect.offsetMin = rect.offsetMax = Vector2.zero;
+            track.GetComponent<Image>().color = new Color(0.23f, 0.23f, 0.23f);
+            track.GetComponent<Image>().raycastTarget = false;
+            GameObject fill = CreateUiObject("BarraDano", track.transform, typeof(Image));
+            damageFill = fill.GetComponent<RectTransform>();
+            damageFill.anchorMin = Vector2.zero;
+            damageFill.anchorMax = new Vector2(0f, 1f);
+            damageFill.offsetMin = damageFill.offsetMax = Vector2.zero;
+            fill.GetComponent<Image>().color = new Color(1f, 0.2f, 0.12f);
+            fill.GetComponent<Image>().raycastTarget = false;
+            damagePanel.SetActive(false);
+        }
+
+        private void UpdateDamageDisplay()
+        {
+            if (damagePanel == null) return;
+            if (rearViewTarget == null) rearViewTarget = FindFirstObjectByType<CarDriver>();
+            bool visible = gameplayVisible && !IsGameOverOrFinished() && rearViewTarget != null &&
+                rearViewTarget.HasPlayerControl && rearViewTarget.Damage > 0f && Time.time < rearViewTarget.DamageHudUntil;
+            damagePanel.SetActive(visible);
+            if (!visible) return;
+            damageText.text = $"DANO {Mathf.CeilToInt(rearViewTarget.Damage)}%";
+            damageFill.anchorMax = new Vector2(Mathf.Clamp01(rearViewTarget.Damage / 100f), 1f);
         }
 
         private void CreateRearViewMirror()
@@ -738,8 +803,19 @@ namespace EnElCamino
             }
             if (pursuitDistancePanel != null)
             {
-                float mirrorWidth = Mathf.Clamp(width * 0.25f, 260f, 340f);
-                SetTopCenter(pursuitDistancePanel.GetComponent<RectTransform>(), pursuitDistancePanelPosition, new Vector2(mirrorWidth, 58f));
+                RectTransform pursuitRect = pursuitDistancePanel.GetComponent<RectTransform>();
+                pursuitRect.anchorMin = pursuitRect.anchorMax = new Vector2(0.5f, 0f);
+                pursuitRect.pivot = new Vector2(0.5f, 0f);
+                pursuitRect.anchoredPosition = new Vector2(0f, 24f);
+                pursuitRect.sizeDelta = new Vector2(Mathf.Min(width - 48f, 620f), 44f);
+            }
+            if (damagePanel != null)
+            {
+                RectTransform damageRect = damagePanel.GetComponent<RectTransform>();
+                damageRect.anchorMin = damageRect.anchorMax = new Vector2(0f, 0f);
+                damageRect.pivot = Vector2.zero;
+                damageRect.anchoredPosition = new Vector2(24f, 84f);
+                damageRect.sizeDelta = new Vector2(Mathf.Min(width - 48f, 300f), 36f);
             }
             if (objectivePanel != null)
             {

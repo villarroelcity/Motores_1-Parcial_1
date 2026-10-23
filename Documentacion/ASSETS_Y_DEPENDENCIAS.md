@@ -24,6 +24,8 @@ Por licencia y tamaño, las carpetas de Vehicle Physics Pro, Enviro 3 y Nature S
 
 Los modelos externos que sí están en `Assets/ThirdParty/ExternalModels` conservan su archivo de licencias/créditos asociado.
 
+La escena actual también referencia **Loader Heavy Machinery**, Asset Store ID **31696**, versión local **1.2.4**, en `Assets/_DLNK/HeavyMachinery`. Importar el paquete autorizado en esa ruta para conservar la referencia al prefab `HeavyMachinery_Stopped b`. Su contenido comercial y las copias automáticas de `Assets/_Recovery` permanecen locales y no se publican en GitHub.
+
 ## Convenciones de repositorio
 
 - Escena productiva: `Assets/Scenes/EnElCamino.unity`.

@@ -25,6 +25,7 @@ namespace EnElCamino
         private bool vehicleReady = true;
         private bool engineRequested;
         private float starterUntil;
+        private float stalledTime;
         private float throttleInput;
         private float steerInput;
         private bool introFullThrottle;
@@ -620,7 +621,10 @@ namespace EnElCamino
             // input channel. Mixing this scripted bridge with it makes the car
             // steer as a rigid block after refuelling.
             if (driving)
+            {
+                RestartStalledEngine();
                 return;
+            }
 
             int[] input = vehicleController.data.Get(Channel.Input);
             bool stopped = gameFlow != null && (gameFlow.gameOver || gameFlow.finished);
@@ -652,6 +656,32 @@ namespace EnElCamino
             input[InputData.AutomaticGear] = driving || arrivalControl
                 ? (reversing ? 2 : 4)
                 : vehicleReady ? 1 : 4;
+        }
+
+        private void RestartStalledEngine()
+        {
+            // An impact can stall VPP's engine without destroying the car.
+            // Use its starter again, not a controller reset or a forced RPM.
+            if (!engineRequested || gameFlow == null || !gameFlow.carHasFuel ||
+                gameFlow.gameOver || gameFlow.finished || damage >= 100f || nativeInput == null ||
+                Time.time < starterUntil + 0.75f)
+            {
+                stalledTime = 0f;
+                return;
+            }
+            int[] telemetry = vehicleController.data.Get(Channel.Vehicle);
+            bool stalled = telemetry[VehicleData.EngineStalled] != 0 ||
+                (telemetry[VehicleData.EngineWorking] == 0 && telemetry[VehicleData.EngineRpm] == 0);
+            if (!stalled || telemetry[VehicleData.EngineStarting] != 0)
+            {
+                stalledTime = 0f;
+                return;
+            }
+            stalledTime += Time.fixedDeltaTime;
+            if (stalledTime < 0.35f) return;
+            stalledTime = 0f;
+            starterUntil = Time.time + 1.25f;
+            nativeInput.externalIgnition = VPStandardInput.IgnitionKey.Start;
         }
 
         private void UpdateGripOnGrass()

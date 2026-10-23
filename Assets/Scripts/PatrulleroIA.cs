@@ -49,6 +49,7 @@ namespace EnElCamino
         private AudioSource sirenSource;
         private bool policeEffectsActive;
         private TrafficVehicle[] trafficVehicles;
+        private TrafficVehicle blockingTraffic;
         private float nextTrafficScan;
         private const float MinimumChaseSpeed = 48f;
         private const float RequiredEscapeDistance = 200f;
@@ -336,11 +337,14 @@ namespace EnElCamino
                 nextPlanTime = Time.fixedTime + 0.15f;
             }
 
-            float lookAhead = Mathf.Clamp(8f + velocity * 0.65f, 10f, 40f);
-            if (chasing) lookAhead = Mathf.Min(lookAhead, Mathf.Max(5f, Mathf.Abs(gap)));
+            float lookAhead = Mathf.Clamp(6f + velocity * 0.75f, 6f, 40f);
+            if (chasing) lookAhead = Mathf.Min(lookAhead, Mathf.Max(2.5f, Mathf.Abs(gap)));
             float lane = Vector3.Dot(body.position - road.position, right);
+            lookAhead = PassingLookAhead(lookAhead, body.position, chosenLane - lane);
             Vector3 aim = body.position + movementForward * lookAhead + right * (chosenLane - lane);
-            if (offRoadPursuit)
+            bool closeApproach = chasing && Mathf.Abs(playerAlongRoad) < 3f && velocity < 8f &&
+                Mathf.Abs(gap) < 15f && blockingTraffic == null;
+            if (offRoadPursuit || closeApproach)
             {
                 Vector3 prediction = targetCar.transform.position + (targetBody != null ? targetBody.linearVelocity * 0.35f : Vector3.zero);
                 float targetForward = Mathf.Clamp(Vector3.Dot(prediction - body.position, routeForward), -lookAhead, lookAhead);
@@ -366,13 +370,21 @@ namespace EnElCamino
                 float distance = Vector3.ProjectOnPlane(targetCar.transform.position - body.position, Vector3.up).magnitude;
                 desiredSpeed = Mathf.Clamp((targetBody != null ? targetBody.linearVelocity.magnitude : 0f) + distance * 0.5f, 0f, 35f);
             }
+            if (closeApproach)
+                desiredSpeed = Mathf.Min(8f, Vector3.ProjectOnPlane(aim - body.position, Vector3.up).magnitude * 0.8f);
+            else if (blockingTraffic != null && Mathf.Abs(chosenLane - lane) > 1f)
+            {
+                desiredSpeed = Mathf.Max(desiredSpeed, 5f);
+                if (velocity < 10f && Vector3.Dot(blockingTraffic.transform.position - body.position, movementForward) < 20f)
+                    desiredSpeed = Mathf.Min(desiredSpeed, 6f);
+            }
             // A parked car first turns onto the road; high-speed corners are
             // limited by available lateral tire grip rather than forced yaw.
             desiredSpeed = Mathf.Min(desiredSpeed,
                 Mathf.Sqrt(lateralAcceleration / Mathf.Max(0.004f, Mathf.Abs(curvature))));
             if (plannedClearTime < 1.2f) desiredSpeed = Mathf.Min(desiredSpeed, velocity * 0.6f);
             float driveSign = Vector3.Dot(movementForward, transform.forward) >= 0f ? 1f : -1f;
-            if (offRoadPursuit)
+            if (offRoadPursuit || closeApproach)
             {
                 driveSign = localAim.z < -2f ? -1f : 1f;
                 if (driveSign < 0f) desiredSpeed = Mathf.Min(desiredSpeed, 12f);
@@ -380,13 +392,17 @@ namespace EnElCamino
             float pedal = Mathf.Clamp((desiredSpeed - signedVelocity * driveSign) * 0.35f, -1f, 1f);
             bool changingDirection = signedVelocity * driveSign < -0.5f;
             if (changingDirection) pedal = -1f;
-            stuckTime = velocity < 1f && Mathf.Abs(gap) > 6f ? stuckTime + Time.fixedDeltaTime : 0f;
+            stuckTime = velocity < 1f && (Mathf.Abs(gap) > 3f || Mathf.Abs(chosenLane - lane) > 1.5f)
+                ? stuckTime + Time.fixedDeltaTime : 0f;
             if (stuckTime > 2f && Time.fixedTime >= reverseUntil)
             {
-                reverseUntil = Time.fixedTime + 1.2f;
+                // Back up to make turning room, but never into another car.
+                if (HasRecoverySpace(-transform.forward * driveSign))
+                    reverseUntil = Time.fixedTime + 1.2f;
                 stuckTime = 0f;
             }
             bool reversing = Time.fixedTime < reverseUntil;
+            bool recoveryBlocked = reversing && !HasRecoverySpace(-transform.forward * driveSign);
             float frontZ = float.NegativeInfinity;
             foreach (WheelCollider wheel in drivingWheels)
                 frontZ = Mathf.Max(frontZ, wheel.transform.localPosition.z);
@@ -394,8 +410,9 @@ namespace EnElCamino
             {
                 bool frontWheel = wheel.transform.localPosition.z > frontZ - 0.5f;
                 wheel.steerAngle = frontWheel ? (reversing ? -steering : steering) : 0f;
-                wheel.motorTorque = reversing ? -driveSign * 650f : driveSign * Mathf.Max(0f, pedal) * (velocity < 20f ? 1400f : 950f);
-                wheel.brakeTorque = reversing ? 0f : Mathf.Max(0f, -pedal) * 2200f;
+                wheel.motorTorque = recoveryBlocked ? 0f : reversing ? -driveSign * 650f
+                    : driveSign * Mathf.Max(0f, pedal) * (velocity < 20f ? 1400f : 950f);
+                wheel.brakeTorque = recoveryBlocked ? 2200f : reversing ? 0f : Mathf.Max(0f, -pedal) * 2200f;
                 bool grass = wheel.GetGroundHit(out WheelHit hit) && gameFlow.IsGrassSurface(hit.collider);
                 WheelFrictionCurve friction = wheel.sidewaysFriction;
                 friction.stiffness = grass ? 1.15f : 1.8f;
@@ -416,24 +433,62 @@ namespace EnElCamino
             float halfWidth = Mathf.Max(0.5f, GetRoadHalfWidth() - RoadEdgeMargin);
             float lane = Vector3.Dot(body.position - road.position, right);
             float rawTargetLane = Vector3.Dot(targetCar.transform.position - road.position, right);
+            TrafficVehicle previousBlock = blockingTraffic;
+            blockingTraffic = null;
+            float scanDistance = Mathf.Max(20f, velocity * 2f);
+            float nearestBlock = float.PositiveInfinity;
+            if (previousBlock != null && previousBlock.isActiveAndEnabled)
+            {
+                float ahead = Vector3.Dot(previousBlock.transform.position - body.position, movementForward);
+                if (ahead > -7f && ahead < scanDistance)
+                {
+                    blockingTraffic = previousBlock;
+                    nearestBlock = ahead;
+                }
+            }
+            foreach (TrafficVehicle traffic in trafficVehicles)
+            {
+                if (traffic == null || !traffic.isActiveAndEnabled) continue;
+                Vector3 offset = traffic.transform.position - body.position;
+                float ahead = Vector3.Dot(offset, movementForward);
+                Rigidbody trafficBody = traffic.GetComponent<Rigidbody>();
+                float closingSpeed = velocity - (trafficBody != null ? Vector3.Dot(trafficBody.linearVelocity, movementForward) : 0f);
+                float detectionDistance = Mathf.Max(scanDistance, closingSpeed * 2.5f);
+                if (ahead < -5f || ahead >= detectionDistance || ahead >= nearestBlock ||
+                    Mathf.Abs(Vector3.Dot(offset, right)) > 2.8f) continue;
+                blockingTraffic = traffic;
+                nearestBlock = ahead;
+            }
             float minLane = offRoadPursuit ? Mathf.Min(-halfWidth, lane - 1.5f, rawTargetLane - 1.5f) : -halfWidth;
             float maxLane = offRoadPursuit ? Mathf.Max(halfWidth, lane + 1.5f, rawTargetLane + 1.5f) : halfWidth;
+            if (blockingTraffic != null)
+            {
+                // A blocked road is not a wall: consider both shoulders too.
+                minLane = Mathf.Min(minLane, -halfWidth - 2.8f);
+                maxLane = Mathf.Max(maxLane, halfWidth + 2.8f);
+            }
             float targetLane = Mathf.Clamp(rawTargetLane, minLane, maxLane);
             trackedTargetLane = Mathf.MoveTowards(trackedTargetLane, targetLane, offRoadPursuit ? 1.2f : 0.35f);
             targetLane = Mathf.Clamp(trackedTargetLane, minLane, maxLane);
             float bestScore = float.PositiveInfinity;
             float bestLane = chosenLane;
             float bestClearTime = 0f;
-            // Five corridors plus the current plan. Keeping a plan has a cost
-            // advantage, preventing left/right oscillation at every sensor tick.
-            for (int candidate = 0; candidate < 8; candidate++)
+            // Include paths on either side of the blocking car. Keep the
+            // previous path unless another one is clearly safer.
+            for (int candidate = 0; candidate < (blockingTraffic != null ? 10 : 8); candidate++)
             {
                 float destination = candidate == 5 ? Mathf.Clamp(chosenLane, minLane, maxLane)
                     : candidate == 6 ? targetLane : candidate == 7 ? lane
                     : Mathf.Lerp(minLane, maxLane, candidate / 4f);
+                if (candidate >= 8)
+                {
+                    float blockLane = Vector3.Dot(blockingTraffic.transform.position - road.position, right);
+                    destination = Mathf.Clamp(blockLane + (candidate == 8 ? -2.8f : 2.8f), minLane, maxLane);
+                }
                 float clearTime = EvaluateCorridor(destination, lane, right, velocity);
                 float score = Mathf.Abs(destination - targetLane) * 0.8f +
-                    (Mathf.Abs(destination - chosenLane) > 0.4f ? 0.6f : 0f);
+                    (Mathf.Abs(destination - chosenLane) > 0.4f ? 1.5f : 0f) +
+                    Mathf.Max(0f, Mathf.Abs(destination) - halfWidth) * 0.5f;
                 if (clearTime < 3f) score += 1000f * (3f - clearTime);
                 if (score >= bestScore) continue;
                 bestScore = score;
@@ -446,14 +501,40 @@ namespace EnElCamino
 
         private float EvaluateCorridor(float destination, float currentLane, Vector3 right, float velocity)
         {
+            // Roll out front-wheel steering. The old prediction assumed an
+            // immediate 12 m/s even at rest and slid sideways without turning;
+            // it rejected every passing lane when stuck behind slow traffic.
+            Vector3 position = body.position;
+            Vector3 heading = Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
+            float predictedSpeed = velocity;
+            float predictedSteer = steering;
+            float driveSign = Vector3.Dot(heading, movementForward) >= 0f ? 1f : -1f;
             Vector3 previous = body.position + Vector3.up * 0.9f;
-            float horizonSpeed = Mathf.Max(12f, velocity);
             for (int step = 1; step <= 12; step++)
             {
                 float time = step * 0.25f;
-                float blend = Mathf.SmoothStep(0f, 1f, time / 1.5f);
-                Vector3 point = body.position + movementForward * (horizonSpeed * time) +
-                    right * ((destination - currentLane) * blend) + Vector3.up * 0.9f;
+                float lookAhead = Mathf.Clamp(6f + predictedSpeed * 0.75f, 6f, 40f);
+                float gap = Mathf.Abs(Vector3.Dot(targetCar.transform.position - position, routeForward));
+                if (chasing) lookAhead = Mathf.Min(lookAhead, Mathf.Max(2.5f, gap));
+                float lane = currentLane + Vector3.Dot(position - body.position, right);
+                lookAhead = PassingLookAhead(lookAhead, position, destination - lane);
+                Vector3 offsetToAim = movementForward * lookAhead + right * (destination - lane);
+                Vector3 headingRight = Vector3.Cross(Vector3.up, heading);
+                float curve = 2f * Vector3.Dot(offsetToAim, headingRight) / Mathf.Max(1f, offsetToAim.sqrMagnitude);
+                float lateralAcceleration = offRoadPursuit ? 6.5f : 12f;
+                float steerLimit = Mathf.Min(32f, Mathf.Atan(wheelbase * lateralAcceleration /
+                    Mathf.Max(4f, predictedSpeed * predictedSpeed)) * Mathf.Rad2Deg);
+                float desiredSteer = Mathf.Clamp(Mathf.Atan(wheelbase * curve) * Mathf.Rad2Deg, -steerLimit, steerLimit);
+                predictedSteer = Mathf.MoveTowards(predictedSteer, desiredSteer, 55f * 0.25f);
+                float cornerSpeed = Mathf.Sqrt(lateralAcceleration / Mathf.Max(0.004f, Mathf.Abs(curve)));
+                float speedLimit = blockingTraffic != null && velocity < 10f ? 6f : Mathf.Max(8f, velocity);
+                float nextSpeed = Mathf.MoveTowards(predictedSpeed, Mathf.Min(speedLimit, cornerSpeed), 6f * 0.25f);
+                float distance = (predictedSpeed + nextSpeed) * 0.5f * 0.25f;
+                predictedSpeed = nextSpeed;
+                float yaw = distance * driveSign / wheelbase * Mathf.Tan(predictedSteer * Mathf.Deg2Rad);
+                position += Quaternion.AngleAxis(yaw * Mathf.Rad2Deg * 0.5f, Vector3.up) * heading * (distance * driveSign);
+                heading = Quaternion.AngleAxis(yaw * Mathf.Rad2Deg, Vector3.up) * heading;
+                Vector3 point = position + Vector3.up * 0.9f;
                 foreach (TrafficVehicle traffic in trafficVehicles)
                 {
                     if (traffic == null || !traffic.isActiveAndEnabled) continue;
@@ -482,6 +563,29 @@ namespace EnElCamino
                 previous = point;
             }
             return 3f;
+        }
+
+        private float PassingLookAhead(float lookAhead, Vector3 position, float laneChange)
+        {
+            if (blockingTraffic == null || Mathf.Abs(laneChange) < 1f) return lookAhead;
+            float ahead = Vector3.Dot(blockingTraffic.transform.position - position, movementForward);
+            // Reach the adjacent corridor BEFORE reaching the obstructing car.
+            return ahead > 0f ? Mathf.Min(lookAhead, Mathf.Max(2.5f, ahead - 6f)) : lookAhead;
+        }
+
+        private bool HasRecoverySpace(Vector3 direction)
+        {
+            // Sweep from the bumper, excluding our own body and the road.
+            int count = Physics.BoxCastNonAlloc(body.position + Vector3.up * 0.9f,
+                new Vector3(0.9f, 0.3f, 2.2f), direction, sensorHits, transform.rotation,
+                4f, obstacleLayers, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < count; i++)
+            {
+                Collider hit = sensorHits[i].collider;
+                if (hit.transform.IsChildOf(transform) || sensorHits[i].normal.y > 0.6f) continue;
+                return false;
+            }
+            return true;
         }
 
         private Vector3 GetRoadForward()

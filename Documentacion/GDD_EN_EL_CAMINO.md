@@ -38,7 +38,7 @@ La secuencia es guiada por objetivos del HUD. Cada interacción valida el paso a
 
 Derrotas vigentes: agotar el tiempo hasta la ruta, agotar el generador antes de resolver el taller, una caída peligrosa, captura por contacto de la patrulla, agotar los 60 segundos de persecución y alcanzar el 100% de daño del auto. Victoria y derrota vuelven a estar habilitadas después de la prueba de grabación. `GAME OVER` detiene la partida y deja disponible `REINICIAR`.
 
-El generador tiene 30 segundos de combustible. Su cuenta interna continúa aunque se oculte el indicador tras llenar el bidón. Al agotarse se apagan el audio y la electricidad, sin desenchufar el cable. Alimenta también las luces exteriores. Al alcanzar la ruta desaparece el reloj de anochecer; el ciclo ambiental continúa sin saltar de golpe a la noche y sin causar derrota por ese reloj.
+El tiempo inicial hasta alcanzar la ruta es de **120 segundos (dos minutos)**. El generador tiene 30 segundos de combustible. Su cuenta interna continúa aunque se oculte el indicador tras llenar el bidón. Al agotarse se apagan el audio y la electricidad, sin desenchufar el cable. Alimenta también las luces exteriores. Al alcanzar la ruta desaparece el reloj de anochecer; el ciclo ambiental continúa sin saltar de golpe a la noche y sin causar derrota por ese reloj.
 
 ## Sistemas implementados
 
@@ -71,7 +71,7 @@ Las balizas son dos cubos de malla guardados en la escena, `PatrulleroIA/BalizaI
 
 El tráfico empieza al recuperar el control tras cargar combustible. Usa carrocerías VPP de coupé y camioneta, colores distintos y circulación en ambos sentidos a unos 60 km/h. Los vehículos aparecen lejos, con intervalos y separaciones aleatorias. Son cuerpos dinámicos con movimiento recto; en esta ruta plana se limita su movimiento vertical para evitar que se apilen.
 
-El control de crucero considera otros vehículos y no el suelo. Un roce entre autos de tráfico provoca una pausa breve y permite retomar la marcha; un impacto del jugador desactiva su avance automático. Se desactivan los componentes VPP que estos autos no usan. La prevención de colas y choques secundarios debe verificarse nuevamente en juego.
+El control de crucero considera otros vehículos y no el suelo. Un roce entre autos de tráfico provoca una pausa breve y permite retomar la marcha; un impacto del jugador desactiva su avance automático. Se desactivan los componentes VPP que estos autos no usan. La altura inicial se corrige a partir de los límites mundiales del modelo, manteniendo sus ruedas sobre el asfalto. El collider de carrocería usa fricción baja para no quedar frenado contra el piso con el motor simplificado. La prevención de colas y choques secundarios debe verificarse nuevamente en juego.
 
 El jugador conserva las físicas y la dirección de VPP. La transmisión es automática: mantener abajo/S frena primero y luego selecciona reversa al detenerse; arriba/W vuelve a avanzar. El pasto reduce el agarre respecto del asfalto. Los faros originales permanecen encendidos y se complementan con haces de luz sobre el suelo.
 
@@ -90,6 +90,8 @@ El menú solicitado contiene únicamente:
 - Pantalla de `CONTROLES`.
 
 Los botones se crean en tiempo de ejecución con `EventSystem` e `InputSystemUIInputModule`. Al producirse cualquier `GAME OVER` se detienen los audios de juego y queda disponible `REINICIAR`.
+
+Al confirmar la victoria se establece inmediatamente `Time.timeScale = 0`: quedan congeladas la física y las animaciones que usan tiempo de juego. La cámara deja de seguir al vehículo y el menú no puede reanudar una partida finalizada. El reinicio restaura la escala de tiempo normal.
 
 ## Criterios de entrega
 

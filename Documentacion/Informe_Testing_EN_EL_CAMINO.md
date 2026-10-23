@@ -31,6 +31,8 @@ Fecha: 20/10/2026. Rama: `parcial-2`. Esta revisión ordena la base del proyecto
 | Sirena | Comparar sonido cerca, a 100 m y a más de 220 m | Volumen decreciente hasta silencio | Pendiente |
 | Balizas | Mover los dos cubos de la patrulla con el juego detenido | Posiciones conservadas al iniciar; destello sin recrear geometría | Pendiente |
 | Tráfico | Circular en ambos sentidos y provocar un roce entre NPC | Marcha normal; roce no genera detención permanente de ambos | Pendiente |
+| Tiempo inicial | Iniciar una partida nueva | El reloj comienza en 2:00; la persecución conserva su minuto propio | Pendiente |
+| Congelación por victoria | Sacar 200 m de ventaja | Se muestra la victoria y se congelan inmediatamente autos, física y cámara | Pendiente |
 | Tiempo | Dejar agotar el reloj | Atardecer a noche, `GAME OVER`, audio detenido | Pendiente |
 | Resolución | Probar 16:9 y una resolución menor | HUD sin recortes ni solapamientos | Pendiente |
 | Build | Compilar y ejecutar build Windows | Mismo flujo y audio que en editor | Pendiente |
@@ -51,4 +53,6 @@ Fecha: 20/10/2026. Rama: `parcial-2`. Esta revisión ordena la base del proyecto
 ## Revisión del 23/10/2026
 
 Se inspeccionó el video de 108 segundos `Desktop 2026.10.23 - 14.55.07.05.mp4`. Las observaciones del usuario sobre aceleración de la patrulla, pérdida de seguimiento, tráfico detenido y HUD motivaron cambios posteriores; ese video no valida la versión actual. La compilación externa de Unity mediante `dotnet build Assembly-CSharp.csproj` termina con 0 errores y 17 advertencias de APIs obsoletas de terceros. No se ejecutó Play ni una build para validar las últimas modificaciones de sirena y balizas. Los casos de la tabla continúan pendientes.
+
+También se inspeccionó el video de 24 segundos `Desktop 2026.10.23 - 18.02.54.06.mp4`: muestra tráfico detenido y la pantalla de victoria sin congelación. Se corrigieron el cálculo de altura mundial al crear tráfico y su material de contacto, se bajó el tiempo inicial a 120 s y se agregó la pausa inmediata de victoria. Los cambios compilan sin errores; su validación física y visual posterior sigue pendiente.
 

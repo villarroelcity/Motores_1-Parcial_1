@@ -178,8 +178,10 @@ namespace EnElCamino
             vehicle.name = "TraficoVPP_" + nextVehicleIndex.ToString("00");
 
             Bounds visualBounds = GetRendererBounds(vehicle);
-            float groundRootY = roadSurfaceY - visualBounds.min.y + 0.025f;
-            vehicle.transform.position += Vector3.up * (groundRootY - vehicle.transform.position.y);
+            // Renderer bounds are world-space. Apply the correction to the
+            // current root instead of treating that correction as a root Y.
+            vehicle.transform.position += Vector3.up * (roadSurfaceY + 0.025f - visualBounds.min.y);
+            float groundRootY = vehicle.transform.position.y;
 
             Bounds localBounds = GetLocalRendererBounds(vehicle);
             Rigidbody body = vehicle.GetComponent<Rigidbody>();
@@ -197,7 +199,7 @@ namespace EnElCamino
             boxCollider.center = new Vector3(localBounds.center.x,
                 localBounds.min.y + boxCollider.size.y * 0.55f,
                 localBounds.center.z);
-            boxCollider.sharedMaterial = TrafficVehicle.GetNoBounceMaterial();
+            boxCollider.sharedMaterial = TrafficVehicle.GetTrafficBodyMaterial();
 
             body.isKinematic = false;
             body.useGravity = true;

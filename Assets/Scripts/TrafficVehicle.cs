@@ -143,6 +143,7 @@ namespace EnElCamino
         private float trafficContactUntil;
         private const float WheelRadius = 0.34f;
         private static PhysicsMaterial noBounceMaterial;
+        private static PhysicsMaterial trafficBodyMaterial;
 
         private void Awake()
         {
@@ -182,12 +183,14 @@ namespace EnElCamino
             groundRootY = rootY;
             // Traffic travels on this flat road. Keep its wheels at road height
             // while retaining dynamic horizontal collision response.
-            body.constraints |= RigidbodyConstraints.FreezePositionY;
+            body.constraints = RigidbodyConstraints.FreezePositionY |
+                RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
             laneX = lanePositionX;
             wheels = wheelTransforms;
 
             body.linearVelocity = direction * currentSpeed;
             body.angularVelocity = Vector3.zero;
+            body.WakeUp();
         }
 
         public void SetHeadlights(bool enabled)
@@ -290,6 +293,20 @@ namespace EnElCamino
             // Stop the cruise controller, preserving the momentum exchanged by
             // physics. Subsequent contacts must not restart its motor.
             damagedInCollision = true;
+        }
+
+        public static PhysicsMaterial GetTrafficBodyMaterial()
+        {
+            if (trafficBodyMaterial != null) return trafficBodyMaterial;
+            trafficBodyMaterial = new PhysicsMaterial("Carroceria trafico sin agarre al suelo")
+            {
+                dynamicFriction = 0.05f,
+                staticFriction = 0.05f,
+                bounciness = 0f,
+                frictionCombine = PhysicsMaterialCombine.Minimum,
+                bounceCombine = PhysicsMaterialCombine.Minimum
+            };
+            return trafficBodyMaterial;
         }
 
         public static PhysicsMaterial GetNoBounceMaterial()

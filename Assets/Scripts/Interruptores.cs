@@ -8,7 +8,7 @@ namespace EnElCamino
         [SerializeField] private PortonTaller garageDoor;
         [SerializeField] private Transform lever;
         [SerializeField] private AudioClip switchSound;
-        private AudioSource switchAudio;
+        [SerializeField] private AudioSource switchAudio;
         private bool switchedOn;
         public bool IsOn => switchedOn;
 
@@ -16,13 +16,6 @@ namespace EnElCamino
         {
             if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
             if (garageDoor == null) garageDoor = FindFirstObjectByType<PortonTaller>();
-            switchAudio = GetComponent<AudioSource>();
-            if (switchAudio == null) switchAudio = gameObject.AddComponent<AudioSource>();
-            switchAudio.playOnAwake = false;
-            switchAudio.spatialBlend = 1f;
-            switchAudio.minDistance = 1f;
-            switchAudio.maxDistance = 12f;
-            switchAudio.volume = 0.45f;
         }
 
         public string Prompt

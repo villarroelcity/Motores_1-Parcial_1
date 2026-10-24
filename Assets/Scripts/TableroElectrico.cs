@@ -19,7 +19,6 @@ namespace EnElCamino
                 gameFlow.GameLost += RefreshAfterPowerLoss;
                 gameFlow.GameFinished += RefreshAfterPowerLoss;
             }
-            RestorePlayModeControls();
             RefreshVisualState();
         }
 
@@ -29,14 +28,6 @@ namespace EnElCamino
             gameFlow.GeneratorFuelDepleted -= RefreshAfterPowerLoss;
             gameFlow.GameLost -= RefreshAfterPowerLoss;
             gameFlow.GameFinished -= RefreshAfterPowerLoss;
-        }
-
-        private void Start()
-        {
-            // The board is assembled by editor setup scripts. Re-enable its controls
-            // and single-sided labels at runtime so they remain visible in Game view.
-            RestorePlayModeControls();
-            RefreshVisualState();
         }
 
         public string Prompt => gameFlow == null || !gameFlow.generatorOn
@@ -60,46 +51,6 @@ namespace EnElCamino
 
             gameFlow.ConnectStationPower();
             RefreshVisualState();
-        }
-
-        private void RestorePlayModeControls()
-        {
-            string[] visibleParts =
-            {
-                "TableroFrontal", "InterruptorGeneral", "LlaveTermica", "LuzEstado", "RotuloCaja", "RotuloToma"
-            };
-
-            foreach (string partName in visibleParts)
-            {
-                Transform part = FindPart(partName);
-                if (part == null) continue;
-                if (!part.gameObject.activeSelf) part.gameObject.SetActive(true);
-
-                foreach (Renderer partRenderer in part.GetComponentsInChildren<Renderer>(true))
-                {
-                    if (partRenderer == null) continue;
-                    if (!partRenderer.gameObject.activeSelf) partRenderer.gameObject.SetActive(true);
-                    partRenderer.enabled = true;
-                    partRenderer.forceRenderingOff = false;
-                }
-
-                TextMesh label = part.GetComponent<TextMesh>();
-                if (label != null)
-                {
-                    label.color = Color.white;
-                    MeshRenderer labelRenderer = label.GetComponent<MeshRenderer>();
-                    if (labelRenderer != null)
-                    {
-                        labelRenderer.enabled = true;
-                        labelRenderer.forceRenderingOff = false;
-                    }
-                    // TextMesh's front face points along +Z; aim it at the front
-                    // of the cabinet for the project's Cull Back text material.
-                    Vector3 front = -transform.forward;
-                    if (front.sqrMagnitude > 0.001f)
-                        label.transform.rotation = Quaternion.LookRotation(front, transform.up);
-                }
-            }
         }
 
         private void RefreshVisualState()
@@ -138,25 +89,6 @@ namespace EnElCamino
             // El agotamiento del generador corta la electricidad, pero no
             // desenchufa fisicamente el cable: debe seguir conectado a la caja.
             RefreshVisualState();
-        }
-
-        private Transform FindPart(string expectedName)
-        {
-            string normalizedExpected = RemoveAccents(expectedName);
-            foreach (Transform part in GetComponentsInChildren<Transform>(true))
-                if (RemoveAccents(part.name) == normalizedExpected) return part;
-            return null;
-        }
-
-        private static string RemoveAccents(string value)
-        {
-            return value.ToLowerInvariant()
-                .Replace("\u00e1", "a")
-                .Replace("\u00e9", "e")
-                .Replace("\u00ed", "i")
-                .Replace("\u00f3", "o")
-                .Replace("\u00fa", "u")
-                .Replace("\u00f1", "n");
         }
 
     }

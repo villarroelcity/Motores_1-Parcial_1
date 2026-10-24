@@ -11,12 +11,11 @@ namespace EnElCamino
         [SerializeField] private CarDriver targetCar;
         [SerializeField] private float chaseSpeed = 42f;
         [SerializeField] private float escapeDistance = 100f;
-        [SerializeField] private AudioClip sirenClip;
-        [SerializeField] private float sirenVolume = 0.9f;
         [SerializeField] private LayerMask obstacleLayers = ~0;
         [SerializeField] private Transform road;
         [SerializeField] private float roadHalfWidth = 3.2f;
 
+        [SerializeField] private PhysicsMaterial bodyCollisionMaterial;
         private Rigidbody body;
         private bool chasing;
         private bool intercepting;
@@ -32,12 +31,12 @@ namespace EnElCamino
         private float plannedClearTime = 3f;
         private float steering;
         private Rigidbody targetBody;
-        private readonly WheelCollider[] drivingWheels = new WheelCollider[4];
-        private readonly Transform[] wheelModels = new Transform[4];
-        private readonly Quaternion[] wheelRotations = new Quaternion[4];
+        [SerializeField] private WheelCollider[] drivingWheels = new WheelCollider[4];
+        [SerializeField] private Transform[] wheelModels = new Transform[4];
+        [SerializeField] private Quaternion[] wheelRotations = new Quaternion[4];
         private readonly RaycastHit[] sensorHits = new RaycastHit[24];
-        private float wheelbase = 2.7f;
-        private int wheelCount;
+        [SerializeField] private float wheelbase = 2.7f;
+        [SerializeField] private int wheelCount;
         private float stuckTime;
         private float reverseUntil;
         private float chaseTime;
@@ -46,7 +45,7 @@ namespace EnElCamino
         [SerializeField] private Light rightPoliceLight;
         [SerializeField] private Renderer leftBeaconRenderer;
         [SerializeField] private Renderer rightBeaconRenderer;
-        private AudioSource sirenSource;
+        [SerializeField] private AudioSource sirenSource;
         private bool policeEffectsActive;
         private TrafficVehicle[] trafficVehicles;
         private TrafficVehicle blockingTraffic;
@@ -77,11 +76,9 @@ namespace EnElCamino
                 input.enabled = false;
             foreach (VPVehicleController controller in GetComponentsInChildren<VPVehicleController>(true))
                 controller.enabled = false;
-            // Disable VPP's wheels before configuring the patrol's Unity tires.
-            foreach (WheelCollider wheel in GetComponentsInChildren<WheelCollider>(true))
-                wheel.enabled = false;
             foreach (AudioSource source in GetComponentsInChildren<AudioSource>(true))
             {
+                if (source == sirenSource) continue;
                 source.Stop();
                 source.enabled = false;
             }
@@ -89,10 +86,9 @@ namespace EnElCamino
                 if (component != null && component.GetType().Name == "VPAudioExtras")
                     component.enabled = false;
 
-            ConfigureDrivingWheels();
+            CacheDrivingWheels();
             EnableOptionalVisualDamage();
             BindPoliceLights();
-            CreateSirenSource();
             SetPoliceEffects(false);
         }
 
@@ -160,7 +156,7 @@ namespace EnElCamino
             body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             foreach (Collider collider in GetComponentsInChildren<Collider>(true))
                 if (collider != null && !(collider is WheelCollider) && !collider.isTrigger)
-                    collider.sharedMaterial = TrafficVehicle.GetNoBounceMaterial();
+                    collider.sharedMaterial = bodyCollisionMaterial;
             body.WakeUp();
         }
 
@@ -258,56 +254,16 @@ namespace EnElCamino
 
         // The Community Edition permits only one VPP vehicle. The patrol uses
         // Unity WheelColliders, so steering and impacts still come from tires.
-        private void ConfigureDrivingWheels()
+        private void CacheDrivingWheels()
         {
-            foreach (VPWheelCollider source in GetComponentsInChildren<VPWheelCollider>(true))
+            wheelCount = drivingWheels.Length;
+            if (wheelCount != 4 || wheelModels.Length != 4)
             {
-                if (wheelCount >= 4) break;
-                Transform model = source.wheelTransform;
-                source.hideWheelOnDisable = false;
-                source.enabled = false;
-                if (model != null) model.gameObject.SetActive(true);
-
-                GameObject holder = new GameObject("RuedaFisicaPatrulla");
-                holder.transform.SetParent(transform, false);
-                holder.transform.position = source.transform.TransformPoint(source.center) + transform.up * 0.09f;
-                holder.transform.rotation = transform.rotation;
-                WheelCollider wheel = holder.AddComponent<WheelCollider>();
-                wheel.radius = source.radius;
-                wheel.mass = 25f;
-                wheel.suspensionDistance = 0.18f;
-                JointSpring spring = wheel.suspensionSpring;
-                spring.spring = 42000f;
-                spring.damper = 5000f;
-                spring.targetPosition = 0.5f;
-                wheel.suspensionSpring = spring;
-                wheel.forceAppPointDistance = 0.15f;
-                WheelFrictionCurve friction = wheel.forwardFriction;
-                friction.stiffness = 1.6f;
-                wheel.forwardFriction = friction;
-                friction = wheel.sidewaysFriction;
-                friction.stiffness = 1.8f;
-                wheel.sidewaysFriction = friction;
-                wheel.ConfigureVehicleSubsteps(10f, 5, 8);
-                drivingWheels[wheelCount] = wheel;
-                wheelModels[wheelCount] = model;
-                wheelRotations[wheelCount] = model != null
-                    ? Quaternion.Inverse(transform.rotation) * model.rotation : Quaternion.identity;
-                wheelCount++;
+                Debug.LogError("La patrulla necesita sus cuatro ruedas configuradas en la escena.", this);
+                enabled = false;
             }
-            if (wheelCount != 4)
-            {
-                Debug.LogError("La patrulla necesita las cuatro ruedas del prefab VPP.", this);
-                return;
-            }
-            float front = float.NegativeInfinity;
-            float rear = float.PositiveInfinity;
             foreach (WheelCollider wheel in drivingWheels)
-            {
-                front = Mathf.Max(front, wheel.transform.localPosition.z);
-                rear = Mathf.Min(rear, wheel.transform.localPosition.z);
-            }
-            wheelbase = Mathf.Max(2f, front - rear);
+                wheel.ConfigureVehicleSubsteps(10f, 5, 8);
         }
 
         private void DrivePursuit()
@@ -631,24 +587,6 @@ namespace EnElCamino
                 leftBeaconRenderer = leftPoliceLight.GetComponent<Renderer>();
             if (rightBeaconRenderer == null && rightPoliceLight != null)
                 rightBeaconRenderer = rightPoliceLight.GetComponent<Renderer>();
-        }
-
-        private void CreateSirenSource()
-        {
-            if (sirenClip == null) sirenClip = Resources.Load<AudioClip>("SFX/sirena_patrulla");
-
-            GameObject sourceObject = new GameObject("SirenaPatrulla");
-            sourceObject.transform.SetParent(transform, false);
-            sirenSource = sourceObject.AddComponent<AudioSource>();
-            sirenSource.clip = sirenClip;
-            sirenSource.loop = true;
-            sirenSource.playOnAwake = false;
-            sirenSource.volume = sirenVolume;
-            sirenSource.spatialBlend = 1f;
-            sirenSource.rolloffMode = AudioRolloffMode.Linear;
-            sirenSource.dopplerLevel = 0f;
-            sirenSource.minDistance = 8f;
-            sirenSource.maxDistance = 220f;
         }
 
         private void SetPoliceEffects(bool active)

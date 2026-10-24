@@ -12,7 +12,6 @@ namespace EnElCamino
         [SerializeField] private AudioSource gameOverSource;
         [SerializeField] private AudioSource victorySource;
         private const float GeneratorFuelSeconds = 30f;
-        [SerializeField] private Transform streetLightsRoot;
         [SerializeField] private Light sun;
         [SerializeField] private Text timerText;
         [SerializeField] private float duration = 120f;
@@ -65,7 +64,10 @@ namespace EnElCamino
         private bool carHeadLightsOn;
         private float nextHeadlightRefresh;
         private bool tensionStarted;
-        private PhysicsMaterial grassPhysicMaterial;
+        [SerializeField] private PhysicsMaterial grassPhysicMaterial;
+
+        [SerializeField] private Light[] stationLights;
+        [SerializeField] private Renderer[] stationLampRenderers;
 
         private void Start()
         {
@@ -77,7 +79,6 @@ namespace EnElCamino
             if (victorySource == null) victorySource = FindSource("VictorySource");
             stationPowerConnected = false;
             SetStreetLights(false);
-            ConfigureGroundGrip();
             roadReached = false;
             carHeadLightsOn = false;
             // VPP vehicles keep their running lights on from the start; the
@@ -516,93 +517,16 @@ namespace EnElCamino
 
         private void SetStreetLights(bool powered)
         {
-            if (streetLightsRoot == null)
+            foreach (Light lamp in stationLights)
             {
-                GameObject lightsObject = GameObject.Find("StreetLights");
-                if (lightsObject != null) streetLightsRoot = lightsObject.transform;
+                lamp.enabled = powered;
+                lamp.shadows = powered ? LightShadows.Soft : LightShadows.None;
             }
-
-            if (streetLightsRoot != null)
+            foreach (Renderer renderer in stationLampRenderers)
             {
-                foreach (Light streetLight in streetLightsRoot.GetComponentsInChildren<Light>(true))
-                {
-                    if (streetLight == null) continue;
-                    streetLight.enabled = powered;
-                }
-            }
-
-            foreach (Transform part in FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-            {
-                if (!string.Equals(part.name, "layer 6", StringComparison.OrdinalIgnoreCase) || !IsLampPostPart(part))
-                    continue;
-
-                ConfigureLampPostLight(part, powered);
-            }
-        }
-
-        private static bool IsLampPostPart(Transform part)
-        {
-            Transform current = part.parent;
-            while (current != null)
-            {
-                if (current.name.StartsWith("LampPost-1", StringComparison.OrdinalIgnoreCase)) return true;
-                current = current.parent;
-            }
-            return false;
-        }
-
-        private static void ConfigureLampPostLight(Transform part, bool powered)
-        {
-            const float lampRange = 20f;
-            const float lampIntensity = 9f;
-            Color lampColor = new Color(1f, 0.72f, 0.38f);
-
-            Light lamp = part.GetComponent<Light>();
-            if (lamp == null) lamp = part.gameObject.AddComponent<Light>();
-            lamp.type = LightType.Point;
-            lamp.color = lampColor;
-            lamp.range = lampRange;
-            lamp.intensity = lampIntensity;
-            lamp.bounceIntensity = 1.5f;
-            lamp.renderMode = LightRenderMode.ForcePixel;
-            lamp.shadows = powered ? LightShadows.Soft : LightShadows.None;
-            lamp.enabled = powered;
-
-            foreach (Renderer renderer in part.GetComponentsInChildren<Renderer>(true))
-            {
-                if (renderer == null) continue;
-                renderer.enabled = true;
                 Material material = renderer.material;
-                if (!material.HasProperty("_EmissionColor")) continue;
-
-                material.EnableKeyword("_EMISSION");
-                material.SetColor("_EmissionColor", powered ? lampColor * 7f : Color.black);
-            }
-        }
-
-        private void ConfigureGroundGrip()
-        {
-            if (grassPhysicMaterial == null)
-            {
-                grassPhysicMaterial = new PhysicsMaterial("PastoGripBajo")
-                {
-                    staticFriction = 0.18f,
-                    dynamicFriction = 0.10f,
-                    bounciness = 0f,
-                    frictionCombine = PhysicsMaterialCombine.Minimum,
-                    bounceCombine = PhysicsMaterialCombine.Minimum
-                };
-            }
-
-            foreach (Transform item in FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-            {
-                string objectName = item.name.ToLowerInvariant();
-                if (!objectName.Contains("terreno") && !objectName.Contains("grass") && !objectName.Contains("pasto"))
-                    continue;
-
-                foreach (Collider collider in item.GetComponentsInChildren<Collider>(true))
-                    if (collider != null && !(collider is WheelCollider) && !collider.isTrigger)
-                        collider.sharedMaterial = grassPhysicMaterial;
+                if (material.HasProperty("_EmissionColor"))
+                    material.SetColor("_EmissionColor", powered ? new Color(1f, .72f, .38f) * 7f : Color.black);
             }
         }
 

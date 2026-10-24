@@ -33,49 +33,8 @@ namespace EnElCamino
 
         private static void SetRoadBeams(GameObject vehicle, bool enabled)
         {
-            const string holderName = "FarosSobreAsfalto";
-            Transform holder = vehicle.transform.Find(holderName);
-            if (holder == null)
-            {
-                Bounds bounds = new Bounds();
-                bool found = false;
-                foreach (Renderer renderer in vehicle.GetComponentsInChildren<Renderer>(true))
-                {
-                    Bounds mesh = renderer.localBounds;
-                    for (int corner = 0; corner < 8; corner++)
-                    {
-                        Vector3 point = mesh.center + Vector3.Scale(mesh.extents, new Vector3(
-                            (corner & 1) == 0 ? -1f : 1f,
-                            (corner & 2) == 0 ? -1f : 1f,
-                            (corner & 4) == 0 ? -1f : 1f));
-                        point = vehicle.transform.InverseTransformPoint(renderer.transform.TransformPoint(point));
-                        if (!found) { bounds = new Bounds(point, Vector3.zero); found = true; }
-                        else bounds.Encapsulate(point);
-                    }
-                }
-                if (!found) return;
-                holder = new GameObject(holderName).transform;
-                holder.SetParent(vehicle.transform, false);
-                for (int side = -1; side <= 1; side += 2)
-                {
-                    GameObject lamp = new GameObject(side < 0 ? "FaroIzquierdo" : "FaroDerecho");
-                    lamp.transform.SetParent(holder, false);
-                    lamp.transform.localPosition = new Vector3(bounds.center.x + side * bounds.extents.x * 0.65f,
-                        bounds.min.y + 0.65f, bounds.max.z - 0.1f);
-                    lamp.transform.localRotation = Quaternion.Euler(6f, side * 2f, 0f);
-                    Light light = lamp.AddComponent<Light>();
-                    light.type = LightType.Spot;
-                    light.color = new Color(1f, 0.94f, 0.82f);
-                    light.intensity = 2f;
-                    light.range = 40f;
-                    light.spotAngle = 45f;
-                    light.innerSpotAngle = 25f;
-                    light.renderMode = LightRenderMode.ForcePixel;
-                    light.lightmapBakeType = LightmapBakeType.Realtime;
-                    light.shadows = LightShadows.None;
-                }
-            }
-            holder.gameObject.SetActive(enabled);
+            Transform holder = vehicle.transform.Find("FarosSobreAsfalto");
+            if (holder != null) holder.gameObject.SetActive(enabled);
         }
 
         public static void DisableTelemetry(GameObject vehicle)
@@ -135,15 +94,13 @@ namespace EnElCamino
         private float currentSpeed;
         private float minZ;
         private float maxZ;
-        private float roadSurfaceY;
-        private float groundRootY;
+        [SerializeField] private float groundRootY;
+        [SerializeField] private float groundOffset;
         private float laneX;
-        private Transform[] wheels;
+        [SerializeField] private Transform[] wheels;
         private bool damagedInCollision;
         private float trafficContactUntil;
         private const float WheelRadius = 0.34f;
-        private static PhysicsMaterial noBounceMaterial;
-        private static PhysicsMaterial trafficBodyMaterial;
 
         private void Awake()
         {
@@ -170,23 +127,25 @@ namespace EnElCamino
             }
         }
 
+        public float GroundOffset => groundOffset;
+
         public void Configure(Vector3 moveDirection, float speedMetersPerSecond,
-            float lowerZ, float upperZ, float roadY, float rootY, float lanePositionX,
-            Transform[] wheelTransforms)
+            float lowerZ, float upperZ, float rootY, float lanePositionX)
         {
+            if (body == null) body = GetComponent<Rigidbody>();
+            damagedInCollision = false;
+            trafficContactUntil = 0f;
             direction = moveDirection.normalized;
             maxSpeed = speedMetersPerSecond;
             currentSpeed = maxSpeed;
             minZ = lowerZ;
             maxZ = upperZ;
-            roadSurfaceY = roadY;
             groundRootY = rootY;
             // Traffic travels on this flat road. Keep its wheels at road height
             // while retaining dynamic horizontal collision response.
             body.constraints = RigidbodyConstraints.FreezePositionY |
                 RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
             laneX = lanePositionX;
-            wheels = wheelTransforms;
 
             body.linearVelocity = direction * currentSpeed;
             body.angularVelocity = Vector3.zero;
@@ -295,32 +254,5 @@ namespace EnElCamino
             damagedInCollision = true;
         }
 
-        public static PhysicsMaterial GetTrafficBodyMaterial()
-        {
-            if (trafficBodyMaterial != null) return trafficBodyMaterial;
-            trafficBodyMaterial = new PhysicsMaterial("Carroceria trafico sin agarre al suelo")
-            {
-                dynamicFriction = 0.05f,
-                staticFriction = 0.05f,
-                bounciness = 0f,
-                frictionCombine = PhysicsMaterialCombine.Minimum,
-                bounceCombine = PhysicsMaterialCombine.Minimum
-            };
-            return trafficBodyMaterial;
-        }
-
-        public static PhysicsMaterial GetNoBounceMaterial()
-        {
-            if (noBounceMaterial != null) return noBounceMaterial;
-            noBounceMaterial = new PhysicsMaterial("Trafico sin rebote")
-            {
-                dynamicFriction = 0.65f,
-                staticFriction = 0.65f,
-                bounciness = 0f,
-                frictionCombine = PhysicsMaterialCombine.Average,
-                bounceCombine = PhysicsMaterialCombine.Minimum
-            };
-            return noBounceMaterial;
-        }
     }
 }

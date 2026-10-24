@@ -208,7 +208,6 @@ namespace EnElCamino
             DisableVppTelemetry();
             if (vehicleController == null) return;
             nativeInput = GetComponent<VPStandardInput>();
-            if (nativeInput == null) nativeInput = gameObject.AddComponent<VPStandardInput>();
             // Keep the prefab's native VPP input untouched during the arrival.
             vehicleReady = false;
             foreach (VPAudioExtras audio in GetComponentsInChildren<VPAudioExtras>(true))

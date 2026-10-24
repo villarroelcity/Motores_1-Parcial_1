@@ -11,12 +11,11 @@ namespace EnElCamino
         [SerializeField] private AudioClip generatorStartSound;
         [SerializeField] private AudioClip generatorMotorLoop;
         [SerializeField] private AudioSource motorAudioSource;
-        private AudioSource audioSource;
+        [SerializeField] private AudioSource audioSource;
         private bool generatorOn;
 
         private void Awake()
         {
-            EnsureAudioSource();
             if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
             if (motorAudioSource == null)
             {
@@ -44,12 +43,7 @@ namespace EnElCamino
 
         private AudioSource MotorSource => motorAudioSource != null ? motorAudioSource : EnsureAudioSource();
 
-        private AudioSource EnsureAudioSource()
-        {
-            if (audioSource == null) audioSource = GetComponent<AudioSource>();
-            if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
-            return audioSource;
-        }
+        private AudioSource EnsureAudioSource() => audioSource;
 
         private void Update()
         {

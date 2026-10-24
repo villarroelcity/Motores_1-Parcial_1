@@ -9,7 +9,6 @@ namespace EnElCamino
         [SerializeField] private GameFlow gameFlow;
         [SerializeField] private Generador generatorButton;
         [SerializeField] private Escalera exteriorLadder;
-        [SerializeField] private Escalera interiorLadder;
         [SerializeField] private Escalera ladderPlacement;
         [SerializeField] private PortonTaller garageDoor;
         [SerializeField] private Surtidor fuelCan;

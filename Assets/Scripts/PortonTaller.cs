@@ -14,7 +14,6 @@ namespace EnElCamino
         private Vector3 closedPosition;
         private Vector3 closedScale;
         private float closedHeight;
-        private Coroutine motion;
         public bool IsOpen => open;
         public bool IsMoving => moving;
         public GameObject DoorObject => garageDoor != null ? garageDoor : gameObject;
@@ -60,8 +59,7 @@ namespace EnElCamino
             }
 
             if (garageDoor == null) garageDoor = gameObject;
-            if (garageDoor == null) garageDoor = gameObject;
-            motion = StartCoroutine(AnimateDoor(value));
+            StartCoroutine(AnimateDoor(value));
             return true;
         }
 
@@ -111,7 +109,6 @@ namespace EnElCamino
                 gameFlow.ShowMessage(opening ? "Porton abierto." : "Porton cerrado. Acciona la tecla para abrirlo.");
             }
             moving = false;
-            motion = null;
         }
 
         private float GetDoorHeight()

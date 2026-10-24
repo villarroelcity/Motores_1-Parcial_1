@@ -43,7 +43,7 @@ El tiempo inicial hasta alcanzar la ruta es de **120 segundos (dos minutos)**. E
 ## Sistemas implementados
 
 - Movimiento con `CharacterController`; caminar y correr con `Shift`.
-- Cámara de tercera persona con Cinemachine.
+- Cámara de tercera persona con `CamaraJugador` y detección de obstáculos.
 - Interacción por Raycast e interfaz `IInteractable`.
 - Flujo de misión secuencial en `GameFlow`.
 - Auto con Vehicle Physics Pro; llegada, carga y control reunidos en `CarDriver`.
@@ -62,7 +62,7 @@ El ambiente exterior, generador, surtidor, portón, acciones del auto, música d
 
 ## IA — patrullero
 
-La amenaza es `PatrulleroIA`, oculto junto a la ruta. La persecución se activa al atravesar su trigger, sin exigir superar una velocidad. La patrulla comienza a incorporarse al detectar al jugador aproximándose unos cuatro segundos antes; el trigger inicia el HUD y el reloj. La edición Community de VPP permite un solo vehículo VPP activo: ese controlador queda reservado al jugador. La patrulla usa cuatro `WheelCollider` de Unity, con dirección delantera, suspensión, torque y freno.
+La amenaza es `PatrulleroIA`, oculto junto a la ruta. La persecución se activa al atravesar su trigger, sin exigir superar una velocidad. La patrulla comienza a incorporarse al detectar al jugador aproximándose unos cuatro segundos antes; el trigger inicia el HUD y el reloj. La edición Community de VPP permite un solo vehículo VPP activo: ese controlador queda reservado al jugador. La patrulla usa cuatro `WheelCollider` de Unity guardados en la escena, con dirección delantera, suspensión, torque y freno. Las ruedas, sus modelos y la fuente de sirena se asignan desde el Inspector; no se construyen al iniciar.
 
 La IA compara corredores y predice hasta tres segundos el movimiento del tráfico. Ajusta velocidad según la distancia longitudinal con signo: si sobrepasa al jugador, frena en lugar de acelerar alejándose. Puede retroceder tras detenerse para recuperar la posición. Si el jugador sale al pasto, amplía la búsqueda fuera de la calzada y apunta hacia su posición prevista, evitando el límite que antes la retenía sobre el asfalto. Vuelve al comportamiento de ruta cuando ambos vehículos regresan a ella. La aceleración, recuperación y evasión siguen pendientes de validación jugable; no se considera cerrada la IA.
 
@@ -73,6 +73,8 @@ Las balizas son dos cubos de malla guardados en la escena, `PatrulleroIA/BalizaI
 ## Tráfico y conducción
 
 El tráfico empieza al recuperar el control tras cargar combustible. Usa carrocerías VPP de coupé y camioneta, colores distintos y circulación en ambos sentidos a unos 60 km/h. Los vehículos aparecen lejos, con intervalos y separaciones aleatorias. La base se redujo de 24 a 19 vehículos por sentido (aproximadamente 20% menos), de 5 a 4 iniciales por sentido y de 100 a 125 m de separación base. Son cuerpos dinámicos con movimiento recto; en esta ruta plana se limita su movimiento vertical para evitar que se apilen.
+
+Los dos modelos y cuatro colores se guardan como ocho prefabs en `Assets/PreparedGameplay/Prefabs`. La escena contiene una reserva de 64 instancias inicialmente desactivadas: el gestor mezcla sus referencias, las posiciona lejos y las activa, sin instanciar autos ni agregar componentes durante la partida. La reserva es capacidad disponible, no cantidad de vehículos activos al mismo tiempo. Colliders, altura, ruedas, materiales y faros quedan preparados en edición.
 
 El control de crucero considera otros vehículos y no el suelo. Un roce entre autos de tráfico provoca una pausa breve y permite retomar la marcha; un impacto del jugador desactiva su avance automático. Se desactivan los componentes VPP que estos autos no usan. La altura inicial se corrige a partir de los límites mundiales del modelo, manteniendo sus ruedas sobre el asfalto. El collider de carrocería usa fricción baja para no quedar frenado contra el piso con el motor simplificado. La prevención de colas y choques secundarios debe verificarse nuevamente en juego.
 
@@ -86,7 +88,7 @@ Si VPP cala el motor durante la conducción, el puente solicita un nuevo arranqu
 
 La UI usa uGUI y se adapta al tamaño de la pantalla. Incluye objetivos durante un máximo de 10 segundos, mensajes breves, reloj de anochecer, combustible del generador, `VENTAJA` y espejo retrovisor. La primera misión aparece al bajar del auto. No muestra el cartel de velocidad, la telemetría, el título del juego ni avisos que revelen la emboscada. Los textos de gameplay no llevan tildes.
 
-El recordatorio de controles ocupa una sola línea horizontal al pie derecho, con ancho adaptable al Canvas y ajuste de fuente entre 10 y 15. No permite saltos automáticos ni desbordamiento vertical. La configuración se conserva tanto en la escena como al habilitar el HUD en edición o durante la partida.
+El recordatorio de controles ocupa una sola línea horizontal al pie derecho, con ancho adaptable al Canvas y ajuste de fuente entre 10 y 15. No permite saltos automáticos ni desbordamiento vertical. La configuración se guarda en el Canvas, sin un script que vuelva a imponer sus dimensiones al habilitar el HUD.
 
 El espejo muestra solo la imagen, sin marco ni texto. Las referencias temporales del editor se retiraron. `VENTAJA 0 / 200 m | TIEMPO 1:00` aparece en una sola línea roja, anclada abajo con margen para no recortarse. La barra `DANO` aparece solo al recibir un impacto y se oculta tras cinco segundos sin nuevos golpes, aunque su valor interno sigue acumulado.
 
@@ -96,7 +98,7 @@ El menú solicitado contiene únicamente:
 - Reinicio de partida con el botón `REINICIAR` o la tecla `R`.
 - Pantalla de `CONTROLES`.
 
-Los botones se crean en tiempo de ejecución con `EventSystem` e `InputSystemUIInputModule`. Al producirse cualquier `GAME OVER` se detienen los audios de juego y queda disponible `REINICIAR`. El cartel siempre dice únicamente `GAME OVER`, sin agregar el motivo de derrota.
+Los botones, paneles, `EventSystem` e `InputSystemUIInputModule` están guardados en la escena. Los botones usan eventos persistentes configurados en el Inspector. `GameUI` solo controla contenido, visibilidad, pausa y resultados; no crea ni elimina la UI ni impone posiciones durante la partida. El espejo usa una cámara y un asset RenderTexture previamente conectados. Al producirse cualquier `GAME OVER` se detienen los audios de juego y queda disponible `REINICIAR`. El cartel siempre dice únicamente `GAME OVER`, sin agregar el motivo de derrota.
 
 Al confirmar la victoria se establece inmediatamente `Time.timeScale = 0`: quedan congeladas la física y las animaciones que usan tiempo de juego. La cámara deja de seguir al vehículo y el menú no puede reanudar una partida finalizada. El reinicio restaura la escala de tiempo normal.
 
@@ -107,4 +109,12 @@ Quedan por producir y validar: build jugable, video de hasta cinco minutos, prue
 ## Actualización del 22–23 de octubre de 2026
 
 Se revisaron los commits existentes y los cambios pendientes de escena, conducción, tráfico, patrulla, HUD, iluminación e interacciones. La compilación de `Assembly-CSharp.csproj` pasa sin errores; siguen apareciendo advertencias de APIs obsoletas del paquete Nature Starter Kit. Esto verifica compilación, no sustituye la prueba completa de persecución, colisiones y audio en una build.
+
+## Depuración de construcción de objetos — 23/10/2026
+
+Los 17 scripts propios pasan de 5.537 a 4.181 líneas, una reducción de 1.356 líneas (24,5%). `GameUI` pasa de 942 a 313. Se guardaron en edición la UI, el modelo del jugador, el agarre del bidón, fuentes de audio, sirena, ruedas de la patrulla, luces, materiales físicos y variantes de tráfico. Los pasos usan un WAV, no un sonido generado al jugar. Los recursos quedan organizados bajo `Assets/PreparedGameplay`: 35 materiales compartidos, tres materiales físicos, ocho prefabs, un RenderTexture y un WAV.
+
+No queda construcción de GameObjects, `AddComponent`, generación de AudioClip, RenderTexture o PhysicsMaterial en los scripts de gameplay. Se conserva la copia interna del ScriptableObject de tiempo de Enviro para no modificar el asset original: no es un objeto de escena. Las herramientas temporales de migración se retiraron de `Assets/Editor` después de guardar y comprobar las referencias.
+
+Se mantienen la cámara personalizada y las animaciones procedurales existentes del jugador y portón; migrarlas a Cinemachine/Animator sería otro cambio de comportamiento que requiere validación específica. No se alteraron las decisiones de persecución, la dirección VPP ni el control de crucero del tráfico.
 

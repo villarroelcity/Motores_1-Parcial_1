@@ -8,7 +8,7 @@ Fecha: 20/10/2026. Rama: `parcial-2`. Esta revisión ordena la base del proyecto
 
 - La escena principal configurada para build es `Assets/Scenes/EnElCamino.unity`.
 - El flujo de misión tiene ocho pasos y bloquea los interactuables que no correspondan al objetivo actual.
-- El generador usa 60 segundos de combustible y el HUD dispone de un indicador específico mientras está activo.
+- El generador usa 30 segundos de combustible y el HUD dispone de un indicador específico mientras está activo.
 - El portón requiere estación energizada; la interacción abre y cierra su collider de paso.
 - El vehículo se configura con transmisión automática de Vehicle Physics Pro.
 - El motor se apaga antes de que finalice la llegada automática; el jugador recibe control al detenerse el auto.
@@ -71,4 +71,14 @@ Se ejecutaron pruebas aisladas en .NET con los métodos reales de recuperación 
 Estas pruebas no ejecutan suspensión, contacto de neumáticos, sensores físicos ni audio de Unity. No se abrió Play ni se validó una build con estos cambios: quedan pendientes el choque que cala el motor, la recuperación en un atasco real y la aproximación al costado del jugador.
 
 Se corrigió el texto `HUD/Controles` para estirar su rectángulo horizontalmente con márgenes de 24, fuente adaptable de 10 a 15 y sin ajuste automático de línea ni desbordamiento vertical. Se verificaron los valores serializados de anclaje, tamaño y overflow; `Assembly-CSharp.csproj` compila con 0 errores. Se conserva pendiente la comprobación visual en el editor y en Game: no se inició Play para esta corrección.
+
+## Validación de objetos preparados en edición — 23/10/2026
+
+Se ejecutó Unity 6000.3.5f2 en batchmode, sin Play, para guardar los objetos que antes se construían durante la partida. Una segunda apertura de la escena comprobó referencias, scripts presentes, acciones persistentes de los botones, acciones del Input System, conexión cámara/RenderTexture, agarre del bidón, fuentes de audio, cuatro ruedas de patrulla y 64 autos de reserva con sus colliders, alturas y faros.
+
+Se invocaron las acciones de Continuar, Controles y Volver, además de pausa, victoria y Game Over, en memoria del editor. Se verificó que el cartel de derrota no incluye el motivo. Se activaron dos autos de la reserva y se comprobó velocidad de 60 km/h con signos opuestos, altura restringida y ausencia de nuevos GameObjects. Las pruebas funcionales se hicieron después de guardar la escena; sus paneles y autos activos no se guardaron. La revisión final registró 8.842 comprobaciones, incluyendo los controles de presencia de scripts por objeto.
+
+Se compararon 24 métodos con la versión anterior: dirección y transferencia de control VPP, recuperación del motor, adherencia, persecución, evasión, movimiento y colisiones del tráfico, temporizadores y secuencia de combustible permanecen sin cambios en sus cuerpos. `Assembly-CSharp.csproj` compila con 0 errores y 17 advertencias obsoletas de terceros. No se ejecutaron simulación física completa, audio real, reinicio por carga de escena ni recorrido jugable: esos casos de la tabla siguen pendientes.
+
+Durante la preparación se consolidaron 768 materiales en 35, reemplazando referencias antes de retirar 733 copias idénticas generadas en esta tarea. No se eliminaron materiales originales del usuario; se conserva un respaldo temporal de las copias generadas. Los scripts temporales de migración y validación se retiraron del proyecto.
 

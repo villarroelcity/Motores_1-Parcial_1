@@ -52,6 +52,34 @@ namespace EnElCamino
         private float objectiveExpiresAt;
         private Vector2 rearViewPanelPosition = new Vector2(0f, -6f);
 
+        private void OnEnable()
+        {
+            ConfigureControlsHint();
+        }
+
+        private void ConfigureControlsHint()
+        {
+            // Also runs in Edit Mode: the saved HUD must not depend on Play
+            // to give this one-line hint a usable width.
+            Text hint = FindText("Controles");
+            if (hint == null) return;
+            RectTransform rect = hint.rectTransform;
+            rect.localRotation = Quaternion.identity;
+            rect.localScale = Vector3.one;
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = new Vector2(1f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.anchoredPosition3D = new Vector3(0f, 16f, 0f);
+            rect.sizeDelta = new Vector2(-48f, 30f);
+            hint.alignment = TextAnchor.LowerRight;
+            hint.resizeTextForBestFit = true;
+            hint.resizeTextMinSize = 10;
+            hint.resizeTextMaxSize = 15;
+            hint.horizontalOverflow = HorizontalWrapMode.Overflow;
+            hint.verticalOverflow = VerticalWrapMode.Truncate;
+            hint.raycastTarget = false;
+        }
+
         private bool IsGameOverOrFinished()
         {
             return gameFlow != null && (gameFlow.gameOver || gameFlow.finished);

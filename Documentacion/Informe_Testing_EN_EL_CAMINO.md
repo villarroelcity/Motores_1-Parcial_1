@@ -42,6 +42,7 @@ Fecha: 20/10/2026. Rama: `parcial-2`. Esta revisión ordena la base del proyecto
 | Empalmes de Camino | Recorrer los dos codos entre la ruta y la estación | Malla continua, sin caras solapadas, huecos ni cajas de colisión sobrantes | Pendiente |
 | Tiempo | Dejar agotar el reloj | Atardecer a noche, `GAME OVER`, audio detenido | Pendiente |
 | Resolución | Probar 16:9 y una resolución menor | HUD sin recortes ni solapamientos | Pendiente |
+| Recordatorio de controles | Abrir la escena y cambiar el tamaño de Game | Una línea horizontal al pie derecho, sin letras apiladas en Scene ni Game | Pendiente |
 | Build | Compilar y ejecutar build Windows | Mismo flujo y audio que en editor | Pendiente |
 
 ## Riesgos conocidos
@@ -68,4 +69,6 @@ Se inspeccionó el video de 15,67 segundos `Desktop 2026.10.23 - 18.38.41.07.mp4
 Se ejecutaron pruebas aisladas en .NET con los métodos reales de recuperación y planificación, sustituyendo los tipos matemáticos y el mundo físico de Unity. Pasaron diez comprobaciones de arranque: demora mínima, rearranque con daño de 65, intervalo entre intentos y bloqueos por falta de combustible, daño total, derrota, victoria, motor no solicitado, motor funcionando y arranque en curso. El planificador encontró corredores junto a un auto a 10, 12 y 18 m, una banquina ante dos autos detenidos y un paso ante tráfico de frente. También mantuvo el lado elegido, conservó el espacio al circular junto al obstáculo, lo liberó después de rebasarlo y evaluó la marcha atrás. A 6 m no se considera viable girar directamente: debe verificarse la recuperación con retroceso.
 
 Estas pruebas no ejecutan suspensión, contacto de neumáticos, sensores físicos ni audio de Unity. No se abrió Play ni se validó una build con estos cambios: quedan pendientes el choque que cala el motor, la recuperación en un atasco real y la aproximación al costado del jugador.
+
+Se corrigió el texto `HUD/Controles` para estirar su rectángulo horizontalmente con márgenes de 24, fuente adaptable de 10 a 15 y sin ajuste automático de línea ni desbordamiento vertical. Se verificaron los valores serializados de anclaje, tamaño y overflow; `Assembly-CSharp.csproj` compila con 0 errores. Se conserva pendiente la comprobación visual en el editor y en Game: no se inició Play para esta corrección.
 

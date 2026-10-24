@@ -86,6 +86,8 @@ Si VPP cala el motor durante la conducción, el puente solicita un nuevo arranqu
 
 La UI usa uGUI y se adapta al tamaño de la pantalla. Incluye objetivos durante un máximo de 10 segundos, mensajes breves, reloj de anochecer, combustible del generador, `VENTAJA` y espejo retrovisor. La primera misión aparece al bajar del auto. No muestra el cartel de velocidad, la telemetría, el título del juego ni avisos que revelen la emboscada. Los textos de gameplay no llevan tildes.
 
+El recordatorio de controles ocupa una sola línea horizontal al pie derecho, con ancho adaptable al Canvas y ajuste de fuente entre 10 y 15. No permite saltos automáticos ni desbordamiento vertical. La configuración se conserva tanto en la escena como al habilitar el HUD en edición o durante la partida.
+
 El espejo muestra solo la imagen, sin marco ni texto. Las referencias temporales del editor se retiraron. `VENTAJA 0 / 200 m | TIEMPO 1:00` aparece en una sola línea roja, anclada abajo con margen para no recortarse. La barra `DANO` aparece solo al recibir un impacto y se oculta tras cinco segundos sin nuevos golpes, aunque su valor interno sigue acumulado.
 
 El menú solicitado contiene únicamente:

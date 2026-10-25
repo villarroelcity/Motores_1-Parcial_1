@@ -5,7 +5,7 @@ namespace EnElCamino
     [RequireComponent(typeof(AudioSource))]
     public class Generador : MonoBehaviour, IInteractable
     {
-        [SerializeField] private GameFlow gameFlow;
+        [SerializeField] private Juego gameFlow;
         [SerializeField] private Light indicatorLight;
         [SerializeField] private AudioClip switchSound;
         [SerializeField] private AudioClip generatorStartSound;
@@ -16,7 +16,7 @@ namespace EnElCamino
 
         private void Awake()
         {
-            if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
+            if (gameFlow == null) gameFlow = FindFirstObjectByType<Juego>();
             if (motorAudioSource == null)
             {
                 Transform motorTransform = transform.Find("GeneratorMotorAudio");
@@ -26,7 +26,7 @@ namespace EnElCamino
 
         private void OnEnable()
         {
-            if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
+            if (gameFlow == null) gameFlow = FindFirstObjectByType<Juego>();
             if (gameFlow == null) return;
             gameFlow.GeneratorFuelDepleted += ShutDownGenerator;
             gameFlow.GameLost += ShutDownGenerator;

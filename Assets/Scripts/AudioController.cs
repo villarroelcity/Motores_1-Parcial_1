@@ -11,7 +11,7 @@ namespace EnElCamino
         [SerializeField] private float explorationVolume = 0.22f;
         [SerializeField] private float tensionVolume = 0.32f;
 
-        [SerializeField] private GameFlow flow;
+        [SerializeField] private Juego flow;
         [SerializeField] private AudioSource ambientSource;
         [SerializeField] private AudioSource garageDoorSource;
         private bool tensionState;
@@ -26,7 +26,7 @@ namespace EnElCamino
 
         private void OnEnable()
         {
-            if (flow == null) flow = GetComponent<GameFlow>();
+            if (flow == null) flow = GetComponent<Juego>();
             if (flow == null) return;
             flow.GarageDoorMotionStarted += OnGarageDoorMotionStarted;
             flow.TensionStarted += OnTensionStarted;

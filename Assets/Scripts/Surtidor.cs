@@ -5,7 +5,7 @@ namespace EnElCamino
 {
     public class Surtidor : MonoBehaviour, IInteractable
     {
-        [SerializeField] private GameFlow gameFlow;
+        [SerializeField] private Juego gameFlow;
         [SerializeField] private Renderer fuelCanRenderer;
         [SerializeField] private Transform player;
         [SerializeField] private bool pumpMode;
@@ -24,7 +24,7 @@ namespace EnElCamino
 
         private void Awake()
         {
-            if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
+            if (gameFlow == null) gameFlow = FindFirstObjectByType<Juego>();
         }
 
         public string Prompt

@@ -5,15 +5,15 @@ namespace EnElCamino
 {
     public class DetectorDeInteracciones : MonoBehaviour
     {
-        [SerializeField] private GameUI gameUI;
-        [SerializeField] private GameFlow gameFlow;
+        [SerializeField] private UI gameUI;
+        [SerializeField] private Juego gameFlow;
         [SerializeField] private Generador generatorButton;
         [SerializeField] private Escalera exteriorLadder;
         [SerializeField] private Escalera ladderPlacement;
         [SerializeField] private PortonTaller garageDoor;
         [SerializeField] private Surtidor fuelCan;
         [SerializeField] private Surtidor fuelPump;
-        [SerializeField] private CarDriver car;
+        [SerializeField] private AutoJugador car;
         [SerializeField] private TableroElectrico powerBox;
         [SerializeField] private Interruptores gateSwitch;
         [SerializeField] private float interactionDistance = 2.4f;
@@ -25,8 +25,8 @@ namespace EnElCamino
         private void Awake()
         {
             mainCamera = Camera.main;
-            if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
-            if (gameUI == null) gameUI = FindFirstObjectByType<GameUI>();
+            if (gameFlow == null) gameFlow = FindFirstObjectByType<Juego>();
+            if (gameUI == null) gameUI = FindFirstObjectByType<UI>();
             if (powerBox == null) powerBox = FindFirstObjectByType<TableroElectrico>();
             if (gateSwitch == null) gateSwitch = FindFirstObjectByType<Interruptores>();
         }

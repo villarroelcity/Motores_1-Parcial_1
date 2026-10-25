@@ -16,7 +16,7 @@ namespace EnElCamino
 
         private CharacterController controller;
         private Vector3 verticalVelocity;
-        private GameFlow gameFlow;
+        private Juego gameFlow;
         private bool trackingFall;
         private bool controlledRoofDescent;
         private float fallStartY;
@@ -43,7 +43,7 @@ namespace EnElCamino
         private void Awake()
         {
             controller = GetComponent<CharacterController>();
-            gameFlow = FindFirstObjectByType<GameFlow>();
+            gameFlow = FindFirstObjectByType<Juego>();
             headRestPosition = head.localPosition;
             torsoRestPosition = torso.localPosition;
         }
@@ -57,7 +57,7 @@ namespace EnElCamino
                 return;
             }
 
-            if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
+            if (gameFlow == null) gameFlow = FindFirstObjectByType<Juego>();
             if (!controlledRoofDescent && gameFlow != null && !gameFlow.finished && !gameFlow.gameOver &&
                 transform.position.y <= fallDeathHeight)
             {

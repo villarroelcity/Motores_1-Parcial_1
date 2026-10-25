@@ -4,11 +4,11 @@ namespace EnElCamino
 {
     public class CheckPoint : MonoBehaviour
     {
-        [SerializeField] private GameFlow gameFlow;
+        [SerializeField] private Juego gameFlow;
 
         private void OnTriggerEnter(Collider other)
         {
-            if (other.GetComponentInParent<CarDriver>() == null || gameFlow == null) return;
+            if (other.GetComponentInParent<AutoJugador>() == null || gameFlow == null) return;
 
             if (name == "Persecucion")
                 gameFlow.NotifyPursuitTrigger();

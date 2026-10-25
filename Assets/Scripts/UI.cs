@@ -6,9 +6,9 @@ using UnityEngine.SceneManagement;
 namespace EnElCamino
 {
     // Los objetos y su aspecto se editan en el Canvas, no se construyen al jugar.
-    public class GameUI : MonoBehaviour
+    public class UI : MonoBehaviour
     {
-        [SerializeField] private GameFlow gameFlow;
+        [SerializeField] private Juego gameFlow;
         [SerializeField] private CanvasGroup gameplayVisibility;
         [SerializeField] private Text objectiveText;
         [SerializeField] private RectTransform objectivePanel;
@@ -27,7 +27,7 @@ namespace EnElCamino
         [SerializeField] private RectTransform damageFill;
         [SerializeField] private GameObject rearViewPanel;
         [SerializeField] private Camera rearViewCamera;
-        [SerializeField] private CarDriver rearViewTarget;
+        [SerializeField] private AutoJugador rearViewTarget;
         [SerializeField] private GameObject pausePanel;
         [SerializeField] private GameObject controlsPanel;
         private bool gameplayVisible;
@@ -235,7 +235,7 @@ namespace EnElCamino
         private void UpdateDamageDisplay()
         {
             if (damagePanel == null) return;
-            if (rearViewTarget == null) rearViewTarget = FindFirstObjectByType<CarDriver>();
+            if (rearViewTarget == null) rearViewTarget = FindFirstObjectByType<AutoJugador>();
             bool visible = gameplayVisible && !IsGameOverOrFinished() && rearViewTarget != null &&
                 rearViewTarget.HasPlayerControl && rearViewTarget.Damage > 0f && Time.time < rearViewTarget.DamageHudUntil;
             damagePanel.SetActive(visible);
@@ -247,7 +247,7 @@ namespace EnElCamino
         private void UpdateRearViewCamera()
         {
             if (rearViewCamera == null || !rearViewCamera.enabled) return;
-            if (rearViewTarget == null) rearViewTarget = FindFirstObjectByType<CarDriver>();
+            if (rearViewTarget == null) rearViewTarget = FindFirstObjectByType<AutoJugador>();
             if (rearViewTarget == null) return;
 
             Rigidbody carBody = rearViewTarget.GetComponent<Rigidbody>();

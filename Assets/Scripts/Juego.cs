@@ -6,9 +6,9 @@ using Enviro;
 namespace EnElCamino
 {
     [DefaultExecutionOrder(-200)]
-    public class GameFlow : MonoBehaviour
+    public class Juego : MonoBehaviour
     {
-        [SerializeField] private GameUI gameUI;
+        [SerializeField] private UI gameUI;
         [SerializeField] private AudioSource gameOverSource;
         [SerializeField] private AudioSource victorySource;
         private const float GeneratorFuelSeconds = 30f;
@@ -31,7 +31,7 @@ namespace EnElCamino
         public event Action GameLost;
         public event Action<bool> NightLightingChanged;
 
-        public GameUI UI => gameUI;
+        public UI UI => gameUI;
         public bool NightLightsOn => carHeadLightsOn;
 
         public bool generatorOn;
@@ -60,7 +60,7 @@ namespace EnElCamino
         private EnviroTimeModule originalEnviroTime;
         private EnviroManager enviroManager;
         private bool countdownStarted;
-        private CarDriver playerCar;
+        private AutoJugador playerCar;
         private bool carHeadLightsOn;
         private float nextHeadlightRefresh;
         private bool tensionStarted;
@@ -73,8 +73,8 @@ namespace EnElCamino
         {
             Time.timeScale = 1f;
             AudioListener.pause = false;
-            if (gameUI == null) gameUI = FindFirstObjectByType<GameUI>();
-            if (playerCar == null) playerCar = FindFirstObjectByType<CarDriver>();
+            if (gameUI == null) gameUI = FindFirstObjectByType<UI>();
+            if (playerCar == null) playerCar = FindFirstObjectByType<AutoJugador>();
             if (gameOverSource == null) gameOverSource = FindSource("GameOverSource");
             if (victorySource == null) victorySource = FindSource("VictorySource");
             stationPowerConnected = false;
@@ -101,7 +101,7 @@ namespace EnElCamino
         {
             if (Time.time >= nextHeadlightRefresh)
             {
-                if (playerCar == null) playerCar = FindFirstObjectByType<CarDriver>();
+                if (playerCar == null) playerCar = FindFirstObjectByType<AutoJugador>();
                 if (playerCar != null) playerCar.SetHeadLights(true);
                 nextHeadlightRefresh = Time.time + 1f;
             }
@@ -402,7 +402,7 @@ namespace EnElCamino
         private void TryStartPursuit()
         {
             if (pursuitActive || !pursuitTriggerReached || !driving || gameOver || finished) return;
-            if (playerCar == null) playerCar = FindFirstObjectByType<CarDriver>();
+            if (playerCar == null) playerCar = FindFirstObjectByType<AutoJugador>();
             if (playerCar == null) return;
 
             pursuitActive = true;
@@ -541,7 +541,7 @@ namespace EnElCamino
             if (carHeadLightsOn == enabled) return;
 
             carHeadLightsOn = enabled;
-            if (playerCar == null) playerCar = FindFirstObjectByType<CarDriver>();
+            if (playerCar == null) playerCar = FindFirstObjectByType<AutoJugador>();
             if (playerCar != null) playerCar.SetHeadLights(true);
             NightLightingChanged?.Invoke(enabled);
         }

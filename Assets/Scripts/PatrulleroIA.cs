@@ -7,8 +7,8 @@ namespace EnElCamino
     [RequireComponent(typeof(Rigidbody))]
     public class PatrulleroIA : MonoBehaviour
     {
-        [SerializeField] private GameFlow gameFlow;
-        [SerializeField] private CarDriver targetCar;
+        [SerializeField] private Juego gameFlow;
+        [SerializeField] private AutoJugador targetCar;
         [SerializeField] private float chaseSpeed = 42f;
         [SerializeField] private float escapeDistance = 100f;
         [SerializeField] private LayerMask obstacleLayers = ~0;
@@ -47,8 +47,8 @@ namespace EnElCamino
         [SerializeField] private Renderer rightBeaconRenderer;
         [SerializeField] private AudioSource sirenSource;
         private bool policeEffectsActive;
-        private TrafficVehicle[] trafficVehicles;
-        private TrafficVehicle blockingTraffic;
+        private TraficoAutos[] trafficVehicles;
+        private TraficoAutos blockingTraffic;
         private float nextTrafficScan;
         private const float MinimumChaseSpeed = 48f;
         private const float RequiredEscapeDistance = 200f;
@@ -57,8 +57,8 @@ namespace EnElCamino
         private void Awake()
         {
             body = GetComponent<Rigidbody>();
-            if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
-            if (targetCar == null) targetCar = FindFirstObjectByType<CarDriver>();
+            if (gameFlow == null) gameFlow = FindFirstObjectByType<Juego>();
+            if (targetCar == null) targetCar = FindFirstObjectByType<AutoJugador>();
             if (road == null)
             {
                 GameObject roadObject = GameObject.Find("Ruta");
@@ -124,7 +124,7 @@ namespace EnElCamino
         private void BeginChase()
         {
             if (chasing) return;
-            if (targetCar == null) targetCar = FindFirstObjectByType<CarDriver>();
+            if (targetCar == null) targetCar = FindFirstObjectByType<AutoJugador>();
             if (targetCar == null) return;
 
             chasing = true;
@@ -183,7 +183,7 @@ namespace EnElCamino
         {
             if (gameFlow == null || gameFlow.gameOver || gameFlow.finished) return;
             // Fallback for scene load/order issues: the patrol can still start
-            // when GameFlow already raised the pursuit state before this
+            // when Juego already raised the pursuit state before this
             // component subscribed to the event.
             if (!chasing && gameFlow.pursuitActive) BeginChase();
             if (!chasing)
@@ -194,7 +194,7 @@ namespace EnElCamino
             }
             if (targetCar == null)
             {
-                targetCar = FindFirstObjectByType<CarDriver>();
+                targetCar = FindFirstObjectByType<AutoJugador>();
                 if (targetCar == null) return;
             }
 
@@ -208,7 +208,7 @@ namespace EnElCamino
                 gameFlow.UpdatePursuitDistance(distanceBehindPlayer, requiredEscapeDistance);
 
             // The patrol only defeats the player if it actually collides with
-            // the car; GameFlow owns the one-minute escape deadline.
+            // the car; Juego owns the one-minute escape deadline.
             bool patrolBehindPlayer = Vector3.Dot(routeForward, offset) > 0f;
             if (gameFlow.PursuitDefeatEnabled && distanceBehindPlayer >= requiredEscapeDistance && patrolBehindPlayer)
             {
@@ -248,7 +248,7 @@ namespace EnElCamino
         private void OnCollisionEnter(Collision collision)
         {
             if (!chasing || chaseTime < 1f || gameFlow == null || !gameFlow.PursuitDefeatEnabled) return;
-            if (collision.collider.GetComponentInParent<CarDriver>() != null)
+            if (collision.collider.GetComponentInParent<AutoJugador>() != null)
                 gameFlow.GameOver();
         }
 
@@ -383,13 +383,13 @@ namespace EnElCamino
         {
             if (Time.time >= nextTrafficScan || trafficVehicles == null)
             {
-                trafficVehicles = FindObjectsByType<TrafficVehicle>(FindObjectsSortMode.None);
+                trafficVehicles = FindObjectsByType<TraficoAutos>(FindObjectsSortMode.None);
                 nextTrafficScan = Time.time + 0.5f;
             }
             float halfWidth = Mathf.Max(0.5f, GetRoadHalfWidth() - RoadEdgeMargin);
             float lane = Vector3.Dot(body.position - road.position, right);
             float rawTargetLane = Vector3.Dot(targetCar.transform.position - road.position, right);
-            TrafficVehicle previousBlock = blockingTraffic;
+            TraficoAutos previousBlock = blockingTraffic;
             blockingTraffic = null;
             float scanDistance = Mathf.Max(20f, velocity * 2f);
             float nearestBlock = float.PositiveInfinity;
@@ -402,7 +402,7 @@ namespace EnElCamino
                     nearestBlock = ahead;
                 }
             }
-            foreach (TrafficVehicle traffic in trafficVehicles)
+            foreach (TraficoAutos traffic in trafficVehicles)
             {
                 if (traffic == null || !traffic.isActiveAndEnabled) continue;
                 Vector3 offset = traffic.transform.position - body.position;
@@ -491,7 +491,7 @@ namespace EnElCamino
                 position += Quaternion.AngleAxis(yaw * Mathf.Rad2Deg * 0.5f, Vector3.up) * heading * (distance * driveSign);
                 heading = Quaternion.AngleAxis(yaw * Mathf.Rad2Deg, Vector3.up) * heading;
                 Vector3 point = position + Vector3.up * 0.9f;
-                foreach (TrafficVehicle traffic in trafficVehicles)
+                foreach (TraficoAutos traffic in trafficVehicles)
                 {
                     if (traffic == null || !traffic.isActiveAndEnabled) continue;
                     Rigidbody trafficBody = traffic.GetComponent<Rigidbody>();
@@ -511,8 +511,8 @@ namespace EnElCamino
                 for (int i = 0; i < hits; i++)
                 {
                     Collider hit = sensorHits[i].collider;
-                    if (hit.transform.IsChildOf(transform) || hit.GetComponentInParent<CarDriver>() != null ||
-                        hit.GetComponentInParent<TrafficVehicle>() != null || sensorHits[i].normal.y > 0.6f)
+                    if (hit.transform.IsChildOf(transform) || hit.GetComponentInParent<AutoJugador>() != null ||
+                        hit.GetComponentInParent<TraficoAutos>() != null || sensorHits[i].normal.y > 0.6f)
                         continue;
                     return time;
                 }

@@ -6,9 +6,9 @@ namespace EnElCamino
     /// <summary>
     /// Activa autos ya preparados en la escena cuando el jugador empieza a conducir.
     /// </summary>
-    public class TrafficManager : MonoBehaviour
+    public class Trafico : MonoBehaviour
     {
-        [SerializeField] private GameFlow gameFlow;
+        [SerializeField] private Juego gameFlow;
         [SerializeField] private Transform road;
         [SerializeField] private Transform spawnReference;
         [SerializeField] private int trafficVehiclesPerDirection = 19;
@@ -23,7 +23,7 @@ namespace EnElCamino
         [SerializeField] private float spawnIntervalMax = 7f;
         [SerializeField] private float routePadding = 40f;
 
-        [SerializeField] private TrafficVehicle[] trafficPool;
+        [SerializeField] private TraficoAutos[] trafficPool;
 
         private const float MetersPerKilometer = 1000f;
         private const float SecondsPerHour = 3600f;
@@ -35,12 +35,12 @@ namespace EnElCamino
         private float speedMetersPerSecond;
         private int nextVehicleIndex;
         private bool trafficSpawned;
-        private CarDriver playerCar;
+        private AutoJugador playerCar;
 
         private void Start()
         {
-            if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
-            playerCar = FindFirstObjectByType<CarDriver>();
+            if (gameFlow == null) gameFlow = FindFirstObjectByType<Juego>();
+            playerCar = FindFirstObjectByType<AutoJugador>();
 
             if (road == null)
             {
@@ -58,7 +58,7 @@ namespace EnElCamino
 
             if (road == null || trafficPool == null || trafficPool.Length == 0)
             {
-                Debug.LogWarning("TrafficManager necesita la ruta y los autos de la reserva.", this);
+                Debug.LogWarning("Trafico necesita la ruta y los autos de la reserva.", this);
                 return;
             }
 
@@ -68,7 +68,7 @@ namespace EnElCamino
             for (int i = trafficPool.Length - 1; i > 0; i--)
             {
                 int other = Random.Range(0, i + 1);
-                TrafficVehicle saved = trafficPool[i];
+                TraficoAutos saved = trafficPool[i];
                 trafficPool[i] = trafficPool[other];
                 trafficPool[other] = saved;
             }
@@ -104,7 +104,7 @@ namespace EnElCamino
             if (trafficSpawned) return;
             trafficSpawned = true;
 
-            if (playerCar == null) playerCar = FindFirstObjectByType<CarDriver>();
+            if (playerCar == null) playerCar = FindFirstObjectByType<AutoJugador>();
             float trafficOriginZ = playerCar != null
                 ? playerCar.transform.position.z
                 : spawnReference != null ? spawnReference.position.z : startZ;
@@ -143,7 +143,7 @@ namespace EnElCamino
                 yield return new WaitForSeconds(Random.Range(spawnIntervalMin, spawnIntervalMax));
                 if (gameFlow != null && (gameFlow.gameOver || gameFlow.finished)) yield break;
 
-                if (playerCar == null) playerCar = FindFirstObjectByType<CarDriver>();
+                if (playerCar == null) playerCar = FindFirstObjectByType<AutoJugador>();
                 float playerZ = playerCar != null
                     ? playerCar.transform.position.z
                     : spawnReference != null ? spawnReference.position.z : startZ;
@@ -172,7 +172,7 @@ namespace EnElCamino
         private void SpawnVehicle(float x, float z, Vector3 direction)
         {
             if (nextVehicleIndex >= trafficPool.Length) return;
-            TrafficVehicle vehicle = trafficPool[nextVehicleIndex++];
+            TraficoAutos vehicle = trafficPool[nextVehicleIndex++];
             float height = roadSurfaceY + vehicle.GroundOffset;
             vehicle.transform.SetPositionAndRotation(new Vector3(x, height, z),
                 Quaternion.LookRotation(direction, Vector3.up));

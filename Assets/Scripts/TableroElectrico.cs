@@ -4,13 +4,13 @@ namespace EnElCamino
 {
     public class TableroElectrico : MonoBehaviour, IInteractable
     {
-        [SerializeField] private GameFlow gameFlow;
+        [SerializeField] private Juego gameFlow;
         [SerializeField] private Renderer statusLight;
         [SerializeField] private Light statusLamp;
 
         private void Awake()
         {
-            if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
+            if (gameFlow == null) gameFlow = FindFirstObjectByType<Juego>();
             if (statusLight == null) statusLight = transform.Find("LuzEstado")?.GetComponent<Renderer>();
             if (statusLamp == null) statusLamp = transform.Find("LuzTablero")?.GetComponent<Light>();
             if (gameFlow != null)

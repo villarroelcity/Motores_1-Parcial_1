@@ -81,7 +81,7 @@ namespace EnElCamino
     /// Mantiene un auto de trafico en su carril y frena si encuentra algo adelante.
     /// </summary>
     [RequireComponent(typeof(Rigidbody))]
-    public class TrafficVehicle : MonoBehaviour
+    public class TraficoAutos : MonoBehaviour
     {
         [SerializeField] private float brakingDistance = 22f;
         [SerializeField] private float safeDistance = 5f;
@@ -207,10 +207,10 @@ namespace EnElCamino
                 if (otherCollider == null || otherCollider.transform.IsChildOf(transform)) continue;
                 if (hit.normal.y > 0.7f) continue;
 
-                TrafficVehicle otherTraffic = otherCollider.GetComponentInParent<TrafficVehicle>();
+                TraficoAutos otherTraffic = otherCollider.GetComponentInParent<TraficoAutos>();
                 // Only moving road users participate in adaptive cruise. The
                 // huge road/terrain colliders must never be treated as cars at rest.
-                if (otherTraffic == null && otherCollider.GetComponentInParent<CarDriver>() == null &&
+                if (otherTraffic == null && otherCollider.GetComponentInParent<AutoJugador>() == null &&
                     otherCollider.GetComponentInParent<PatrulleroIA>() == null) continue;
                 Rigidbody otherBody = otherTraffic != null
                     ? otherTraffic.body
@@ -230,7 +230,7 @@ namespace EnElCamino
             if (collision.collider.transform.IsChildOf(transform)) return;
             Bounds contactBounds = collision.collider.bounds;
             if (contactBounds.size.x > 20f && contactBounds.size.z > 20f && contactBounds.size.y < 1f) return;
-            if (collision.collider.GetComponentInParent<TrafficVehicle>() != null)
+            if (collision.collider.GetComponentInParent<TraficoAutos>() != null)
             {
                 // A traffic-to-traffic scrape yields briefly, then rejoins the
                 // flow; it must not permanently disable both cruise controllers.
@@ -238,8 +238,8 @@ namespace EnElCamino
                 return;
             }
 
-            bool isRoadContact = collision.collider.GetComponentInParent<TrafficVehicle>() == null &&
-                collision.collider.GetComponentInParent<CarDriver>() == null &&
+            bool isRoadContact = collision.collider.GetComponentInParent<TraficoAutos>() == null &&
+                collision.collider.GetComponentInParent<AutoJugador>() == null &&
                 collision.collider.GetComponentInParent<PatrulleroIA>() == null;
             if (isRoadContact)
             {

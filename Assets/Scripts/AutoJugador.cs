@@ -8,9 +8,9 @@ using VehiclePhysics;
 namespace EnElCamino
 {
     [DefaultExecutionOrder(-100)]
-    public class CarDriver : MonoBehaviour, IInteractable
+    public class AutoJugador : MonoBehaviour, IInteractable
     {
-        [SerializeField] private GameFlow gameFlow;
+        [SerializeField] private Juego gameFlow;
         [SerializeField] private GameObject player;
         [SerializeField] private CamaraJugador cameraFollow;
         [SerializeField] private Transform stopPoint;
@@ -202,7 +202,7 @@ namespace EnElCamino
 
         private void Awake()
         {
-            if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
+            if (gameFlow == null) gameFlow = FindFirstObjectByType<Juego>();
             vehicleController = GetComponent<VPVehicleController>();
             vehicleBody = GetComponent<Rigidbody>();
             DisableVppTelemetry();
@@ -797,7 +797,7 @@ namespace EnElCamino
             new Vector3(-0.75f, 0f, -0.85f), new Vector3(0.75f, 0f, -0.85f)
         };
 
-        public static void ApplyBumps(Rigidbody body, GameFlow flow, ref float distance, ref int nextWheel)
+        public static void ApplyBumps(Rigidbody body, Juego flow, ref float distance, ref int nextWheel)
         {
             if (body == null || body.isKinematic || flow == null || flow.finished || flow.gameOver) return;
             float speed = Vector3.ProjectOnPlane(body.linearVelocity, Vector3.up).magnitude;

@@ -4,7 +4,7 @@ namespace EnElCamino
 {
     public class Interruptores : MonoBehaviour, IInteractable
     {
-        [SerializeField] private GameFlow gameFlow;
+        [SerializeField] private Juego gameFlow;
         [SerializeField] private PortonTaller garageDoor;
         [SerializeField] private Transform lever;
         [SerializeField] private AudioClip switchSound;
@@ -14,7 +14,7 @@ namespace EnElCamino
 
         private void Awake()
         {
-            if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
+            if (gameFlow == null) gameFlow = FindFirstObjectByType<Juego>();
             if (garageDoor == null) garageDoor = FindFirstObjectByType<PortonTaller>();
         }
 

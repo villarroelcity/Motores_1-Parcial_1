@@ -21,19 +21,19 @@ namespace EnElCamino
         private float smoothedDistance;
         private float distanceVelocity;
         private readonly RaycastHit[] cameraHits = new RaycastHit[24];
-        private GameFlow gameFlow;
+        private Juego gameFlow;
         private Transform vehicleTarget;
 
         private void Awake()
         {
             if (collisionMask.value == 0) collisionMask = Physics.DefaultRaycastLayers;
             smoothedDistance = distance;
-            gameFlow = FindFirstObjectByType<GameFlow>();
+            gameFlow = FindFirstObjectByType<Juego>();
         }
 
         private void Start()
         {
-            if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
+            if (gameFlow == null) gameFlow = FindFirstObjectByType<Juego>();
             if (gameFlow != null && gameFlow.driving)
                 RouteToVehicle();
         }
@@ -73,7 +73,7 @@ namespace EnElCamino
 
         private void LateUpdate()
         {
-            if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
+            if (gameFlow == null) gameFlow = FindFirstObjectByType<Juego>();
             if (gameFlow != null && (gameFlow.finished || gameFlow.gameOver)) return;
             if (gameFlow != null && gameFlow.driving) RouteToVehicle();
             if (target == null) return;

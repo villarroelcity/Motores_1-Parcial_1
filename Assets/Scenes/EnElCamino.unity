@@ -580,7 +580,7 @@ GameObject:
   - component: {fileID: 7153599}
   - component: {fileID: 7153598}
   m_Layer: 0
-  m_Name: GameFlow
+  m_Name: Juego
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -597,7 +597,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 362215c1079620c498a2f9f057dedd08, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.GameFlow
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.Juego
   gameUI: {fileID: 2024991111}
   gameOverSource: {fileID: 766119091}
   victorySource: {fileID: 1120866015}
@@ -1905,7 +1905,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 2024991111}
-        m_TargetAssemblyTypeName: EnElCamino.GameUI, Assembly-CSharp
+        m_TargetAssemblyTypeName: EnElCamino.UI, Assembly-CSharp
         m_MethodName: RestartGame
         m_Mode: 1
         m_Arguments:
@@ -2847,7 +2847,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &42753824
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5140,7 +5140,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1 &77228834
 GameObject:
   m_ObjectHideFlags: 0
@@ -5533,7 +5533,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &87648309
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5700,7 +5700,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &94480062
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9292,7 +9292,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &152762121
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10179,7 +10179,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &178705925
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10256,7 +10256,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &184124781
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10333,7 +10333,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &184277054
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10410,7 +10410,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1 &184789707
 GameObject:
   m_ObjectHideFlags: 0
@@ -11254,7 +11254,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &200016787
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13319,7 +13319,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &231781115
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14656,7 +14656,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &255745025
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18390,7 +18390,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &341689275
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -19007,7 +19007,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &358198814
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -22736,7 +22736,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1 &436235812
 GameObject:
   m_ObjectHideFlags: 0
@@ -23606,7 +23606,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 2024991111}
-        m_TargetAssemblyTypeName: EnElCamino.GameUI, Assembly-CSharp
+        m_TargetAssemblyTypeName: EnElCamino.UI, Assembly-CSharp
         m_MethodName: HideControls
         m_Mode: 1
         m_Arguments:
@@ -24310,7 +24310,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &461083617
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -25228,7 +25228,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dc2e8365e44a0d141a8ea0daf1a8b7c8, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.CarDriver
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.AutoJugador
   gameFlow: {fileID: 7153598}
   player: {fileID: 1262591741}
   cameraFollow: {fileID: 490530026}
@@ -26499,7 +26499,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &500315867
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -27371,7 +27371,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &517106050
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -27718,7 +27718,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &523311147
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -30494,7 +30494,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &576616432
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -31291,7 +31291,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &586488316
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -32278,7 +32278,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 2024991111}
-        m_TargetAssemblyTypeName: EnElCamino.GameUI, Assembly-CSharp
+        m_TargetAssemblyTypeName: EnElCamino.UI, Assembly-CSharp
         m_MethodName: ShowControls
         m_Mode: 1
         m_Arguments:
@@ -34298,7 +34298,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!4 &631245378 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2730180214603747203, guid: 7aa292b1eb7b05d4c8e8565619505582, type: 3}
@@ -35161,7 +35161,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &654881592
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -35328,7 +35328,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &660821275
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -36075,7 +36075,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &675164498
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -40462,7 +40462,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &757789976
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -44338,7 +44338,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &851812394
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -45050,7 +45050,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &874527841
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -47068,7 +47068,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &905184992
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -48597,7 +48597,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &934492033
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -50799,7 +50799,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &969760684
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -51177,7 +51177,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &971944324
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -52504,7 +52504,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &1003969691
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -54845,7 +54845,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &1047257725
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -57140,7 +57140,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &1090798630
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -61380,7 +61380,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1 &1169467808
 GameObject:
   m_ObjectHideFlags: 0
@@ -61820,7 +61820,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &1177478792
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -61995,7 +61995,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 2024991111}
-        m_TargetAssemblyTypeName: EnElCamino.GameUI, Assembly-CSharp
+        m_TargetAssemblyTypeName: EnElCamino.UI, Assembly-CSharp
         m_MethodName: RestartGame
         m_Mode: 1
         m_Arguments:
@@ -63932,7 +63932,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1 &1211240828
 GameObject:
   m_ObjectHideFlags: 0
@@ -66233,7 +66233,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &1241104561
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -71228,7 +71228,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &1316350108
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -75033,7 +75033,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &1368624893
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -75811,7 +75811,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &1380981353
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -78207,7 +78207,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &1430784123
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -81924,7 +81924,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &1494002744
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -83890,7 +83890,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1 &1532110262
 GameObject:
   m_ObjectHideFlags: 0
@@ -92832,7 +92832,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &1667289188
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -94333,7 +94333,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &1697747517
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -95666,7 +95666,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!4 &1715547322 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1801872028896803107, guid: 9da65bc8dfa508e44bcb22b7cece1763, type: 3}
@@ -97002,7 +97002,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &1733401748
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -97903,7 +97903,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &1746112297
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -99683,7 +99683,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &1788069015
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -100275,7 +100275,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &1796955865
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -100712,7 +100712,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &1809990160
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -101586,7 +101586,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &1829972061
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -104824,7 +104824,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1 &1903445388
 GameObject:
   m_ObjectHideFlags: 0
@@ -105584,7 +105584,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &1912547997
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -106291,7 +106291,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &1934320697
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -107464,7 +107464,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &1950655070
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -108691,7 +108691,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1 &1965051348
 GameObject:
   m_ObjectHideFlags: 0
@@ -110052,7 +110052,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &1983204086
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -111913,7 +111913,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &2014590146
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -112458,7 +112458,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 36015a4a4abb2c24d96defd8f10a6a7d, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.GameUI
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.UI
   gameFlow: {fileID: 7153598}
   gameplayVisibility: {fileID: 2024991116}
   objectiveText: {fileID: 1875936468}
@@ -112844,7 +112844,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &2029188611
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -112921,7 +112921,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &2029591478
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -114689,7 +114689,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
 --- !u!1001 &2059367392
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -118121,7 +118121,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 2024991111}
-        m_TargetAssemblyTypeName: EnElCamino.GameUI, Assembly-CSharp
+        m_TargetAssemblyTypeName: EnElCamino.UI, Assembly-CSharp
         m_MethodName: ResumeGame
         m_Mode: 1
         m_Arguments:
@@ -118985,7 +118985,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7b24afee155749298fd9910fcdbe1570, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficManager
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.Trafico
   gameFlow: {fileID: 7153598}
   road: {fileID: 899273846}
   spawnReference: {fileID: 470211924}

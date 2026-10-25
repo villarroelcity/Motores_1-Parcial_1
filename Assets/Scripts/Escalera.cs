@@ -4,7 +4,7 @@ namespace EnElCamino
 {
     public class Escalera : MonoBehaviour, IInteractable
     {
-        [SerializeField] private GameFlow gameFlow;
+        [SerializeField] private Juego gameFlow;
         [SerializeField] private Transform player;
         [SerializeField] private Transform destination;
         [SerializeField] private bool entersGarage;

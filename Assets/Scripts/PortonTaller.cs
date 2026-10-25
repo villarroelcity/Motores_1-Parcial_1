@@ -5,7 +5,7 @@ namespace EnElCamino
 {
     public class PortonTaller : MonoBehaviour, IInteractable
     {
-        [SerializeField] private GameFlow gameFlow;
+        [SerializeField] private Juego gameFlow;
         [SerializeField] private GameObject garageDoor;
         [SerializeField] private float travelDuration = 2.2f;
         private bool open;
@@ -20,7 +20,7 @@ namespace EnElCamino
 
         private void Awake()
         {
-            if (gameFlow == null) gameFlow = FindFirstObjectByType<GameFlow>();
+            if (gameFlow == null) gameFlow = FindFirstObjectByType<Juego>();
             if (garageDoor == null) garageDoor = gameObject;
             closedPosition = garageDoor.transform.position;
             closedScale = garageDoor.transform.localScale;

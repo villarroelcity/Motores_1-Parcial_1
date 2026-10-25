@@ -1,0 +1,326 @@
+SEGUNDO PARCIAL
+Bienvenidos al Segundo Parcial.
+
+En esta instancia se evaluará la evolución integral del prototipo desarrollado en el Primer Parcial, avanzando desde una versión inicial de prueba hacia la construcción de un vertical slice funcional, jugable y cohesivo.
+
+El objetivo principal de esta etapa es evidenciar la integración de múltiples sistemas del motor, la mejora de la experiencia de juego y la consolidación del proyecto como una experiencia completa y estructurada.
+
+A diferencia del Primer Parcial, donde se evaluaba principalmente la construcción base del prototipo y los sistemas fundamentales, en esta instancia se espera una evolución técnica, visual y jugable del proyecto.
+
+El proyecto debe:
+
+Ejecutarse correctamente
+
+Presentar una experiencia jugable clara
+
+Tener una progresión funcional
+
+Integrar sistemas audiovisuales y de gameplay
+
+Reflejar una evolución real respecto al Primer Parcial
+
+Presentar una estructura de nivel avanzada y navegable
+
+Incluir un cierre o desafío final integrador
+
+Aclaración importante:
+En esta instancia ya no se evaluará únicamente un prototipo técnico inicial, sino una experiencia vertical slice que represente el estado avanzado del proyecto.
+ 
+CONTENIDOS EVALUADOS
+El proyecto deberá evidenciar la implementación e integración de los siguientes contenidos:
+
+Sistemas Base (evolución del Primer Parcial)
+Organización del proyecto
+
+Uso de GitHub y trabajo colaborativo
+
+High Concept actualizado
+
+Movimiento del personaje
+
+Física y colisiones
+
+Triggers y eventos
+
+Cámara funcional
+
+Prefabs
+
+Raycast
+
+Sistema de daño (si aplica)
+
+Instanciación de objetos
+
+Evolución del Proyecto
+Se evaluará específicamente la evolución respecto al Primer Parcial, incluyendo:
+
+Paso de Greyboxing a escenario avanzado
+
+Construcción final
+
+Uso de materiales y texturas
+
+Construcción del terreno
+
+Mejora del diseño de nivel
+
+Definición clara de rutas de juego (Path Route)
+
+Progresión jugable
+
+Mayor cohesión visual
+
+Mejoras en interacción y feedback
+
+El escenario ya no debe percibirse únicamente como un bloque de prueba técnica.
+Debe existir una intención clara de ambientación, recorrido y experiencia.
+
+Sistemas Integrados Obligatorios
+El proyecto deberá incluir integración funcional de:
+
+Sistema de Animación
+
+Sistema de Audio
+
+Música
+
+Sonidos ambientales
+
+Feedback sonoro
+
+Sistema de UI
+
+Sistema de Cámaras con Cinemachine
+
+Iluminación
+
+Inteligencia Artificial (IA)
+
+Sistema de Partículas
+
+Eventos y secuencias de gameplay
+
+Importante:
+No se evaluará únicamente la presencia de estos sistemas, sino cómo se integran dentro de la experiencia de juego.
+ 
+DESAFÍO FINAL INTEGRADOR
+El proyecto deberá incluir un cierre jugable o desafío final integrador.
+
+Puede tratarse de:
+
+Boss Fight
+
+Puzzle final
+
+Escape sequence
+
+Evento narrativo interactivo
+
+Survival sequence
+
+Mecánica especial de cierre
+
+Otro sistema equivalente
+
+Este desafío debe funcionar como culminación de la experiencia y evidenciar integración de múltiples sistemas vistos durante la cursada.
+
+ 
+ENTREGABLES
+Cada grupo deberá realizar las siguientes entregas obligatorias:
+
+1. Video (máximo 5 minutos)
+Debe incluir:
+
+Gameplay del vertical slice
+
+Explicación de las mecánicas
+
+Recorrido del escenario
+
+Sistemas implementados
+
+Desafío final
+
+Condiciones
+
+Participan todos los integrantes. Cada integrante deberá:
+
+Presentarse con nombre y apellido
+
+Explicar su rol dentro del proyecto
+
+Explicar qué sistemas desarrolló
+
+Explicar cómo implementó esa funcionalidad en Unity
+
+Estructura sugerida
+
+Intro
+
+¿Cuál es el nombre del juego?
+
+¿De qué trata?
+
+¿Cuál es el objetivo del jugador?
+
+¿Qué evolucionó respecto al Primer Parcial?
+
+Desarrollo
+
+Mostrar:
+
+Gameplay
+
+Path route
+
+Diseño del mapa
+
+IA
+
+Audio
+
+UI
+
+Cinemachine
+
+Animaciones
+
+Eventos
+
+Sistema final integrador
+
+Cierre
+
+Responder:
+
+¿Cómo se organizaron como equipo?
+
+¿Qué problemas encontraron?
+
+¿Cómo resolvieron esos desafíos?
+
+¿Qué aprendieron durante el desarrollo?
+
+El audio debe escucharse correctamente.
+
+2. Publicación en itch.io y/o build ejecutable
+El vertical slice debe estar publicado en itch.io o como build ejecutable para Windows cargada en carpeta de repositorio o Google Drive.
+
+Requisitos:
+
+Preferentemente WebGL o Windows
+
+Debe aclararse que corresponde al Segundo Parcial
+
+Incluir:
+
+Controles
+
+Objetivo del juego
+
+Bugs conocidos
+
+Créditos del equipo
+
+3. Repositorio en GitHub
+Deben compartir el repositorio del proyecto. Debe:
+
+Tener estructura ordenada
+
+Reflejar trabajo colaborativo
+
+Contener commits significativos
+
+Incluir todos los archivos necesarios
+
+Mantener organización profesional del proyecto
+
+4. GDD (Game Design Document)
+Debe actualizarse respecto al Primer Parcial. Debe incluir como mínimo:
+
+High Concept
+
+Core Gameplay
+
+Loop jugable
+
+Mecánicas principales
+
+Diseño del mapa
+
+Referencias visuales
+
+Sistemas implementados
+
+IA
+
+UI
+
+Audio
+
+Desafío final
+
+Estado actual del proyecto
+
+5. Informe de Testing
+Debe documentar:
+
+Pruebas realizadas
+
+Problemas detectados
+
+Bugs encontrados
+
+Ajustes realizados
+
+Feedback obtenido
+
+Posibles mejoras futuras
+
+ 
+FORMA DE ENTREGA
+Los estudiantes deberán:
+
+Subir los archivos requeridos a la plataforma institucional
+
+Publicar el juego en itch.io
+
+Compartir el repositorio en GitHub
+
+ 
+CONDICIÓN DE APROBACIÓN
+La aprobación del parcial aplicará únicamente si se cumplen todas las siguientes condiciones. La entrega incompleta implica desaprobación directa.
+Todos los elementos obligatorios fueron entregados
+
+Los links funcionan correctamente
+
+Los archivos son accesibles
+
+El proyecto ejecuta correctamente
+
+El vertical slice presenta evolución real respecto al Primer Parcial
+
+Si la entrega supera los 100 MB, deberá adjuntarse un archivo .txt con un enlace público a Drive.
+
+ 
+CONSIDERACIONES FINALES
+Se evaluará especialmente:
+
+Integración de sistemas
+
+Evolución técnica del proyecto
+
+Calidad de la experiencia jugable
+
+Cohesión visual y sonora
+
+Diseño del nivel
+
+Uso correcto de herramientas de Unity
+
+Trabajo colaborativo
+
+Capacidad de resolver problemas durante el desarrollo
+
+El objetivo de esta instancia no es únicamente "agregar sistemas", sino demostrar capacidad de construir una experiencia jugable coherente, integrada y técnicamente sólida.

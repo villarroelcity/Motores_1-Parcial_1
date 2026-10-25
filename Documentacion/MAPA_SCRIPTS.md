@@ -1,61 +1,52 @@
-# Mapa simple de scripts
+# Mapa de scripts propios
 
-Este archivo resume los scripts propios de `Assets/Scripts` después de la limpieza. Los scripts de Vehicle Physics Pro, Enviro 3 y Nature Starter Kit 2 quedan fuera de esta lista porque pertenecen a paquetes externos.
-
-Estado actual: 14 scripts propios.
-
-## Flujo principal
+Revisión: 25/10/2026. Hay **17 archivos de gameplay** y una herramienta permanente de editor. Los scripts de VPP, Enviro y otros paquetes no se cuentan como propios.
 
 | Script | Responsabilidad |
 | --- | --- |
-| `GameFlow` | Estado de misión, objetivos, victoria/derrota, apagado general del audio y reloj tarde-noche iniciado al agotarse el auto. |
+| `Juego` | Misiones, energía, tiempo, persecución y resultados de partida. |
+| `AutoJugador` | Llegada, combustible, entrada al auto, daño, emisión de escapes/polvo/chispas y puente a los controles nativos VPP. |
+| `UI` | Objetivos, mensajes, relojes, espejo, daño, pausa, controles y reinicio. |
+| `Trafico` | Activa y coloca los autos de una reserva preparada en la escena. |
+| `TraficoAutos` | Movimiento recto, ruedas y colisiones del tráfico. Incluye la utilidad compartida de luces/materiales. |
+| `PatrulleroIA` | Persecución con WheelColliders, evasión, recuperación, sirena y balizas. |
+| `PlayerController` | Movimiento a pie, carrera, caída, parámetros del Animator y eventos de pasos. Las poses están en clips editables en Unity. |
+| `CamaraJugador` | Puente a Cinemachine: cambia el objetivo jugador/auto y congela la cámara al finalizar. El seguimiento y las paredes son componentes Cinemachine guardados en Unity. |
+| `DetectorDeInteracciones` | Raycast, selección por cercanía y tecla E. Incluye `IInteractable`. |
+| `CheckPoint` | Detecta los triggers de salida a la ruta y persecución. |
+| `Surtidor` | Recoger/transportar el bidón y llenarlo en el surtidor. |
+| `Escalera` | Subida al techo y descenso controlado por el hueco. |
+| `Generador` | Encendido, audio, humo preparado en la escena y apagado del generador. |
+| `TableroElectrico` | Alimentación de la estación, indicador y llave térmica. El cable ya está en la escena. |
+| `Interruptores` | Interacción con el interruptor del portón. |
+| `PortonTaller` | Apertura del portón y su secuencia de movimiento. |
+| `AudioController` | Ambiente, portón y transición musical al comenzar la sirena. |
 
-## Jugador y cámara
+`Assets/Editor/DaylightStandbySetup.cs` solo mantiene la hora diurna de espera en el editor. No forma parte del gameplay ni crea objetos.
 
-| Script | Responsabilidad |
-| --- | --- |
-| `PlayerController` | Movimiento con `CharacterController`, gravedad, correr con Shift, modelo low-poly, animación, pasos y caída por el hueco. |
-| `CamaraJugador` | Seguimiento del objetivo y reducción de distancia cuando una pared obstruye la cámara. |
-| `DetectorDeInteracciones` | Busca el objeto interactivo más cercano, ejecuta la tecla E y contiene el contrato pequeño `IInteractable`. |
+## Nombres cambiados
 
-## Secuencia del auto y misión
+| Antes | Archivo actual | Objeto principal de jerarquía |
+| --- | --- | --- |
+| `TrafficManager` | `Trafico.cs` | `Trafico` |
+| `TrafficVehicle` | `TraficoAutos.cs` | Instancias de la reserva bajo `Trafico` |
+| `CarDriver` | `AutoJugador.cs` | `AutoJugador` |
+| `GameFlow` | `Juego.cs` | `Juego` |
+| `GameUI` | `UI.cs` | `UI` |
 
-| Script | Responsabilidad |
-| --- | --- |
-| `CarDriver` | Hace llegar el auto, corta el combustible, permite cargarlo/subir y entrega el control a los controles nativos de Vehicle Physics Pro. No duplica la física del asset. |
-| `CheckPoint` | Comprueba la llegada a la salida. |
-| `Surtidor` | Recoger, llevar en la mano, llenar el bidón y operar el surtidor mediante su modo `pumpMode`. |
+Los cinco `.meta` mantienen sus GUID: no son componentes nuevos ni copias. Se actualizaron tipos y referencias de escena, prefabs y botones. Los demás nombres de archivos no se cambiaron fuera de lo solicitado.
 
-## Interacciones del escenario
+## Criterio de limpieza
 
-| Script | Responsabilidad |
-| --- | --- |
-| `Escalera` | Subir al techo, interactuar con el hueco y ejecutar la caída controlada al taller. |
-| `Generador` | Encendido, loop del motor e indicador del generador. |
-| `TableroElectrico` | Conecta el generador al tablero, controla su estado y dibuja cable, enchufe e indicador. |
-| `Interruptores` | Interruptor del portón. |
-| `PortonTaller` | Animación lenta de apertura del portón. |
+- Los objetos, cámaras, UI, colliders, ruedas, audio, luces y reserva de tráfico están preparados en Unity.
+- No hay `new GameObject`, `CreatePrimitive`, `AddComponent` ni `Instantiate` en los scripts propios de gameplay.
+- El ciclo tarde-noche usa el sol, niebla y Skybox Procedural de Unity, sin dependencias Enviro en scripts propios. El antiguo reloj Enviro fue retirado.
+- Color y emisión usan un MaterialPropertyBlock compartido: no clonan materiales con `Renderer.material` ni `Renderer.materials`.
+- Los atajos configurables VPP están desactivados en la escena. Solo queda código para Ctrl+Espacio y comandos internos sin ajuste en el Inspector.
+- Se conserva la física VPP del jugador. La cámara usa Cinemachine, el personaje usa Animator y la patrulla combina NavMesh con WheelColliders.
 
-## Audio y presentación
+La integración de cámara sustituyó el seguimiento propio por Cinemachine. Los emisores ya están en la escena: AutoJugador controla polvo, impactos y ambos escapes; Generador controla su humo. No se crean cámaras ni partículas GameObject durante la partida.
 
-| Script | Responsabilidad |
-| --- | --- |
-| `AudioController` | Ambiente, efectos de interacción y transición entre música de exploración y tensión. |
-| `GameUI` | Objetivos, mensajes, reloj y combustible del generador con Canvas Scaler. |
+La patrulla ahora consulta un NavMesh horneado y conduce con sus cuatro WheelColliders. `NavegacionPatrulla` y los NavMeshObstacle del tráfico son componentes de Unity guardados en edición. El planificador de corredores anterior se retiró; siguen siendo 17 scripts de gameplay.
 
-## Limpieza aplicada
-
-- Se eliminaron `PhysicsCrate`, `VoiceNarration` y `CinemachineFollowSetup`: no tenían uso real en la escena o eran un componente de compatibilidad desactivado.
-- Se eliminaron `VppDirectControlSetup` y `VerticalSliceDirector`: el primero duplicaba la configuración que ya realiza `CarDriver`; el segundo repetía mensajes y feedback que ya resuelve `GameFlow`.
-- Se eliminaron eventos sin suscriptores y métodos de audio vacíos.
-- Se quitaron campos muertos del controlador del auto sin modificar la ruta de control de Vehicle Physics Pro.
-- Se unificaron llegada/interacción del auto en `CarDriver`, bidón/surtidor en `Surtidor`, reloj en `GameFlow`, animación en `PlayerController`, cable en `TableroElectrico`, audio/música en `AudioController` y el hueco en `Escalera`.
-- Se conserva `Assets/Editor/DaylightStandbySetup.cs` porque solo fija una hora de día en el editor y evita que la escena cambie de horario cada vez que se abre o se detiene Play.
-
-Los scripts restantes representan sistemas visibles del juego: flujo y tiempo, jugador y cámara, interacción, auto, UI, audio, generador/energía, portón y salida. Los componentes de Vehicle Physics Pro, Enviro 3 y Nature Starter Kit 2 siguen siendo externos y no se cuentan dentro de los scripts propios.
-
-`CarDriver` sigue siendo el script más largo porque adapta la secuencia inicial y la interacción al componente interno de Vehicle Physics Pro. Esa parte no conviene reemplazarla por un controlador casero: duplicaría la física del paquete y volvería a aparecer el problema de que el auto gira como un bloque.
-
-## Criterio de la materia
-
-La organización sigue una responsabilidad por script: entrada y movimiento separados de cámara, UI, audio, interacciones y flujo. Se usan `Update` para entrada y lógica, `FixedUpdate` para el bus de física del vehículo, `LateUpdate` para cámara y eventos para comunicar cambios entre sistemas. Esto mantiene el código simple y explicable para el nivel de Motores 1.
+Se usa `Update` para entrada/lógica, `FixedUpdate` para física y `LateUpdate` para cámara. Los pendientes del parcial están en [ESTADO_PARCIAL_2.md](ESTADO_PARCIAL_2.md).

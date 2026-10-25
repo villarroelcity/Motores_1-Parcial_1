@@ -14,10 +14,11 @@ Los paquetes de terceros de licencia comercial no se suben al repositorio. La li
 
 - `WASD` o flechas: mover al personaje.
 - `Shift` sostenido: correr.
-- `E`: interactuar con el objetivo que muestra el cursor.
-- En el vehículo: controles configurados por Vehicle Physics Pro.
+- `E`: interactuar con el objeto cercano indicado en pantalla.
+- En el vehículo: WASD/flechas para conducir, abajo/S para frenar y luego retroceder; Espacio conserva el freno existente.
+- `Esc`: pausa. `R`: reinicio desde pausa o resultado.
 
-La cámara se sigue con Cinemachine; no hay una acción de mouse anunciada en el HUD.
+La cámara usa Cinemachine: `CinemachineBrain` en Main Camera y `CamaraCinemachine` con seguimiento, encuadre y acercamiento ante paredes. `CamaraJugador` solo cambia el objetivo entre jugador y auto. El cielo y el anochecer usan herramientas nativas de Unity, sin Enviro en la escena.
 
 ## Recorrido actual
 
@@ -26,12 +27,13 @@ La cámara se sigue con Cinemachine; no hay una acción de mouse anunciada en el
 3. Enciende el generador, conecta el tablero eléctrico y abre el portón.
 4. Recoge el bidón, lo carga en el surtidor y abastece el auto.
 5. Conduce hasta `SalidaAlCamino` antes de que se cumpla el tiempo.
+6. Continúa por la ruta, supera la emboscada y saca 200 m de ventaja antes de agotar los 60 segundos de persecución.
 
 El HUD muestra tanto el tiempo general como el combustible restante del generador cuando está en marcha. Todas las derrotas y la victoria silencian las demás fuentes de audio.
 
 ## Estado de la entrega
 
-La escena y los assets realmente usados se conservan; se retiraron demos, material de muestra y automatizaciones de editor que reescribían la escena. La IA final todavía se debe definir e integrar como un desafío visible y comprobable; no se declara como terminada.
+La IA y la persecución están integradas, pero su validación jugable final sigue pendiente. Cinemachine, el Animator del personaje y los emisores de humo del generador y ambos escapes, polvareda del pasto y chispas de impacto están preparados en la escena. La revisión de requisitos y entregables está en [ESTADO_PARCIAL_2.md](Documentacion/ESTADO_PARCIAL_2.md). Las pruebas de editor no sustituyen el recorrido en Play ni una build.
 
 - Diseño: [GDD_EN_EL_CAMINO.md](Documentacion/GDD_EN_EL_CAMINO.md)
 - Pruebas y pendientes: [Informe_Testing_EN_EL_CAMINO.md](Documentacion/Informe_Testing_EN_EL_CAMINO.md)

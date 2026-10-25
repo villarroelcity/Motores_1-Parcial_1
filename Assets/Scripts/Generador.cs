@@ -12,6 +12,7 @@ namespace EnElCamino
         [SerializeField] private AudioClip generatorMotorLoop;
         [SerializeField] private AudioSource motorAudioSource;
         [SerializeField] private AudioSource audioSource;
+        [SerializeField] private ParticleSystem exhaust;
         private bool generatorOn;
 
         private void Awake()
@@ -41,9 +42,7 @@ namespace EnElCamino
             gameFlow.GameFinished -= ShutDownGenerator;
         }
 
-        private AudioSource MotorSource => motorAudioSource != null ? motorAudioSource : EnsureAudioSource();
-
-        private AudioSource EnsureAudioSource() => audioSource;
+        private AudioSource MotorSource => motorAudioSource != null ? motorAudioSource : audioSource;
 
         private void Update()
         {
@@ -71,7 +70,8 @@ namespace EnElCamino
 
             if (!gameFlow.TurnOnGenerator()) return;
             generatorOn = true;
-            if (switchSound != null) EnsureAudioSource().PlayOneShot(switchSound);
+            if (exhaust != null) exhaust.Play();
+            if (switchSound != null) audioSource.PlayOneShot(switchSound);
             if (generatorStartSound != null)
             {
                 MotorSource.PlayOneShot(generatorStartSound);
@@ -91,6 +91,7 @@ namespace EnElCamino
 
         private void StopGeneratorAudio()
         {
+            if (exhaust != null) exhaust.Stop(true, ParticleSystemStopBehavior.StopEmitting);
             CancelInvoke(nameof(StartGeneratorMotor));
             if (audioSource != null)
             {

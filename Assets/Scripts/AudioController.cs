@@ -21,7 +21,8 @@ namespace EnElCamino
         {
             if (ambientSource.clip != null) ambientSource.Play();
             explorationSource.Play();
-            tensionSource.Play();
+            tensionSource.Stop();
+            tensionSource.volume = 0f;
         }
 
         private void OnEnable()
@@ -53,9 +54,6 @@ namespace EnElCamino
             if (garageDoorSource == null || garageDoorSource.clip == null) return;
 
             garageDoorSource.Stop();
-            // The supplied porton recording contains 1.19 seconds of silence
-            // before the mechanism starts. Skip that silence so the sound and
-            // the first movement of the door begin together.
             garageDoorSource.time = Mathf.Min(1.19f, Mathf.Max(0f, garageDoorSource.clip.length - 0.05f));
             garageDoorSource.Play();
         }
@@ -63,7 +61,11 @@ namespace EnElCamino
         private void OnTensionStarted()
         {
             tensionState = true;
-            if (tensionSource != null && !tensionSource.isPlaying) tensionSource.Play();
+            if (tensionSource != null && !tensionSource.isPlaying)
+            {
+                tensionSource.time = 0f;
+                tensionSource.Play();
+            }
         }
 
         public void StopMusic()

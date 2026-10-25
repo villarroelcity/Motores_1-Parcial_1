@@ -5914,7 +5914,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66620b7be64e4c24a83356be36c1bf2b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TrafficVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.TraficoAutos
   brakingDistance: 22
   safeDistance: 5
   acceleration: 3

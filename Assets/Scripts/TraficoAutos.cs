@@ -103,7 +103,8 @@ namespace EnElCamino
             body.linearDamping = 0f;
             body.interpolation = RigidbodyInterpolation.Interpolate;
             body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-            body.maxDepenetrationVelocity = 2.5f;
+            body.maxDepenetrationVelocity = 1f;
+            body.maxAngularVelocity = 0.8f;
             body.constraints |= RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
 
             foreach (AudioSource audioSource in GetComponentsInChildren<AudioSource>(true))
@@ -161,9 +162,9 @@ namespace EnElCamino
             float lateralForce = Mathf.Clamp((laneX - body.position.x) * 3f - body.linearVelocity.x * 2f, -4f, 4f);
             body.AddForce(Vector3.right * lateralForce, ForceMode.Acceleration);
 
-            Quaternion straightAhead = Quaternion.LookRotation(direction, Vector3.up);
-            body.MoveRotation(Quaternion.RotateTowards(body.rotation, straightAhead,
-                35f * Time.fixedDeltaTime));
+            float turn = Vector3.SignedAngle(transform.forward, direction, Vector3.up) * Mathf.Deg2Rad;
+            body.AddTorque(Vector3.up * Mathf.Clamp(turn * 5f - body.angularVelocity.y * 4f, -3f, 3f),
+                ForceMode.Acceleration);
 
             float wheelDegrees = currentSpeed * Time.fixedDeltaTime / (2f * Mathf.PI * WheelRadius) * 360f;
             if (wheels != null)
@@ -191,8 +192,6 @@ namespace EnElCamino
             {
                 Collider otherCollider = hit.collider;
                 if (otherCollider == null || otherCollider.transform.IsChildOf(transform)) continue;
-                if (hit.normal.y > 0.7f) continue;
-
                 TraficoAutos otherTraffic = otherCollider.GetComponentInParent<TraficoAutos>();
                 // Only moving road users participate in adaptive cruise. The
                 // huge road/terrain colliders must never be treated as cars at rest.
@@ -218,9 +217,9 @@ namespace EnElCamino
             if (contactBounds.size.x > 20f && contactBounds.size.z > 20f && contactBounds.size.y < 1f) return;
             if (collision.collider.GetComponentInParent<TraficoAutos>() != null)
             {
-                // A traffic-to-traffic scrape yields briefly, then rejoins the
-                // flow; it must not permanently disable both cruise controllers.
-                trafficContactUntil = Time.time + 0.75f;
+                // Cede al auto de adelante. El que recibe un toque desde atras puede avanzar.
+                if (Vector3.Dot(collision.transform.position - body.position, direction) > 0f)
+                    trafficContactUntil = Time.time + 0.75f;
                 return;
             }
 
@@ -239,6 +238,8 @@ namespace EnElCamino
             // physics. Subsequent contacts must not restart its motor.
             damagedInCollision = true;
         }
+
+        private void OnCollisionStay(Collision collision) => OnCollisionEnter(collision);
 
     }
 }

@@ -172,8 +172,11 @@ namespace EnElCamino
         private void SpawnVehicle(float x, float z, Vector3 direction)
         {
             if (nextVehicleIndex >= trafficPool.Length) return;
-            TraficoAutos vehicle = trafficPool[nextVehicleIndex++];
+            TraficoAutos vehicle = trafficPool[nextVehicleIndex];
             float height = roadSurfaceY + vehicle.GroundOffset;
+            if (Physics.CheckBox(new Vector3(x, height + 0.9f, z), new Vector3(1.05f, 0.55f, 10f),
+                Quaternion.identity, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)) return;
+            nextVehicleIndex++;
             vehicle.transform.SetPositionAndRotation(new Vector3(x, height, z),
                 Quaternion.LookRotation(direction, Vector3.up));
             vehicle.gameObject.SetActive(true);

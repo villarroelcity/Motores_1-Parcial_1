@@ -60,13 +60,7 @@ namespace EnElCamino
                 Color color = gameFlow != null && gameFlow.stationPowerConnected
                     ? new Color(0.15f, 0.95f, 0.28f)
                     : new Color(0.9f, 0.12f, 0.04f);
-                foreach (Material material in statusLight.materials)
-                {
-                    if (material == null) continue;
-                    if (material.HasProperty("_Color")) material.color = color;
-                    if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", color);
-                    if (material.HasProperty("_EmissionColor")) material.SetColor("_EmissionColor", color * 1.8f);
-                }
+                VehicleLightUtility.SetAppearance(statusLight, color, color * 1.8f);
             }
 
             if (statusLamp != null)

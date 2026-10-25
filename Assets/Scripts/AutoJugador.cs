@@ -4,6 +4,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VehiclePhysics;
+using VersionCompatibility;
 
 namespace EnElCamino
 {
@@ -19,6 +20,9 @@ namespace EnElCamino
         [SerializeField] private float coastDistance = 180f;
         [SerializeField] private float fuelStarvationDuration = 1.2f;
         [SerializeField] private Surtidor fuelCan;
+        [SerializeField] private ParticleSystem dustParticles;
+        [SerializeField] private ParticleSystem impactParticles;
+        [SerializeField] private ParticleSystem[] exhaustParticles = System.Array.Empty<ParticleSystem>();
 
         private VPVehicleController vehicleController;
         private bool driving;
@@ -39,6 +43,8 @@ namespace EnElCamino
         private bool arrivalControl;
         private float brakeInput;
         private VPStandardInput nativeInput;
+        private UnityKey[] originalVppHandbrakeKeys;
+        private bool originalVppHandbrakeLegacyMode;
         private bool used;
         private FieldInfo tireFrictionField;
         private FieldInfo tireGripField;
@@ -71,10 +77,15 @@ namespace EnElCamino
                 impact = Mathf.Max(impact, Mathf.Abs(Vector3.Dot(collision.relativeVelocity, contact.normal)));
             }
             if (impact < 3f) return;
+            if (impactParticles != null && collision.contactCount > 0)
+            {
+                impactParticles.transform.position = collision.GetContact(0).point;
+                impactParticles.Play();
+            }
             nextDamageTime = Time.time + 0.35f;
             damage = Mathf.Min(100f, damage + Mathf.Clamp((impact - 3f) * 2f, 0f, 65f));
             DamageHudUntil = Time.time + 5f;
-            if (damage >= 100f) gameFlow.GameOver("El auto quedo destruido.");
+            if (damage >= 100f) gameFlow.GameOver();
         }
 
         private void SetNativeControls(bool enabled)
@@ -97,8 +108,6 @@ namespace EnElCamino
             nativeInput.disableThrottleInput = !enabled;
             nativeInput.disableBrakeInput = !enabled;
             nativeInput.disableHandbrakeInput = !enabled;
-            nativeInput.disableClutchInput = !enabled;
-            nativeInput.disableGearShiftInputs = !enabled;
 
             // The isolated VPP test uses the asset's automatic transmission.
             // Apply the same setting only when player control is handed over;
@@ -143,8 +152,6 @@ namespace EnElCamino
                 nativeInput.disableThrottleInput = true;
                 nativeInput.disableBrakeInput = true;
                 nativeInput.disableHandbrakeInput = true;
-                nativeInput.disableClutchInput = true;
-                nativeInput.disableGearShiftInputs = true;
                 nativeInput.externalThrottle = 0f;
                 nativeInput.externalBrake = 0f;
                 nativeInput.externalHandbrake = 0f;
@@ -202,13 +209,14 @@ namespace EnElCamino
 
         private void Awake()
         {
+            DisableVppShortcuts();
             if (gameFlow == null) gameFlow = FindFirstObjectByType<Juego>();
             vehicleController = GetComponent<VPVehicleController>();
             vehicleBody = GetComponent<Rigidbody>();
             DisableVppTelemetry();
             if (vehicleController == null) return;
             nativeInput = GetComponent<VPStandardInput>();
-            // Keep the prefab's native VPP input untouched during the arrival.
+            // Preserve native driving during arrival; only remove demo shortcuts.
             vehicleReady = false;
             foreach (VPAudioExtras audio in GetComponentsInChildren<VPAudioExtras>(true))
             {
@@ -231,6 +239,31 @@ namespace EnElCamino
         private void DisableVppTelemetry()
         {
             VehicleLightUtility.DisableTelemetry(gameObject);
+        }
+
+        private void DisableVppShortcuts()
+        {
+            // Space is already supplied by this script as externalHandbrake.
+            // Unbind the duplicate VPP axis so Ctrl+Space cannot latch its
+            // hidden parking brake. Do not change the native pedal/steer axes.
+            UnityAxisControl axis = UnityInput.handbrakeAxis;
+            originalVppHandbrakeKeys = new[] { axis.negativeButton, axis.positiveButton,
+                axis.altNegativeButton, axis.altPositiveButton };
+            originalVppHandbrakeLegacyMode = axis.legacyMode;
+            axis.negativeButton = axis.positiveButton = UnityKey.None;
+            axis.altNegativeButton = axis.altPositiveButton = UnityKey.None;
+            axis.legacyMode = false;
+        }
+
+        private void OnDestroy()
+        {
+            if (originalVppHandbrakeKeys == null) return;
+            UnityAxisControl axis = UnityInput.handbrakeAxis;
+            axis.negativeButton = originalVppHandbrakeKeys[0];
+            axis.positiveButton = originalVppHandbrakeKeys[1];
+            axis.altNegativeButton = originalVppHandbrakeKeys[2];
+            axis.altPositiveButton = originalVppHandbrakeKeys[3];
+            axis.legacyMode = originalVppHandbrakeLegacyMode;
         }
 
         public void SetHeadLights(bool enabled)
@@ -595,6 +628,13 @@ namespace EnElCamino
             if (!vehicleController.initialized)
                 return;
 
+            // VPP hardcodes numpad */ for the retarder. Clear only auxiliary
+            // commands before its physics step, never steering or pedals.
+            int[] auxiliaryInput = vehicleController.data.Get(Channel.Input);
+            auxiliaryInput[InputData.Retarder] = 0;
+            auxiliaryInput[InputData.Clutch] = 0;
+            auxiliaryInput[InputData.GearShift] = 0;
+
             UpdateGripOnGrass();
             if (HasPlayerControl)
                 GrassDriving.ApplyBumps(vehicleBody, gameFlow, ref grassBumpDistance, ref grassBumpWheel);
@@ -685,6 +725,8 @@ namespace EnElCamino
 
         private void UpdateGripOnGrass()
         {
+            bool onGrass = IsCarOverGrass();
+            UpdateDust(onGrass);
             if (tireFrictionField == null)
                 tireFrictionField = typeof(VPVehicleController).GetField("tireFriction",
                     BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
@@ -706,12 +748,19 @@ namespace EnElCamino
                 originalTireGripSaved = true;
             }
 
-            float targetGrip = originalTireGrip * (IsCarOverGrass() ? GrassGripMultiplier : 1f);
+            float targetGrip = originalTireGrip * (onGrass ? GrassGripMultiplier : 1f);
             if (Mathf.Approximately((float)tireGripField.GetValue(tireFriction), targetGrip)) return;
 
             tireGripField.SetValue(tireFriction, targetGrip);
             if (setupTireFrictionMethod != null) setupTireFrictionMethod.Invoke(tireFriction, null);
             tireFrictionField.SetValue(vehicleController, tireFriction);
+        }
+
+        private void UpdateDust(bool onGrass)
+        {
+            if (dustParticles == null) return;
+            var emission = dustParticles.emission;
+            emission.enabled = HasPlayerControl && SpeedKmh > 10f && onGrass;
         }
 
         private bool IsCarOverGrass()
@@ -758,14 +807,26 @@ namespace EnElCamino
                 }
             }
             engineRequested = true;
+            SetExhaust(true);
         }
 
         public void StopEngineAudio()
         {
             engineRequested = false;
+            SetExhaust(false);
             introFullThrottle = false;
             throttleInput = 0f;
             steerInput = 0f;
+        }
+
+        private void SetExhaust(bool running)
+        {
+            foreach (ParticleSystem smoke in exhaustParticles)
+            {
+                if (smoke == null) continue;
+                var emission = smoke.emission;
+                emission.enabled = running;
+            }
         }
 
         private void SetStartupAudioClip(AudioClip clip)

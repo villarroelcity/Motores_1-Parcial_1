@@ -1,24 +1,35 @@
 using UnityEngine;
-using System.Collections;
-using System.Reflection;
+using VehiclePhysics;
 
 namespace EnElCamino
 {
     internal static class VehicleLightUtility
     {
-        private const BindingFlags InstanceFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+        private static readonly MaterialPropertyBlock appearance = new MaterialPropertyBlock();
+
+        public static void SetAppearance(Renderer renderer, Color color, Color emission, bool tint = true)
+        {
+            if (renderer == null) return;
+            appearance.Clear();
+            renderer.GetPropertyBlock(appearance);
+            if (tint)
+            {
+                appearance.SetColor("_BaseColor", color);
+                appearance.SetColor("_Color", color);
+            }
+            appearance.SetColor("_EmissionColor", emission);
+            renderer.SetPropertyBlock(appearance);
+        }
 
         public static void SetHeadlights(GameObject vehicle, bool enabled)
         {
             if (vehicle == null) return;
 
-            foreach (MonoBehaviour component in vehicle.GetComponentsInChildren<MonoBehaviour>(true))
+            foreach (VPVisualEffects effects in vehicle.GetComponentsInChildren<VPVisualEffects>(true))
             {
-                if (component == null || component.GetType().Name != "VPVisualEffects") continue;
-                SetReferencedObjects(component, "headLightsOn", enabled);
-                SetReferencedObjects(component, "headLightsOff", !enabled);
-                FieldInfo state = component.GetType().GetField("headLightsEnabled", InstanceFlags);
-                if (state != null && state.FieldType == typeof(bool)) state.SetValue(component, enabled);
+                SetObjects(effects.headLightsOn, enabled);
+                SetObjects(effects.headLightsOff, !enabled);
+                effects.headLightsEnabled = enabled;
             }
 
             foreach (Transform item in vehicle.GetComponentsInChildren<Transform>(true))
@@ -28,11 +39,6 @@ namespace EnElCamino
                 if (name.Contains("off")) item.gameObject.SetActive(!enabled);
                 else if (name.Contains("on") || name.Contains("glow")) item.gameObject.SetActive(enabled);
             }
-            SetRoadBeams(vehicle, enabled);
-        }
-
-        private static void SetRoadBeams(GameObject vehicle, bool enabled)
-        {
             Transform holder = vehicle.transform.Find("FarosSobreAsfalto");
             if (holder != null) holder.gameObject.SetActive(enabled);
         }
@@ -41,39 +47,19 @@ namespace EnElCamino
         {
             if (vehicle == null) return;
 
-            foreach (MonoBehaviour component in vehicle.GetComponentsInChildren<MonoBehaviour>(true))
+            foreach (VPTelemetry telemetry in vehicle.GetComponentsInChildren<VPTelemetry>(true))
             {
-                if (component == null || component.GetType().Name != "VPTelemetry") continue;
-
-                DisableHotKey(component, "enableHotKey");
-                DisableHotKey(component, "showTelemetry");
-                component.enabled = false;
+                telemetry.enableHotKey = false;
+                telemetry.showTelemetry = false;
+                telemetry.enabled = false;
             }
         }
 
-        private static void DisableHotKey(MonoBehaviour component, string fieldName)
+        private static void SetObjects(GameObject[] objects, bool active)
         {
-            FieldInfo field = component.GetType().GetField(fieldName, InstanceFlags);
-            if (field != null && field.FieldType == typeof(bool)) field.SetValue(component, false);
-        }
-
-        private static void SetReferencedObjects(MonoBehaviour component, string fieldName, bool active)
-        {
-            FieldInfo field = component.GetType().GetField(fieldName, InstanceFlags);
-            if (field == null) return;
-            object value = field.GetValue(component);
-            SetObjectActive(value, active);
-
-            IEnumerable objects = value as IEnumerable;
             if (objects == null) return;
-            foreach (object item in objects) SetObjectActive(item, active);
-        }
-
-        private static void SetObjectActive(object value, bool active)
-        {
-            GameObject target = value as GameObject;
-            if (target == null && value is Component child) target = child.gameObject;
-            if (target != null) target.SetActive(active);
+            foreach (GameObject item in objects)
+                if (item != null) item.SetActive(active);
         }
     }
 

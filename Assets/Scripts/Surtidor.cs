@@ -6,7 +6,6 @@ namespace EnElCamino
     public class Surtidor : MonoBehaviour, IInteractable
     {
         [SerializeField] private Juego gameFlow;
-        [SerializeField] private Renderer fuelCanRenderer;
         [SerializeField] private Transform player;
         [SerializeField] private bool pumpMode;
         [SerializeField] private Surtidor fuelCan;
@@ -123,13 +122,8 @@ namespace EnElCamino
 
         public void Fill()
         {
-            if (fuelCanRenderer != null) fuelCanRenderer.material.color = Color.green;
             foreach (Renderer renderer in GetComponentsInChildren<Renderer>(true))
-            {
-                if (renderer == null || renderer == fuelCanRenderer) continue;
-                foreach (Material material in renderer.materials)
-                    if (material != null && material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", Color.green);
-            }
+                VehicleLightUtility.SetAppearance(renderer, Color.green, Color.black);
         }
 
         public bool IsTaken()

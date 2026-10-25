@@ -114,10 +114,6 @@ namespace EnElCamino
             return target != null && Vector3.Distance(transform.position, target.transform.position) < interactionDistance;
         }
 
-        private bool IsNear(Component target, float maxDistance)
-        {
-            return target != null && Vector3.Distance(transform.position, target.transform.position) < maxDistance;
-        }
     }
 
     // Interfaz comun de las acciones que se activan con E.

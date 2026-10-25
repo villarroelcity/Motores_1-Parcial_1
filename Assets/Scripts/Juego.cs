@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
-using Enviro;
 
 namespace EnElCamino
 {
@@ -18,9 +17,6 @@ namespace EnElCamino
         [SerializeField] private float pursuitDurationSeconds = 60f;
         public bool PursuitDefeatEnabled => true;
         [SerializeField] private Material skyboxMaterial;
-        [SerializeField] private bool controlLegacyLighting;
-        [SerializeField] private float enviroStartHour = 17.25f;
-        [SerializeField] private float enviroNightHour = 23f;
 
         public event Action GeneratorFuelDepleted;
         public event Action GarageDoorMotionStarted;
@@ -54,11 +50,6 @@ namespace EnElCamino
         private float pursuitTimeRemaining;
         private float startTime;
         private float lastSkyProgress = -1f;
-        private bool legacySunWasEnabled;
-        private bool legacySunSuppressed;
-        private EnviroTimeModule enviroTime;
-        private EnviroTimeModule originalEnviroTime;
-        private EnviroManager enviroManager;
         private bool countdownStarted;
         private AutoJugador playerCar;
         private bool carHeadLightsOn;
@@ -89,7 +80,7 @@ namespace EnElCamino
             startTime = Time.time;
             if (skyboxMaterial == null) skyboxMaterial = RenderSettings.skybox;
             if (timerText == null) timerText = FindFirstObjectByType<Text>(FindObjectsInactive.Include);
-            EnsureEnviroClock();
+            ApplyDaylight(0f);
             if (timerText != null)
             {
                 timerText.enabled = true;
@@ -107,7 +98,7 @@ namespace EnElCamino
             }
 
             if (gameOver || finished) return;
-            // Keep the same Enviro clock running after the road checkpoint.
+            // Keep the same daylight clock running after the road checkpoint.
             // Only its HUD panel is hidden; the transition to night remains
             // continuous and no second time-out is generated after the road.
             UpdateDayTimer();
@@ -118,7 +109,7 @@ namespace EnElCamino
                 if (gameUI != null) gameUI.SetPursuitTimeRemaining(pursuitTimeRemaining);
                 if (pursuitTimeRemaining <= 0f && PursuitDefeatEnabled)
                 {
-                    GameOver("Se acabo el combustible y el patrullero te atrapo.");
+                    GameOver();
                     return;
                 }
             }
@@ -144,14 +135,6 @@ namespace EnElCamino
             }
         }
 
-        private void LateUpdate()
-        {
-            if (controlLegacyLighting || gameOver || finished) return;
-            float progress = Mathf.Clamp01(1f - timeLeft / Mathf.Max(1f, duration));
-            ApplyEnviroTime(progress);
-            SetPlayerHeadLights(progress >= 0.84f);
-        }
-
         public void BeginAtFuelCutoff()
         {
             if (countdownStarted) return;
@@ -166,7 +149,7 @@ namespace EnElCamino
         {
             if (gameOver || finished || gameUI == null) return;
 
-            gameUI.SetObjective("OBJETIVO 1/8\nBUSCAR UN BIDON\nAcercate al taller haber si encuentras alguno.");
+            gameUI.SetObjective("OBJETIVO 1/8\nBUSCAR UN BIDON\nAcercate al taller a ver si encuentras alguno.");
         }
 
         public void ShowFuelCutoffMessage()
@@ -179,31 +162,15 @@ namespace EnElCamino
         {
             timeLeft = countdownStarted ? duration - (Time.time - startTime) : duration;
             float progress = Mathf.Clamp01(1f - timeLeft / Mathf.Max(1f, duration));
-            ApplyEnviroTime(progress);
+            ApplyDaylight(progress);
             SetPlayerHeadLights(progress >= 0.84f);
-            if (controlLegacyLighting && sun != null)
-                sun.intensity = Mathf.Lerp(1.1f, 0.05f, progress);
-            if (controlLegacyLighting)
-                RenderSettings.ambientLight = Color.Lerp(new Color(0.55f, 0.55f, 0.55f), new Color(0.02f, 0.02f, 0.06f), progress);
-            if (controlLegacyLighting && skyboxMaterial != null && skyboxMaterial.HasProperty("_SkyTint"))
-            {
-                skyboxMaterial.SetColor("_SkyTint", Color.Lerp(new Color(0.48f, 0.56f, 0.72f), new Color(0.035f, 0.045f, 0.12f), progress));
-                skyboxMaterial.SetColor("_GroundColor", Color.Lerp(new Color(0.32f, 0.34f, 0.38f), new Color(0.006f, 0.008f, 0.02f), progress));
-                skyboxMaterial.SetFloat("_Exposure", Mathf.Lerp(1.1f, 0.28f, progress));
-                if (Mathf.Abs(progress - lastSkyProgress) > 0.02f)
-                {
-                    DynamicGI.UpdateEnvironment();
-                    lastSkyProgress = progress;
-                }
-            }
             if (!roadReached && timerText != null)
             {
                 timerText.enabled = true;
                 if (!timerText.gameObject.activeSelf) timerText.gameObject.SetActive(true);
                 int seconds = Mathf.Max(0, Mathf.CeilToInt(timeLeft));
-                timerText.text = "ANOCHESE EN\n" + seconds / 60 + ":" + (seconds % 60).ToString("00");
+                timerText.text = "ANOCHECE EN\n" + seconds / 60 + ":" + (seconds % 60).ToString("00");
             }
-            if (countdownStarted && timeLeft <= 20f) RequestTension();
             if (countdownStarted && timeLeft <= 0f && !roadReached) GameOver();
         }
 
@@ -218,59 +185,39 @@ namespace EnElCamino
                 gameUI.HideCountdown();
                 if (!pursuitActive)
                 {
-                    gameUI.HideObjective();
+                    gameUI.SetObjective("VICTORIA\nLLEGASTE A LA RUTA");
                     gameUI.HideMessage();
                 }
             }
         }
 
-        private void RequestTension()
+        public void NotifyPoliceSirenStarted()
         {
-            if (tensionStarted) return;
+            if (!pursuitActive || gameOver || finished || tensionStarted) return;
             tensionStarted = true;
             TensionStarted?.Invoke();
         }
 
-        private void ApplyEnviroTime(float progress)
+        public void ApplyDaylight(float progress)
         {
-            if (controlLegacyLighting) return;
-            EnsureEnviroClock();
-            if (enviroTime == null) return;
-            float hour;
-            if (progress <= 0.7f)
-                hour = Mathf.Lerp(enviroStartHour, 17.8f, progress / 0.7f);
-            else if (progress <= 0.85f)
-                hour = Mathf.Lerp(17.8f, 18f, (progress - 0.7f) / 0.15f);
-            else
-                hour = Mathf.Lerp(18f, enviroNightHour, (progress - 0.85f) / 0.15f);
-            enviroTime.SetTimeOfDay(hour);
-            enviroTime.UpdateModule();
-        }
-
-        private void EnsureEnviroClock()
-        {
-            if (controlLegacyLighting) return;
-            if (enviroManager == null) enviroManager = FindFirstObjectByType<EnviroManager>();
-            if (enviroManager == null || enviroManager.Time == null) return;
-            if (!legacySunSuppressed && sun != null && !sun.transform.IsChildOf(enviroManager.transform))
+            float night = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.65f, 1f, progress));
+            if (sun != null)
             {
-                legacySunWasEnabled = sun.enabled;
-                sun.enabled = false;
-                legacySunSuppressed = true;
+                sun.transform.rotation = Quaternion.Euler(Mathf.Lerp(18f, -8f, night), -80f, 0f);
+                sun.intensity = Mathf.Lerp(1.1f, 0.04f, night);
+                sun.color = Color.Lerp(new Color(1f, 0.86f, 0.68f), new Color(0.45f, 0.6f, 1f), night);
             }
-            if (enviroTime == null)
+            RenderSettings.ambientLight = Color.Lerp(new Color(0.42f, 0.47f, 0.55f), new Color(0.07f, 0.085f, 0.13f), night);
+            RenderSettings.fogColor = Color.Lerp(new Color(0.66f, 0.7f, 0.76f), new Color(0.045f, 0.06f, 0.1f), night);
+            if (skyboxMaterial != null)
             {
-                originalEnviroTime = enviroManager.Time;
-                enviroTime = Instantiate(originalEnviroTime);
-                enviroTime.name = "Reloj de partida (runtime)";
-                enviroTime.Settings = JsonUtility.FromJson<EnviroTime>(JsonUtility.ToJson(originalEnviroTime.Settings));
-                enviroTime.active = true;
-                enviroTime.Settings.simulate = false;
-                enviroTime.Settings.calenderType = EnviroTime.CalenderType.Custom;
-                enviroTime.Settings.customSunOffset = -6f;
-                enviroTime.SetTimeOfDay(enviroStartHour);
+                skyboxMaterial.SetFloat("_Exposure", Mathf.Lerp(1.1f, 0.35f, night));
+                if (Mathf.Abs(progress - lastSkyProgress) > 0.04f)
+                {
+                    DynamicGI.UpdateEnvironment();
+                    lastSkyProgress = progress;
+                }
             }
-            enviroManager.Time = enviroTime;
         }
 
         private static AudioSource FindSource(string objectName)
@@ -407,11 +354,10 @@ namespace EnElCamino
 
             pursuitActive = true;
             pursuitTimeRemaining = Mathf.Max(1f, pursuitDurationSeconds);
-            RequestTension();
             if (gameUI != null)
             {
-                gameUI.SetObjective("PERSECUCION\nEL PATRULLERO TE SIGUE\nEscapa y evade al patrullero.");
-                gameUI.ShowMessage("El patrullero te persigue. Acelera y escapa.");
+                gameUI.SetObjective("PERSECUCION\nEL PATRULLERO TE SIGUE\nSaca 200 m de ventaja antes de quedarte sin nafta.");
+                gameUI.ShowMessage("Te queda un minuto de combustible. Escapa del patrullero.");
                 gameUI.SetPursuitDistance(0f, 200f);
                 gameUI.SetPursuitTimeRemaining(pursuitTimeRemaining);
             }
@@ -467,11 +413,6 @@ namespace EnElCamino
 
         public void GameOver()
         {
-            GameOver(null);
-        }
-
-        public void GameOver(string reason)
-        {
             if (finished || gameOver) return;
 
             gameOver = true;
@@ -483,7 +424,7 @@ namespace EnElCamino
             if (gameUI != null)
             {
                 gameUI.HidePursuitDistance();
-                gameUI.ShowGameOver(reason);
+                gameUI.ShowGameOver();
             }
             GameLost?.Invoke();
         }
@@ -523,11 +464,8 @@ namespace EnElCamino
                 lamp.shadows = powered ? LightShadows.Soft : LightShadows.None;
             }
             foreach (Renderer renderer in stationLampRenderers)
-            {
-                Material material = renderer.material;
-                if (material.HasProperty("_EmissionColor"))
-                    material.SetColor("_EmissionColor", powered ? new Color(1f, .72f, .38f) * 7f : Color.black);
-            }
+                VehicleLightUtility.SetAppearance(renderer, Color.white,
+                    powered ? new Color(1f, .72f, .38f) * 7f : Color.black, false);
         }
 
         public bool IsGrassSurface(Collider collider)
@@ -549,14 +487,6 @@ namespace EnElCamino
         public void ShowMessage(string text)
         {
             if (gameUI != null) gameUI.ShowMessage(text);
-        }
-
-        private void OnDestroy()
-        {
-            if (legacySunSuppressed && sun != null) sun.enabled = legacySunWasEnabled;
-            if (enviroManager != null && enviroManager.Time == enviroTime)
-                enviroManager.Time = originalEnviroTime;
-            if (enviroTime != null) Destroy(enviroTime);
         }
 
     }

@@ -28,6 +28,8 @@ namespace EnElCamino
         [SerializeField] private GameObject rearViewPanel;
         [SerializeField] private Camera rearViewCamera;
         [SerializeField] private AutoJugador rearViewTarget;
+        [SerializeField] private Vector3 rearViewOffset = new Vector3(0f, 1.65f, -2.7f);
+        [SerializeField] private float rearViewPitch = 6f;
         [SerializeField] private GameObject pausePanel;
         [SerializeField] private GameObject controlsPanel;
         private bool gameplayVisible;
@@ -217,7 +219,7 @@ namespace EnElCamino
             if (pursuitDistanceText == null || rearViewPanel == null) return;
 
             string timer = pursuitSecondsRemaining >= 0
-                ? $"    |    TIEMPO {pursuitSecondsRemaining / 60}:{pursuitSecondsRemaining % 60:00}"
+                ? $"    |    RESERVA {pursuitSecondsRemaining / 60}:{pursuitSecondsRemaining % 60:00}"
                 : string.Empty;
             pursuitDistanceText.text = $"VENTAJA {pursuitCurrentMeters} / {pursuitRequiredMeters} m{timer}";
             pursuitDistancePanel.SetActive(true);
@@ -240,7 +242,7 @@ namespace EnElCamino
                 rearViewTarget.HasPlayerControl && rearViewTarget.Damage > 0f && Time.time < rearViewTarget.DamageHudUntil;
             damagePanel.SetActive(visible);
             if (!visible) return;
-            damageText.text = $"DANO {Mathf.CeilToInt(rearViewTarget.Damage)}%";
+            damageText.text = $"DAÑO {Mathf.CeilToInt(rearViewTarget.Damage)}%";
             damageFill.anchorMax = new Vector2(Mathf.Clamp01(rearViewTarget.Damage / 100f), 1f);
         }
 
@@ -250,28 +252,15 @@ namespace EnElCamino
             if (rearViewTarget == null) rearViewTarget = FindFirstObjectByType<AutoJugador>();
             if (rearViewTarget == null) return;
 
-            Rigidbody carBody = rearViewTarget.GetComponent<Rigidbody>();
-            Vector3 forward = Vector3.ProjectOnPlane(
-                carBody != null ? carBody.rotation * Vector3.forward : rearViewTarget.transform.forward,
-                Vector3.up).normalized;
+            Vector3 forward = Vector3.ProjectOnPlane(rearViewTarget.transform.forward, Vector3.up).normalized;
             if (forward.sqrMagnitude < 0.01f) return;
 
-            Vector3 carPosition = rearViewTarget.transform.position;
-            float rearDistance = 2.5f;
-            float roofHeight = carPosition.y + 1.5f;
-            foreach (Renderer renderer in rearViewTarget.GetComponentsInChildren<Renderer>())
-            {
-                Bounds bounds = renderer.bounds;
-                Vector3 extents = bounds.extents;
-                float depth = Mathf.Abs(forward.x) * extents.x + Mathf.Abs(forward.z) * extents.z;
-                rearDistance = Mathf.Max(rearDistance, Vector3.Dot(carPosition - bounds.center, forward) + depth + 0.15f);
-                roofHeight = Mathf.Max(roofHeight, bounds.max.y + 0.1f);
-            }
-            Vector3 mirrorPosition = carPosition - forward * rearDistance;
-            mirrorPosition.y = roofHeight;
+            // El humo, polvo y chispas no deben mover el encuadre del espejo.
+            Vector3 mirrorPosition = rearViewTarget.transform.position +
+                Quaternion.LookRotation(forward, Vector3.up) * rearViewOffset;
             rearViewCamera.transform.SetPositionAndRotation(
                 mirrorPosition,
-                Quaternion.LookRotation(-forward, Vector3.up));
+                Quaternion.LookRotation(-forward, Vector3.up) * Quaternion.Euler(rearViewPitch, 0f, 0f));
         }
 
         public void ShowControls() => controlsPanel.SetActive(true);
@@ -287,8 +276,8 @@ namespace EnElCamino
             UpdateDamageDisplay();
         }
 
-        public void ShowCompleted() => ShowOutcome("PERDISTE AL POLICIA\nVICTORIA...!!!", false);
-        public void ShowGameOver(string reason = null) => ShowOutcome("GAME OVER", true);
+        public void ShowCompleted() => ShowOutcome("TE ESCAPASTE DE LA POLICIA\nVICTORIA...!!!", false);
+        public void ShowGameOver() => ShowOutcome("GAME OVER", true);
 
         private void ShowOutcome(string title, bool lost)
         {

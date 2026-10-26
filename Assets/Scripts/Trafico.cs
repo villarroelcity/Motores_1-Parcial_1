@@ -25,8 +25,6 @@ namespace EnElCamino
 
         [SerializeField] private TraficoAutos[] trafficPool;
 
-        private const float MetersPerKilometer = 1000f;
-        private const float SecondsPerHour = 3600f;
         private float minZ;
         private float maxZ;
         private float roadSurfaceY;
@@ -50,11 +48,7 @@ namespace EnElCamino
 
             if (playerCar != null)
                 spawnReference = playerCar.transform;
-            else if (spawnReference == null)
-            {
-                GameObject referenceObject = GameObject.Find("AutoEntradaRuta");
-                if (referenceObject != null) spawnReference = referenceObject.transform;
-            }
+
 
             if (road == null || trafficPool == null || trafficPool.Length == 0)
             {
@@ -84,7 +78,7 @@ namespace EnElCamino
             roadSurfaceY = roadBounds.max.y;
             centerX = road.position.x;
             startZ = Mathf.Clamp(spawnReference.position.z + firstSpawnDistance, minZ, maxZ);
-            speedMetersPerSecond = speedKmh * MetersPerKilometer / SecondsPerHour;
+            speedMetersPerSecond = speedKmh / 3.6f;
 
             if (gameFlow != null)
             {

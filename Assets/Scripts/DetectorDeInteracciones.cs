@@ -33,13 +33,7 @@ namespace EnElCamino
 
         private void Update()
         {
-            if (gameFlow == null || gameFlow.gameOver || gameFlow.finished)
-            {
-                gameUI.HidePrompt();
-                return;
-            }
-
-            if (gameFlow.movementLocked)
+            if (gameFlow == null || gameFlow.gameOver || gameFlow.finished || gameFlow.movementLocked)
             {
                 gameUI.HidePrompt();
                 return;

@@ -43,18 +43,6 @@ namespace EnElCamino
             if (holder != null) holder.gameObject.SetActive(enabled);
         }
 
-        public static void DisableTelemetry(GameObject vehicle)
-        {
-            if (vehicle == null) return;
-
-            foreach (VPTelemetry telemetry in vehicle.GetComponentsInChildren<VPTelemetry>(true))
-            {
-                telemetry.enableHotKey = false;
-                telemetry.showTelemetry = false;
-                telemetry.enabled = false;
-            }
-        }
-
         private static void SetObjects(GameObject[] objects, bool active)
         {
             if (objects == null) return;
@@ -90,13 +78,6 @@ namespace EnElCamino
 
         private void Awake()
         {
-            VehicleLightUtility.DisableTelemetry(gameObject);
-            foreach (MonoBehaviour component in GetComponentsInChildren<MonoBehaviour>(true))
-                if (component != null && component.GetType().Namespace == "VehiclePhysics")
-                {
-                    if (component is VehiclePhysics.VPWheelCollider wheel) wheel.hideWheelOnDisable = false;
-                    component.enabled = false;
-                }
             body = GetComponent<Rigidbody>();
             body.isKinematic = false;
             body.useGravity = true;
@@ -107,11 +88,6 @@ namespace EnElCamino
             body.maxAngularVelocity = 0.8f;
             body.constraints |= RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
 
-            foreach (AudioSource audioSource in GetComponentsInChildren<AudioSource>(true))
-            {
-                audioSource.Stop();
-                audioSource.enabled = false;
-            }
         }
 
         public float GroundOffset => groundOffset;

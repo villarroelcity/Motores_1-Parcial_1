@@ -15,7 +15,6 @@ namespace EnElCamino
         [SerializeField] private Text timerText;
         [SerializeField] private float duration = 120f;
         [SerializeField] private float pursuitDurationSeconds = 60f;
-        public bool PursuitDefeatEnabled => true;
         [SerializeField] private Material skyboxMaterial;
 
         public event Action GeneratorFuelDepleted;
@@ -25,10 +24,8 @@ namespace EnElCamino
         public event Action PursuitStarted;
         public event Action GameFinished;
         public event Action GameLost;
-        public event Action<bool> NightLightingChanged;
 
         public UI UI => gameUI;
-        public bool NightLightsOn => carHeadLightsOn;
 
         public bool generatorOn;
         public bool stationPowerConnected;
@@ -52,7 +49,6 @@ namespace EnElCamino
         private float lastSkyProgress = -1f;
         private bool countdownStarted;
         private AutoJugador playerCar;
-        private bool carHeadLightsOn;
         private float nextHeadlightRefresh;
         private bool tensionStarted;
         [SerializeField] private PhysicsMaterial grassPhysicMaterial;
@@ -66,12 +62,9 @@ namespace EnElCamino
             AudioListener.pause = false;
             if (gameUI == null) gameUI = FindFirstObjectByType<UI>();
             if (playerCar == null) playerCar = FindFirstObjectByType<AutoJugador>();
-            if (gameOverSource == null) gameOverSource = FindSource("GameOverSource");
-            if (victorySource == null) victorySource = FindSource("VictorySource");
             stationPowerConnected = false;
             SetStreetLights(false);
             roadReached = false;
-            carHeadLightsOn = false;
             // VPP vehicles keep their running lights on from the start; the
             // day/night transition only changes the world lighting.
             if (playerCar != null) playerCar.SetHeadLights(true);
@@ -107,7 +100,7 @@ namespace EnElCamino
             {
                 pursuitTimeRemaining = Mathf.Max(0f, pursuitTimeRemaining - Time.deltaTime);
                 if (gameUI != null) gameUI.SetPursuitTimeRemaining(pursuitTimeRemaining);
-                if (pursuitTimeRemaining <= 0f && PursuitDefeatEnabled)
+                if (pursuitTimeRemaining <= 0f)
                 {
                     GameOver();
                     return;
@@ -163,7 +156,6 @@ namespace EnElCamino
             timeLeft = countdownStarted ? duration - (Time.time - startTime) : duration;
             float progress = Mathf.Clamp01(1f - timeLeft / Mathf.Max(1f, duration));
             ApplyDaylight(progress);
-            SetPlayerHeadLights(progress >= 0.84f);
             if (!roadReached && timerText != null)
             {
                 timerText.enabled = true;
@@ -218,12 +210,6 @@ namespace EnElCamino
                     lastSkyProgress = progress;
                 }
             }
-        }
-
-        private static AudioSource FindSource(string objectName)
-        {
-            GameObject sourceObject = GameObject.Find(objectName);
-            return sourceObject != null ? sourceObject.GetComponent<AudioSource>() : null;
         }
 
         public bool TurnOnGenerator()
@@ -472,16 +458,6 @@ namespace EnElCamino
         {
             return collider != null && grassPhysicMaterial != null &&
                    collider.sharedMaterial == grassPhysicMaterial;
-        }
-
-        private void SetPlayerHeadLights(bool enabled)
-        {
-            if (carHeadLightsOn == enabled) return;
-
-            carHeadLightsOn = enabled;
-            if (playerCar == null) playerCar = FindFirstObjectByType<AutoJugador>();
-            if (playerCar != null) playerCar.SetHeadLights(true);
-            NightLightingChanged?.Invoke(enabled);
         }
 
         public void ShowMessage(string text)

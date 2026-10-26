@@ -38,7 +38,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: PlayerModel/Torso
+    path: ModeloJugador/Torso
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -63,7 +63,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: PlayerModel/Cabeza
+    path: ModeloJugador/Cabeza
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -88,7 +88,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: PlayerModel/HombroIzquierdo
+    path: ModeloJugador/HombroIzquierdo
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -113,7 +113,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: PlayerModel/HombroDerecho
+    path: ModeloJugador/HombroDerecho
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -705,7 +705,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: PlayerModel/CaderaIzquierda
+    path: ModeloJugador/CaderaIzquierda
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -1297,7 +1297,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: PlayerModel/CaderaDerecha
+    path: ModeloJugador/CaderaDerecha
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -1889,7 +1889,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: PlayerModel/CaderaIzquierda/PieIzquierdo
+    path: ModeloJugador/CaderaIzquierda/PieIzquierdo
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -2481,7 +2481,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: PlayerModel/CaderaDerecha/PieDerecho
+    path: ModeloJugador/CaderaDerecha/PieDerecho
   m_PositionCurves:
   - curve:
       serializedVersion: 2
@@ -2507,7 +2507,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: PlayerModel/Torso
+    path: ModeloJugador/Torso
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -2532,7 +2532,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: PlayerModel/Cabeza
+    path: ModeloJugador/Cabeza
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -2557,7 +2557,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: PlayerModel/HombroIzquierdo
+    path: ModeloJugador/HombroIzquierdo
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -2582,7 +2582,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: PlayerModel/HombroDerecho
+    path: ModeloJugador/HombroDerecho
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -2607,7 +2607,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: PlayerModel/CaderaIzquierda
+    path: ModeloJugador/CaderaIzquierda
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -2632,7 +2632,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: PlayerModel/CaderaDerecha
+    path: ModeloJugador/CaderaDerecha
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -2657,7 +2657,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: PlayerModel/CaderaIzquierda/PieIzquierdo
+    path: ModeloJugador/CaderaIzquierda/PieIzquierdo
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -2682,7 +2682,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: PlayerModel/CaderaDerecha/PieDerecho
+    path: ModeloJugador/CaderaDerecha/PieDerecho
   m_ScaleCurves: []
   m_FloatCurves: []
   m_PPtrCurves: []
@@ -2694,7 +2694,7 @@ AnimationClip:
   m_ClipBindingConstant:
     genericBindings:
     - serializedVersion: 2
-      path: 2795509190
+      path: 2678419382
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -2703,7 +2703,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 4081746654
+      path: 2353888923
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -2712,7 +2712,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 2327238436
+      path: 462342021
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -2721,7 +2721,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 2006107686
+      path: 3421303145
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -2730,7 +2730,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 1194227679
+      path: 4142707606
       attribute: 1
       script: {fileID: 0}
       typeID: 4
@@ -2739,7 +2739,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 544783738
+      path: 801736330
       attribute: 1
       script: {fileID: 0}
       typeID: 4
@@ -2748,7 +2748,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 3115522155
+      path: 2159436315
       attribute: 1
       script: {fileID: 0}
       typeID: 4
@@ -2757,7 +2757,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 2517759146
+      path: 3910535407
       attribute: 1
       script: {fileID: 0}
       typeID: 4
@@ -2766,7 +2766,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 2795509190
+      path: 2678419382
       attribute: 1
       script: {fileID: 0}
       typeID: 4
@@ -2775,7 +2775,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 4081746654
+      path: 2353888923
       attribute: 1
       script: {fileID: 0}
       typeID: 4
@@ -2784,7 +2784,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 2327238436
+      path: 462342021
       attribute: 1
       script: {fileID: 0}
       typeID: 4
@@ -2793,7 +2793,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 2006107686
+      path: 3421303145
       attribute: 1
       script: {fileID: 0}
       typeID: 4
@@ -2802,7 +2802,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 1194227679
+      path: 4142707606
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -2811,7 +2811,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 544783738
+      path: 801736330
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -2820,7 +2820,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 3115522155
+      path: 2159436315
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -2829,7 +2829,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 2517759146
+      path: 3910535407
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -2885,7 +2885,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.x
-    path: PlayerModel/Torso
+    path: ModeloJugador/Torso
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -2915,7 +2915,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.y
-    path: PlayerModel/Torso
+    path: ModeloJugador/Torso
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -2945,7 +2945,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.z
-    path: PlayerModel/Torso
+    path: ModeloJugador/Torso
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -2975,7 +2975,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.x
-    path: PlayerModel/Cabeza
+    path: ModeloJugador/Cabeza
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -3005,7 +3005,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.y
-    path: PlayerModel/Cabeza
+    path: ModeloJugador/Cabeza
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -3035,7 +3035,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.z
-    path: PlayerModel/Cabeza
+    path: ModeloJugador/Cabeza
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -3065,7 +3065,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.x
-    path: PlayerModel/HombroIzquierdo
+    path: ModeloJugador/HombroIzquierdo
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -3095,7 +3095,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.y
-    path: PlayerModel/HombroIzquierdo
+    path: ModeloJugador/HombroIzquierdo
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -3125,7 +3125,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.z
-    path: PlayerModel/HombroIzquierdo
+    path: ModeloJugador/HombroIzquierdo
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -3155,7 +3155,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.x
-    path: PlayerModel/HombroDerecho
+    path: ModeloJugador/HombroDerecho
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -3185,7 +3185,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.y
-    path: PlayerModel/HombroDerecho
+    path: ModeloJugador/HombroDerecho
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -3215,7 +3215,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.z
-    path: PlayerModel/HombroDerecho
+    path: ModeloJugador/HombroDerecho
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -3812,7 +3812,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.x
-    path: PlayerModel/CaderaIzquierda
+    path: ModeloJugador/CaderaIzquierda
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -3842,7 +3842,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.y
-    path: PlayerModel/CaderaIzquierda
+    path: ModeloJugador/CaderaIzquierda
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -3872,7 +3872,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.z
-    path: PlayerModel/CaderaIzquierda
+    path: ModeloJugador/CaderaIzquierda
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -4469,7 +4469,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.x
-    path: PlayerModel/CaderaDerecha
+    path: ModeloJugador/CaderaDerecha
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -4499,7 +4499,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.y
-    path: PlayerModel/CaderaDerecha
+    path: ModeloJugador/CaderaDerecha
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -4529,7 +4529,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.z
-    path: PlayerModel/CaderaDerecha
+    path: ModeloJugador/CaderaDerecha
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -5126,7 +5126,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.x
-    path: PlayerModel/CaderaIzquierda/PieIzquierdo
+    path: ModeloJugador/CaderaIzquierda/PieIzquierdo
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -5156,7 +5156,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.y
-    path: PlayerModel/CaderaIzquierda/PieIzquierdo
+    path: ModeloJugador/CaderaIzquierda/PieIzquierdo
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -5186,7 +5186,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.z
-    path: PlayerModel/CaderaIzquierda/PieIzquierdo
+    path: ModeloJugador/CaderaIzquierda/PieIzquierdo
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -5783,7 +5783,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.x
-    path: PlayerModel/CaderaDerecha/PieDerecho
+    path: ModeloJugador/CaderaDerecha/PieDerecho
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -5813,7 +5813,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.y
-    path: PlayerModel/CaderaDerecha/PieDerecho
+    path: ModeloJugador/CaderaDerecha/PieDerecho
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -5843,7 +5843,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.z
-    path: PlayerModel/CaderaDerecha/PieDerecho
+    path: ModeloJugador/CaderaDerecha/PieDerecho
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -5873,7 +5873,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.x
-    path: PlayerModel/Torso
+    path: ModeloJugador/Torso
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -5903,7 +5903,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.y
-    path: PlayerModel/Torso
+    path: ModeloJugador/Torso
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -5933,7 +5933,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.z
-    path: PlayerModel/Torso
+    path: ModeloJugador/Torso
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -5963,7 +5963,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.x
-    path: PlayerModel/Cabeza
+    path: ModeloJugador/Cabeza
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -5993,7 +5993,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.y
-    path: PlayerModel/Cabeza
+    path: ModeloJugador/Cabeza
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6023,7 +6023,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.z
-    path: PlayerModel/Cabeza
+    path: ModeloJugador/Cabeza
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6053,7 +6053,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.x
-    path: PlayerModel/HombroIzquierdo
+    path: ModeloJugador/HombroIzquierdo
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6083,7 +6083,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.y
-    path: PlayerModel/HombroIzquierdo
+    path: ModeloJugador/HombroIzquierdo
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6113,7 +6113,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.z
-    path: PlayerModel/HombroIzquierdo
+    path: ModeloJugador/HombroIzquierdo
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6143,7 +6143,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.x
-    path: PlayerModel/HombroDerecho
+    path: ModeloJugador/HombroDerecho
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6173,7 +6173,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.y
-    path: PlayerModel/HombroDerecho
+    path: ModeloJugador/HombroDerecho
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6203,7 +6203,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.z
-    path: PlayerModel/HombroDerecho
+    path: ModeloJugador/HombroDerecho
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6233,7 +6233,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.x
-    path: PlayerModel/CaderaIzquierda
+    path: ModeloJugador/CaderaIzquierda
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6263,7 +6263,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.y
-    path: PlayerModel/CaderaIzquierda
+    path: ModeloJugador/CaderaIzquierda
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6293,7 +6293,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.z
-    path: PlayerModel/CaderaIzquierda
+    path: ModeloJugador/CaderaIzquierda
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6323,7 +6323,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.x
-    path: PlayerModel/CaderaDerecha
+    path: ModeloJugador/CaderaDerecha
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6353,7 +6353,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.y
-    path: PlayerModel/CaderaDerecha
+    path: ModeloJugador/CaderaDerecha
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6383,7 +6383,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.z
-    path: PlayerModel/CaderaDerecha
+    path: ModeloJugador/CaderaDerecha
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6413,7 +6413,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.x
-    path: PlayerModel/CaderaIzquierda/PieIzquierdo
+    path: ModeloJugador/CaderaIzquierda/PieIzquierdo
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6443,7 +6443,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.y
-    path: PlayerModel/CaderaIzquierda/PieIzquierdo
+    path: ModeloJugador/CaderaIzquierda/PieIzquierdo
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6473,7 +6473,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.z
-    path: PlayerModel/CaderaIzquierda/PieIzquierdo
+    path: ModeloJugador/CaderaIzquierda/PieIzquierdo
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6503,7 +6503,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.x
-    path: PlayerModel/CaderaDerecha/PieDerecho
+    path: ModeloJugador/CaderaDerecha/PieDerecho
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6533,7 +6533,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.y
-    path: PlayerModel/CaderaDerecha/PieDerecho
+    path: ModeloJugador/CaderaDerecha/PieDerecho
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6563,7 +6563,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.z
-    path: PlayerModel/CaderaDerecha/PieDerecho
+    path: ModeloJugador/CaderaDerecha/PieDerecho
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6576,7 +6576,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.z
-    path: PlayerModel/HombroDerecho
+    path: ModeloJugador/HombroIzquierdo
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6588,7 +6588,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.y
-    path: PlayerModel/HombroDerecho
+    path: ModeloJugador/HombroIzquierdo
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6600,7 +6600,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.x
-    path: PlayerModel/HombroDerecho
+    path: ModeloJugador/HombroIzquierdo
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6612,7 +6612,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.z
-    path: PlayerModel/CaderaIzquierda
+    path: ModeloJugador/HombroDerecho
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6624,7 +6624,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.y
-    path: PlayerModel/CaderaIzquierda
+    path: ModeloJugador/HombroDerecho
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6636,7 +6636,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.x
-    path: PlayerModel/CaderaIzquierda
+    path: ModeloJugador/HombroDerecho
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6648,7 +6648,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.z
-    path: PlayerModel/CaderaDerecha
+    path: ModeloJugador/CaderaIzquierda
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6660,7 +6660,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.y
-    path: PlayerModel/CaderaDerecha
+    path: ModeloJugador/CaderaIzquierda
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6672,7 +6672,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.x
-    path: PlayerModel/CaderaDerecha
+    path: ModeloJugador/CaderaIzquierda
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6684,7 +6684,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.z
-    path: PlayerModel/CaderaIzquierda/PieIzquierdo
+    path: ModeloJugador/CaderaDerecha
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6696,7 +6696,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.y
-    path: PlayerModel/CaderaIzquierda/PieIzquierdo
+    path: ModeloJugador/CaderaDerecha
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6708,7 +6708,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.x
-    path: PlayerModel/CaderaIzquierda/PieIzquierdo
+    path: ModeloJugador/CaderaDerecha
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6720,7 +6720,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.z
-    path: PlayerModel/Torso
+    path: ModeloJugador/CaderaIzquierda/PieIzquierdo
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6732,7 +6732,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.y
-    path: PlayerModel/Torso
+    path: ModeloJugador/CaderaIzquierda/PieIzquierdo
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6744,7 +6744,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.x
-    path: PlayerModel/Torso
+    path: ModeloJugador/CaderaIzquierda/PieIzquierdo
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6756,7 +6756,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.z
-    path: PlayerModel/Cabeza
+    path: ModeloJugador/Torso
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6768,7 +6768,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.y
-    path: PlayerModel/Cabeza
+    path: ModeloJugador/Torso
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6780,7 +6780,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.x
-    path: PlayerModel/Cabeza
+    path: ModeloJugador/Torso
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6792,7 +6792,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.z
-    path: PlayerModel/HombroIzquierdo
+    path: ModeloJugador/Cabeza
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6804,7 +6804,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.y
-    path: PlayerModel/HombroIzquierdo
+    path: ModeloJugador/Cabeza
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6816,7 +6816,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.x
-    path: PlayerModel/HombroIzquierdo
+    path: ModeloJugador/Cabeza
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6828,7 +6828,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.x
-    path: PlayerModel/CaderaDerecha/PieDerecho
+    path: ModeloJugador/CaderaDerecha/PieDerecho
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6840,7 +6840,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.y
-    path: PlayerModel/CaderaDerecha/PieDerecho
+    path: ModeloJugador/CaderaDerecha/PieDerecho
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -6852,7 +6852,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.z
-    path: PlayerModel/CaderaDerecha/PieDerecho
+    path: ModeloJugador/CaderaDerecha/PieDerecho
     classID: 4
     script: {fileID: 0}
     flags: 0

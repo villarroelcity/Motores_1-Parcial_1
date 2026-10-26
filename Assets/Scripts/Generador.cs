@@ -18,11 +18,7 @@ namespace EnElCamino
         private void Awake()
         {
             if (gameFlow == null) gameFlow = FindFirstObjectByType<Juego>();
-            if (motorAudioSource == null)
-            {
-                Transform motorTransform = transform.Find("GeneratorMotorAudio");
-                if (motorTransform != null) motorAudioSource = motorTransform.GetComponent<AudioSource>();
-            }
+
         }
 
         private void OnEnable()

@@ -46,9 +46,6 @@ namespace EnElCamino
         private UnityKey[] originalVppHandbrakeKeys;
         private bool originalVppHandbrakeLegacyMode;
         private bool used;
-        private FieldInfo tireFrictionField;
-        private FieldInfo tireGripField;
-        private MethodInfo setupTireFrictionMethod;
         private float originalTireGrip;
         private bool originalTireGripSaved;
         private readonly RaycastHit[] surfaceHits = new RaycastHit[16];
@@ -72,7 +69,6 @@ namespace EnElCamino
             float impact = 0f;
             foreach (ContactPoint contact in collision.contacts)
             {
-                // Resting on the road and suspension loads do not damage the car.
                 if (Mathf.Abs(contact.normal.y) > 0.65f) continue;
                 impact = Mathf.Max(impact, Mathf.Abs(Vector3.Dot(collision.relativeVelocity, contact.normal)));
             }
@@ -97,21 +93,12 @@ namespace EnElCamino
             nativeInput.externalSteer = 0f;
             nativeInput.externalClutch = 0f;
             nativeInput.lockBrakesOnEnable = false;
-            // Do not overwrite any of the steering or pedal settings authored
-            // in Vehicle Physics Pro. VPStandardInput is the sole owner of the
-            // controls after the player gets in the car.
-            // Keep VPStandardInput alive for the whole scene. Disabling and
-            // re-enabling it after the scripted arrival can leave VPP's input
-            // registration stale, which makes the car accelerate but not steer.
             nativeInput.enabled = true;
             nativeInput.disableSteerInput = !enabled;
             nativeInput.disableThrottleInput = !enabled;
             nativeInput.disableBrakeInput = !enabled;
             nativeInput.disableHandbrakeInput = !enabled;
 
-            // The isolated VPP test uses the asset's automatic transmission.
-            // Apply the same setting only when player control is handed over;
-            // the scripted arrival keeps its own drive/coast behavior.
             if (enabled && vehicleController != null)
             {
                 vehicleController.gearbox.type = Gearbox.Type.Automatic;
@@ -144,9 +131,6 @@ namespace EnElCamino
         {
             if (nativeInput != null)
             {
-                // Keep the VPP input component alive, but let this small bridge
-                // be the only writer of the driver input bus. VPP still owns
-                // the engine, wheels, suspension and steering geometry.
                 nativeInput.enabled = true;
                 nativeInput.disableSteerInput = true;
                 nativeInput.disableThrottleInput = true;
@@ -188,13 +172,11 @@ namespace EnElCamino
 
         private struct StartupAudioClip
         {
-            public Component audioComponent;
-            public FieldInfo clipField;
+            public VPAudioExtras audioComponent;
             public AudioClip originalClip;
         }
 
         public bool IsReady => vehicleReady;
-        public bool EngineRequested => engineRequested;
         public bool HasPlayerControl => driving || arrivalControl;
         public bool CanInteract => vehicleReady &&
             (used || gameFlow != null && gameFlow.fuelCanFull);
@@ -213,39 +195,18 @@ namespace EnElCamino
             if (gameFlow == null) gameFlow = FindFirstObjectByType<Juego>();
             vehicleController = GetComponent<VPVehicleController>();
             vehicleBody = GetComponent<Rigidbody>();
-            DisableVppTelemetry();
             if (vehicleController == null) return;
             nativeInput = GetComponent<VPStandardInput>();
-            // Preserve native driving during arrival; only remove demo shortcuts.
             vehicleReady = false;
             foreach (VPAudioExtras audio in GetComponentsInChildren<VPAudioExtras>(true))
             {
-                FieldInfo startupClip = audio.GetType().GetField("engineStartupClip", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                if (startupClip != null && startupClip.FieldType == typeof(AudioClip))
-                {
-                    startupAudioClips.Add(new StartupAudioClip
-                    {
-                        audioComponent = audio,
-                        clipField = startupClip,
-                        originalClip = startupClip.GetValue(audio) as AudioClip
-                    });
-                    // VPAudioExtras may create its startup source on initialization.
-                    // Remove the clip before that callback, not after sound starts.
-                    startupClip.SetValue(audio, null);
-                }
+                startupAudioClips.Add(new StartupAudioClip { audioComponent = audio, originalClip = audio.engineStartupClip });
+                audio.engineStartupClip = null;
             }
-        }
-
-        private void DisableVppTelemetry()
-        {
-            VehicleLightUtility.DisableTelemetry(gameObject);
         }
 
         private void DisableVppShortcuts()
         {
-            // Space is already supplied by this script as externalHandbrake.
-            // Unbind the duplicate VPP axis so Ctrl+Space cannot latch its
-            // hidden parking brake. Do not change the native pedal/steer axes.
             UnityAxisControl axis = UnityInput.handbrakeAxis;
             originalVppHandbrakeKeys = new[] { axis.negativeButton, axis.positiveButton,
                 axis.altNegativeButton, axis.altPositiveButton };
@@ -301,14 +262,11 @@ namespace EnElCamino
         private IEnumerator Start()
         {
             SetVehicleReady(false);
-            SetIntroFullThrottle(true);
+            introFullThrottle = true;
             StartEngineAudio(false);
             if (gameFlow != null) gameFlow.movementLocked = true;
             if (player != null) player.SetActive(false);
-            CamaraJugador legacyCamera = cameraFollow != null
-                ? cameraFollow
-                : FindFirstObjectByType<CamaraJugador>(FindObjectsInactive.Include);
-            if (legacyCamera != null) legacyCamera.SetTarget(transform);
+            if (cameraFollow != null) cameraFollow.SetTarget(transform);
 
             if (vehicleBody == null) vehicleBody = GetComponent<Rigidbody>();
             if (vehicleController == null) vehicleController = GetComponent<VPVehicleController>();
@@ -390,7 +348,7 @@ namespace EnElCamino
                 gameFlow.movementLocked = false;
                 gameFlow.ShowInitialMission();
             }
-            if (legacyCamera != null && player != null) legacyCamera.SetTarget(player.transform);
+            if (cameraFollow != null && player != null) cameraFollow.SetTarget(player.transform);
         }
 
         private void PlacePlayerBesideCar()
@@ -428,21 +386,22 @@ namespace EnElCamino
 
         public void SetArrivalFuel(float ratio) => fuelRatio = Mathf.Clamp01(ratio);
 
+        private void FindEngine()
+        {
+            if (introEngine != null || vehicleController == null) return;
+            foreach (FieldInfo field in typeof(VPVehicleController).GetFields(BindingFlags.Instance | BindingFlags.NonPublic))
+                if (field.FieldType == typeof(Engine))
+                {
+                    introEngine = field.GetValue(vehicleController) as Engine;
+                    break;
+                }
+        }
+
         public void RestoreFuelForNativeControl()
         {
             fuelRatio = 1f;
             if (vehicleController == null) return;
-            if (introEngine == null)
-            {
-                foreach (FieldInfo field in typeof(VPVehicleController).GetFields(BindingFlags.Instance | BindingFlags.NonPublic))
-                {
-                    if (field.FieldType == typeof(Engine))
-                    {
-                        introEngine = field.GetValue(vehicleController) as Engine;
-                        break;
-                    }
-                }
-            }
+            FindEngine();
             if (introEngine != null) introEngine.allowedFuelRatio = 1f;
         }
 
@@ -452,7 +411,6 @@ namespace EnElCamino
             drivingConstraints = vehicleBody.constraints;
             vehicleBody.linearVelocity = Vector3.zero;
             vehicleBody.angularVelocity = Vector3.zero;
-            // Preserve the exact settled pose while the player gets out.
             vehicleBody.constraints = RigidbodyConstraints.FreezeAll;
             arrivalParkingHeld = true;
         }
@@ -464,11 +422,6 @@ namespace EnElCamino
             driving = false;
             throttleInput = 0f;
             steerInput = 0f;
-        }
-
-        public void SetIntroFullThrottle(bool value)
-        {
-            introFullThrottle = value;
         }
 
         public void EnterCar()
@@ -488,17 +441,10 @@ namespace EnElCamino
                 vehicleBody.angularVelocity = Vector3.zero;
                 vehicleBody.WakeUp();
             }
-            // From this point on the car is controlled by Vehicle Physics Pro.
-            // The arrival/coast bridge is only for the scripted fuel cut-off;
-            // after refuelling VPP must receive its own steering and gearbox
-            // state again.
             driving = true;
             arrivalControl = false;
             if (vehicleBody != null)
             {
-                // Restore the prefab's original constraints. Releasing every
-                // axis here made the parked car slide/rotate as a solid block
-                // after refuelling, unlike during the initial coast.
                 vehicleBody.constraints = drivingConstraints;
                 vehicleBody.angularVelocity = Vector3.zero;
                 vehicleBody.WakeUp();
@@ -508,19 +454,14 @@ namespace EnElCamino
             StartEngineAudio(true);
             RearmNativeVehicleController();
             if (player != null) player.SetActive(false);
-            CamaraJugador legacyCamera = cameraFollow != null
-                ? cameraFollow
-                : FindFirstObjectByType<CamaraJugador>(FindObjectsInactive.Include);
-            if (legacyCamera != null)
+            if (cameraFollow != null)
             {
-                legacyCamera.enabled = true;
-                legacyCamera.SetVehicleTarget(transform);
-                legacyCamera.SnapToTarget();
+                cameraFollow.enabled = true;
+                cameraFollow.SetVehicleTarget(transform);
+                cameraFollow.SnapToTarget();
             }
             gameFlow.StartDriving();
 
-            // The arrival sequence disabled this component while the car was
-            // parked. Re-enable it so the VPP bus receives the player controls.
             enabled = true;
         }
 
@@ -535,8 +476,6 @@ namespace EnElCamino
 
         private IEnumerator EnableNativeVehicleController()
         {
-            // Let VPP run its disable callbacks first. This clears the previous
-            // stalled input/gear state instead of carrying it into the new trip.
             yield return null;
 
             if (vehicleController != null)
@@ -566,11 +505,6 @@ namespace EnElCamino
             if (!driving && !arrivalControl) return;
             if (driving)
             {
-                // Keep VPP as the only system that applies forces and turns the
-                // front wheels. The asset reads the old Unity input axes, while
-                // this project also uses the new Input System for the player;
-                // feed only the missing steering value through VPP's supported
-                // external input, instead of rotating the car transform.
                 if (Keyboard.current == null)
                 {
                     if (nativeInput != null)
@@ -592,8 +526,6 @@ namespace EnElCamino
                     bool reverse = Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed;
                     bool forward = Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed;
                     nativeInput.externalSteer = steerInput;
-                    // VPP brakes first, then selects R at rest while down/S
-                    // stays held. Do not send throttle and brake together.
                     nativeInput.externalThrottle = forward && !reverse ? 1f : 0f;
                     nativeInput.externalBrake = reverse && !forward ? 1f : 0f;
                     nativeInput.externalHandbrake = Keyboard.current.spaceKey.isPressed ? 1f : 0f;
@@ -610,9 +542,6 @@ namespace EnElCamino
             if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) steerInput = -1f;
             if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) steerInput = 1f;
 
-            // S/down is a brake while the car is moving forward. It only becomes
-            // reverse after the car is practically stopped; this avoids sending
-            // throttle and brake at the same time.
             if (throttleInput < 0f && vehicleBody != null &&
                 Vector3.Dot(Vector3.ProjectOnPlane(vehicleBody.linearVelocity, Vector3.up),
                     Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized) > 0.5f)
@@ -628,8 +557,6 @@ namespace EnElCamino
             if (!vehicleController.initialized)
                 return;
 
-            // VPP hardcodes numpad */ for the retarder. Clear only auxiliary
-            // commands before its physics step, never steering or pedals.
             int[] auxiliaryInput = vehicleController.data.Get(Channel.Input);
             auxiliaryInput[InputData.Retarder] = 0;
             auxiliaryInput[InputData.Clutch] = 0;
@@ -639,11 +566,7 @@ namespace EnElCamino
             if (HasPlayerControl)
                 GrassDriving.ApplyBumps(vehicleBody, gameFlow, ref grassBumpDistance, ref grassBumpWheel);
 
-            if (introEngine == null)
-            {
-                foreach (FieldInfo field in typeof(VPVehicleController).GetFields(BindingFlags.Instance | BindingFlags.NonPublic))
-                    if (field.FieldType == typeof(Engine)) introEngine = field.GetValue(vehicleController) as Engine;
-            }
+            FindEngine();
             if (introEngine != null)
             {
                 if (seedRunningEngine)
@@ -656,9 +579,6 @@ namespace EnElCamino
                 introEngine.allowedFuelRatio = fuelRatio;
             }
 
-            // During player driving VPStandardInput is the only writer of VPP's
-            // input channel. Mixing this scripted bridge with it makes the car
-            // steer as a rigid block after refuelling.
             if (driving)
             {
                 RestartStalledEngine();
@@ -668,10 +588,7 @@ namespace EnElCamino
             int[] input = vehicleController.data.Get(Channel.Input);
             bool stopped = gameFlow != null && (gameFlow.gameOver || gameFlow.finished);
             bool engineOn = engineRequested && !stopped;
-            // VPP bus Key: -1 = off, 0 = ignition on, 1 = starter motor.
             input[InputData.Key] = !engineOn ? -1 : Time.time < starterUntil ? 1 : 0;
-            // Send only normalized driver commands to VPP. VPP continues to own
-            // the wheels, suspension, tires, steering rack and automatic gearbox.
             int targetSteer = driving || arrivalControl ? Mathf.RoundToInt(steerInput * 10000f) : 0;
             input[InputData.Steer] = Mathf.RoundToInt(Mathf.MoveTowards(input[InputData.Steer], targetSteer, 20000f * Time.fixedDeltaTime));
             Vector3 planarForward = Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
@@ -689,9 +606,6 @@ namespace EnElCamino
             input[InputData.Handbrake] = !driving && !arrivalControl && vehicleReady ? 10000 : 0;
             input[InputData.Clutch] = arrivalControl && fuelRatio <= 0f ? 10000 : 0;
             input[InputData.ManualGear] = 0;
-            // VPP automatic modes: P=1, R=2, N=3, D=4. The scripted arrival
-            // stays in Drive even after fuel starvation, so the motor cuts out
-            // while the car visibly coasts instead of dropping to Neutral.
             input[InputData.AutomaticGear] = driving || arrivalControl
                 ? (reversing ? 2 : 4)
                 : vehicleReady ? 1 : 4;
@@ -699,8 +613,6 @@ namespace EnElCamino
 
         private void RestartStalledEngine()
         {
-            // An impact can stall VPP's engine without destroying the car.
-            // Use its starter again, not a controller reset or a forced RPM.
             if (!engineRequested || gameFlow == null || !gameFlow.carHasFuel ||
                 gameFlow.gameOver || gameFlow.finished || damage >= 100f || nativeInput == null ||
                 Time.time < starterUntil + 0.75f)
@@ -727,33 +639,17 @@ namespace EnElCamino
         {
             bool onGrass = IsCarOverGrass();
             UpdateDust(onGrass);
-            if (tireFrictionField == null)
-                tireFrictionField = typeof(VPVehicleController).GetField("tireFriction",
-                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (tireFrictionField == null) return;
-
-            object tireFriction = tireFrictionField.GetValue(vehicleController);
-            if (tireFriction == null) return;
-            if (tireGripField == null)
-                tireGripField = tireFriction.GetType().GetField("frictionMultiplier",
-                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (tireGripField == null || tireGripField.FieldType != typeof(float)) return;
-            if (setupTireFrictionMethod == null)
-                setupTireFrictionMethod = tireFriction.GetType().GetMethod("SetupFrictionCurves",
-                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
+            var friction = vehicleController.tireFriction;
             if (!originalTireGripSaved)
             {
-                originalTireGrip = (float)tireGripField.GetValue(tireFriction);
+                originalTireGrip = friction.frictionMultiplier;
                 originalTireGripSaved = true;
             }
-
-            float targetGrip = originalTireGrip * (onGrass ? GrassGripMultiplier : 1f);
-            if (Mathf.Approximately((float)tireGripField.GetValue(tireFriction), targetGrip)) return;
-
-            tireGripField.SetValue(tireFriction, targetGrip);
-            if (setupTireFrictionMethod != null) setupTireFrictionMethod.Invoke(tireFriction, null);
-            tireFrictionField.SetValue(vehicleController, tireFriction);
+            float grip = originalTireGrip * (onGrass ? GrassGripMultiplier : 1f);
+            if (Mathf.Approximately(friction.frictionMultiplier, grip)) return;
+            friction.frictionMultiplier = grip;
+            friction.SetupFrictionCurves();
+            vehicleController.tireFriction = friction;
         }
 
         private void UpdateDust(bool onGrass)
@@ -796,8 +692,6 @@ namespace EnElCamino
         {
             if (!engineRequested)
             {
-                // Player-controlled starts use VPP's starter. The intro instead
-                // seeds the running engine state and never sends the starter key.
                 starterUntil = Time.time + 1.25f;
                 if (!playStartSound)
                 {
@@ -833,8 +727,8 @@ namespace EnElCamino
         {
             foreach (StartupAudioClip entry in startupAudioClips)
             {
-                if (entry.audioComponent != null && entry.clipField != null)
-                    entry.clipField.SetValue(entry.audioComponent, clip);
+                if (entry.audioComponent != null)
+                    entry.audioComponent.engineStartupClip = clip;
             }
         }
 
@@ -842,13 +736,12 @@ namespace EnElCamino
         {
             foreach (StartupAudioClip entry in startupAudioClips)
             {
-                if (entry.audioComponent != null && entry.clipField != null)
-                    entry.clipField.SetValue(entry.audioComponent, entry.originalClip);
+                if (entry.audioComponent != null)
+                    entry.audioComponent.engineStartupClip = entry.originalClip;
             }
         }
     }
 
-    // Shared physical roughness for the player and patrol, without another component.
     internal static class GrassDriving
     {
         private static readonly RaycastHit[] hits = new RaycastHit[16];
@@ -888,7 +781,6 @@ namespace EnElCamino
                 nextWheel = (wheel + 1) % wheelOffsets.Length;
                 return;
             }
-            // No grass contact: do not carry a pending bump onto the asphalt.
             distance = 0f;
         }
     }

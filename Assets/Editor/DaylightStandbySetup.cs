@@ -35,6 +35,9 @@ namespace EnElCamino.Editor
             Scene scene = EditorSceneManager.GetActiveScene();
             if (!scene.IsValid() || !scene.isLoaded || scene.name != "EnElCamino") return;
 
+            var shaders = AssetDatabase.LoadAssetAtPath<ShaderVariantCollection>("Assets/PreparedGameplay/Efectos/VariantesEscena.shadervariants");
+            if (shaders != null && !shaders.isWarmedUp) shaders.WarmUp();
+
             typeof(NavMeshVisualizationSettings).GetProperty("showNavMesh",
                 BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)?.SetValue(null, false);
             Juego game = Object.FindFirstObjectByType<Juego>();

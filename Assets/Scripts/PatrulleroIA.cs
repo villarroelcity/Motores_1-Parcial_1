@@ -24,8 +24,6 @@ namespace EnElCamino
         private bool waitingForPass;
         private float driveDirection = 1f;
         private bool offRoadPursuit;
-        private float grassBumpDistance;
-        private int grassBumpWheel;
         private float nextPlanTime;
         private NavMeshPath navigationPath;
         private readonly Vector3[] pathCorners = new Vector3[64];
@@ -35,6 +33,8 @@ namespace EnElCamino
         private float turnSide = 1f;
         private float steering;
         private Rigidbody targetBody;
+        private Rigidbody passingCar;
+        private float passingSide = -1f;
         [SerializeField] private WheelCollider[] drivingWheels = new WheelCollider[4];
         [SerializeField] private Transform[] wheelModels = new Transform[4];
         [SerializeField] private Quaternion[] wheelRotations = new Quaternion[4];
@@ -238,23 +238,24 @@ namespace EnElCamino
             offRoadPursuit = Mathf.Abs(Vector3.Dot(targetBody.position - road.position, right)) > roadHalfWidth;
             Vector3 destination = targetBody.position + targetBody.linearVelocity * Mathf.Clamp(distance / 80f, 0f, 0.6f);
             float alongRoad = Vector3.Dot(offset, routeForward);
+            bool approaching = alongRoad > -Mathf.Max(30f, Vector3.Dot(targetBody.linearVelocity, routeForward) * 1.5f);
             float mergeDistance = Vector3.Dot(mergePoint - body.position, routeForward);
             bool aligned = Mathf.Abs(Vector3.Dot(mergePoint - body.position, right)) < 0.6f &&
                 Vector3.Angle(forward, routeForward) < 3f;
-            if (aligned && (alongRoad >= 4f || Vector3.Dot(targetBody.linearVelocity, routeForward) < 5f))
+            if (chasing && (alongRoad >= 3f || Vector3.Dot(targetBody.linearVelocity, routeForward) < 5f))
                 waitingForPass = false;
             bool merging = !chasing || waitingForPass;
             if (merging)
             {
                 destination = mergePoint + routeForward * Mathf.Max(0f, 10f - mergeDistance);
-                if (mergeDistance < 3f && aligned)
+                if (!chasing && !approaching && mergeDistance < 3f && aligned)
                 {
                     ApplyWheelControls(0f, 0f, 1f, speed);
                     return;
                 }
             }
 
-            if (!TryGetPathTarget(destination, speed, out Vector3 aim))
+            if (!TryGetPathTarget(destination, speed, out Vector3 aim, out bool passing))
             {
                 ApplyWheelControls(0f, 0f, 1f, speed);
                 return;
@@ -285,8 +286,10 @@ namespace EnElCamino
                 65f * Time.fixedDeltaTime);
 
             float targetSpeed = Mathf.Max(0f, Vector3.Dot(targetBody.linearVelocity, forward));
-            float desiredSpeed = merging ? Mathf.Clamp(Mathf.Sqrt(2f * BrakingAcceleration * Mathf.Max(0f, mergeDistance - 2f)), 1.5f, 12f)
-                : PursuitSpeed(targetSpeed, distance, chaseSpeed);
+            float desiredSpeed = PursuitSpeed(targetSpeed, distance, chaseSpeed);
+            if (merging)
+                desiredSpeed = chasing || approaching ? Mathf.Clamp(targetSpeed * 0.8f, 12f, 35f)
+                    : Mathf.Clamp(Mathf.Sqrt(2f * BrakingAcceleration * Mathf.Max(0f, mergeDistance - 2f)), 1.5f, 12f);
             desiredSpeed = Mathf.Min(desiredSpeed,
                 Mathf.Sqrt(lateralAcceleration / Mathf.Max(0.0001f, Mathf.Abs(curvature))));
             if (localAim.z < 0f && driveDirection > 0f) desiredSpeed = Mathf.Min(desiredSpeed, 6f);
@@ -295,10 +298,13 @@ namespace EnElCamino
             bool recovery = Time.fixedTime < reverseUntil;
             float driveSign = recovery ? -driveDirection : driveDirection;
             Vector3 movement = forward * driveSign;
-            desiredSpeed = Mathf.Min(desiredSpeed, SafeSpeedAhead(movement, speed));
+            Vector3 sensorDirection = passing || recovery ? movement :
+                Vector3.ProjectOnPlane(aim - body.position, Vector3.up).normalized;
+            desiredSpeed = Mathf.Min(desiredSpeed,
+                SafeSpeedAhead(sensorDirection, speed, passing ? Mathf.Max(10f, speed * 0.5f) : distance));
             if (changingDirection) desiredSpeed = 0f;
 
-            stuckTime = !changingDirection && desiredSpeed > 1f && speed < 0.8f && distance > 5f
+            stuckTime = !changingDirection && speed < 0.8f && distance > 5f
                 ? stuckTime + Time.fixedDeltaTime : 0f;
             if (!recovery && stuckTime > 2f && HasRecoverySpace(-movement))
             {
@@ -318,9 +324,18 @@ namespace EnElCamino
                 Mathf.Max(0f, -pedal), speed);
         }
 
-        private bool TryGetPathTarget(Vector3 destination, float speed, out Vector3 aim)
+        private bool TryGetPathTarget(Vector3 destination, float speed, out Vector3 aim, out bool passing)
         {
-            aim = body.position;
+            Vector3 toward = Vector3.ProjectOnPlane(destination - body.position, Vector3.up);
+            float lookAhead = Mathf.Clamp(6f + speed * 0.65f, 6f, 48f);
+            passing = TryPassTraffic(toward, speed, lookAhead, out Vector3 passPoint);
+            if (passing)
+            {
+                aim = passPoint;
+                return true;
+            }
+            aim = body.position + Vector3.ClampMagnitude(toward, lookAhead);
+            if (ClearPath(body.position, destination)) return true;
             if (Time.fixedTime >= nextPlanTime)
             {
                 nextPlanTime = Time.fixedTime + 0.2f;
@@ -346,7 +361,69 @@ namespace EnElCamino
             if (length < 0.01f) return false;
             Vector3 along = segment / length;
             float projection = Mathf.Clamp(Vector3.Dot(body.position - startPoint, along), 0f, length);
-            aim = startPoint + along * Mathf.Min(length, projection + Mathf.Clamp(4f + speed * 0.45f, 4f, 24f));
+            aim = startPoint + along * Mathf.Min(length, projection + lookAhead);
+            return true;
+        }
+
+        private bool TryPassTraffic(Vector3 toward, float speed, float lookAhead, out Vector3 point)
+        {
+            point = body.position;
+            if (!chasing || waitingForPass || Vector3.Dot(toward, routeForward) < 3f)
+            {
+                passingCar = null;
+                return false;
+            }
+            if (passingCar != null && (!passingCar.gameObject.activeInHierarchy ||
+                Vector3.Dot(passingCar.position - body.position, routeForward) < -8f ||
+                Vector3.Dot(passingCar.position - body.position, routeForward) > 220f))
+                passingCar = null;
+            if (passingCar == null)
+            {
+                float nearest = Mathf.Clamp(speed * 4f, 35f, 180f);
+                Vector3 direction = toward.normalized;
+                int count = Physics.BoxCastNonAlloc(body.position + Vector3.up * 0.85f,
+                    new Vector3(1f, 0.35f, 0.15f), direction, sensorHits,
+                    Quaternion.LookRotation(direction), nearest, obstacleLayers, QueryTriggerInteraction.Ignore);
+                for (int i = 0; i < count; i++)
+                {
+                    TraficoAutos traffic = sensorHits[i].collider.GetComponentInParent<TraficoAutos>();
+                    if (traffic == null || sensorHits[i].distance >= nearest) continue;
+                    Rigidbody other = traffic.GetComponent<Rigidbody>();
+                    if (Vector3.Dot(other.linearVelocity, routeForward) >= speed - 2f && sensorHits[i].distance > 12f) continue;
+                    passingCar = other;
+                    nearest = sensorHits[i].distance;
+                }
+            }
+            if (passingCar == null) return false;
+            Vector3 right = Vector3.Cross(Vector3.up, routeForward);
+            float lane = Vector3.Dot(passingCar.position - body.position, right);
+            for (int attempt = 0; attempt < 2; attempt++)
+            {
+                float side = attempt == 0 ? passingSide : -passingSide;
+                Vector3 lanePoint = body.position + right * (lane + side * 3.4f);
+                point = lanePoint + routeForward * Mathf.Max(lookAhead, speed * 1.1f);
+                if (!ClearPath(body.position, point) ||
+                    !ClearPath(lanePoint + routeForward * 2f, lanePoint + routeForward * Mathf.Max(45f, speed * 2.2f))) continue;
+                passingSide = side;
+                return true;
+            }
+            return false;
+        }
+
+        private bool ClearPath(Vector3 from, Vector3 to)
+        {
+            Vector3 offset = Vector3.ProjectOnPlane(to - from, Vector3.up);
+            if (offset.sqrMagnitude < 0.01f) return true;
+            int count = Physics.BoxCastNonAlloc(from + Vector3.up * 0.85f,
+                new Vector3(1f, 0.35f, 0.15f), offset.normalized, sensorHits,
+                Quaternion.LookRotation(offset), offset.magnitude + 2f, obstacleLayers, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < count; i++)
+            {
+                Collider hit = sensorHits[i].collider;
+                if (hit != null && !hit.transform.IsChildOf(transform) &&
+                    hit.GetComponentInParent<AutoJugador>() == null && sensorHits[i].normal.y <= 0.6f)
+                    return false;
+            }
             return true;
         }
 
@@ -366,9 +443,10 @@ namespace EnElCamino
             return previous;
         }
 
-        private float SafeSpeedAhead(Vector3 direction, float speed)
+        private float SafeSpeedAhead(Vector3 direction, float speed, float rangeLimit = float.PositiveInfinity)
         {
-            float range = Mathf.Max(10f, speed * speed / (2f * BrakingAcceleration) + 6f);
+            if (direction.sqrMagnitude < 0.01f) return 0f;
+            float range = Mathf.Min(rangeLimit, Mathf.Max(10f, speed * speed / (2f * BrakingAcceleration) + 6f));
             int count = Physics.BoxCastNonAlloc(body.position + Vector3.up * 0.85f,
                 new Vector3(0.85f, 0.3f, 0.15f), direction, sensorHits,
                 Quaternion.LookRotation(direction), range, obstacleLayers, QueryTriggerInteraction.Ignore);
@@ -415,11 +493,13 @@ namespace EnElCamino
                     ? motor * (speed < 18f ? 2700f : 1900f) : 0f;
                 bool grass = grounded && gameFlow.IsGrassSurface(hit.collider);
                 WheelFrictionCurve friction = wheel.sidewaysFriction;
-                friction.stiffness = grass ? 1.15f : 1.8f;
+                friction.stiffness = Mathf.MoveTowards(friction.stiffness, grass ? 1.15f : 1.8f, Time.fixedDeltaTime);
                 wheel.sidewaysFriction = friction;
             }
+            float forwardSpeed = Vector3.Dot(body.linearVelocity, body.rotation * Vector3.forward);
+            float yaw = Mathf.Tan(steer * Mathf.Deg2Rad) * forwardSpeed / wheelbase;
+            body.AddTorque(Vector3.up * Mathf.Clamp((yaw - body.angularVelocity.y) * 6f, -3f, 3f), ForceMode.Acceleration);
             body.AddForce(-Vector3.up * speed * speed * 1.8f, ForceMode.Force);
-            GrassDriving.ApplyBumps(body, gameFlow, ref grassBumpDistance, ref grassBumpWheel);
         }
 
         private Vector3 GetRoadForward()

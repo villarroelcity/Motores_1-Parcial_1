@@ -14391,8 +14391,8 @@ ParticleSystem:
     startLifetime:
       serializedVersion: 2
       minMaxState: 3
-      scalar: 3
-      minScalar: 2.1
+      scalar: 3.8
+      minScalar: 2.5
       maxCurve:
         serializedVersion: 2
         m_Curve:
@@ -14562,8 +14562,8 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 3
-      scalar: 1.15
-      minScalar: 0.65
+      scalar: 1.5
+      minScalar: 0.9
       maxCurve:
         serializedVersion: 2
         m_Curve:
@@ -14879,7 +14879,7 @@ ParticleSystem:
         m_RotationOrder: 4
     randomizeRotationDirection: 0
     gravitySource: 0
-    maxNumParticles: 900
+    maxNumParticles: 1200
     customEmitterVelocity: {x: 0, y: 0, z: 0}
     size3D: 0
     rotation3D: 0
@@ -15145,7 +15145,7 @@ ParticleSystem:
     rateOverTime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 30
+      scalar: 50
       minScalar: 10
       maxCurve:
         serializedVersion: 2
@@ -15198,7 +15198,7 @@ ParticleSystem:
     rateOverDistance:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 6
+      scalar: 8
       minScalar: 0
       maxCurve:
         serializedVersion: 2
@@ -15271,7 +15271,7 @@ ParticleSystem:
           outWeight: 0
         - serializedVersion: 3
           time: 0.45
-          value: 1.5
+          value: 1.7
           inSlope: 0
           outSlope: 0
           tangentMode: 0
@@ -15280,7 +15280,7 @@ ParticleSystem:
           outWeight: 0
         - serializedVersion: 3
           time: 1
-          value: 2.8
+          value: 3.2
           inSlope: 0
           outSlope: 0
           tangentMode: 0
@@ -15593,8 +15593,8 @@ ParticleSystem:
       maxGradient:
         serializedVersion: 2
         key0: {r: 1, g: 1, b: 1, a: 0}
-        key1: {r: 1, g: 1, b: 1, a: 0.22}
-        key2: {r: 0, g: 0, b: 0, a: 0.14299999}
+        key1: {r: 1, g: 1, b: 1, a: 0.3}
+        key2: {r: 0, g: 0, b: 0, a: 0.2}
         key3: {r: 0, g: 0, b: 0, a: 0}
         key4: {r: 0, g: 0, b: 0, a: 0}
         key5: {r: 0, g: 0, b: 0, a: 0}
@@ -19093,7 +19093,7 @@ ParticleSystemRenderer:
   m_MeshDistribution: 0
   m_SortMode: 0
   m_MinParticleSize: 0
-  m_MaxParticleSize: 0.15
+  m_MaxParticleSize: 0.18
   m_CameraVelocityScale: 0
   m_VelocityScale: 0
   m_LengthScale: 2

@@ -9,7 +9,7 @@ namespace EnElCamino
     {
         [SerializeField] private Juego gameFlow;
         [SerializeField] private AutoJugador targetCar;
-        [SerializeField] private float chaseSpeed = 58f;
+        [SerializeField] private float chaseSpeed = 72f;
         [SerializeField] private LayerMask obstacleLayers = ~0;
         [SerializeField] private Transform road;
         [SerializeField] private float roadHalfWidth = 3.2f;
@@ -278,7 +278,7 @@ namespace EnElCamino
                 desiredSteer = turnSide * 32f;
             }
 
-            float lateralAcceleration = offRoadPursuit ? 5f : 9f;
+            float lateralAcceleration = offRoadPursuit ? 7.5f : 11f;
             float maxSteer = Mathf.Min(32f, Mathf.Atan(wheelbase * lateralAcceleration /
                 Mathf.Max(4f, speed * speed)) * Mathf.Rad2Deg);
             steering = Mathf.MoveTowards(steering, Mathf.Clamp(desiredSteer, -maxSteer, maxSteer),
@@ -288,7 +288,7 @@ namespace EnElCamino
             float desiredSpeed = merging ? Mathf.Clamp(Mathf.Sqrt(2f * BrakingAcceleration * Mathf.Max(0f, mergeDistance - 2f)), 1.5f, 12f)
                 : PursuitSpeed(targetSpeed, distance, chaseSpeed);
             desiredSpeed = Mathf.Min(desiredSpeed,
-                Mathf.Sqrt(lateralAcceleration / Mathf.Max(0.006f, Mathf.Abs(curvature))));
+                Mathf.Sqrt(lateralAcceleration / Mathf.Max(0.0001f, Mathf.Abs(curvature))));
             if (localAim.z < 0f && driveDirection > 0f) desiredSpeed = Mathf.Min(desiredSpeed, 6f);
             if (driveDirection < 0f) desiredSpeed = Mathf.Min(desiredSpeed, 6f);
 
@@ -324,6 +324,7 @@ namespace EnElCamino
             if (Time.fixedTime >= nextPlanTime)
             {
                 nextPlanTime = Time.fixedTime + 0.2f;
+                navigationFilter.SetAreaCost(3, offRoadPursuit ? 1f : 2.5f);
                 if (NavMesh.SamplePosition(body.position, out NavMeshHit start, 5f, navigationFilter) &&
                     NavMesh.SamplePosition(destination, out NavMeshHit goal, 6f, navigationFilter) &&
                     NavMesh.CalculatePath(start.position, goal.position, navigationFilter, navigationPath) &&
@@ -410,7 +411,8 @@ namespace EnElCamino
                 wheel.steerAngle = front ? steer : 0f;
                 wheel.brakeTorque = brake * 3000f;
                 bool grounded = wheel.GetGroundHit(out WheelHit hit);
-                wheel.motorTorque = motor * (speed < 18f ? 2700f : 1900f);
+                wheel.motorTorque = grounded && Mathf.Abs(hit.forwardSlip) < 0.4f
+                    ? motor * (speed < 18f ? 2700f : 1900f) : 0f;
                 bool grass = grounded && gameFlow.IsGrassSurface(hit.collider);
                 WheelFrictionCurve friction = wheel.sidewaysFriction;
                 friction.stiffness = grass ? 1.15f : 1.8f;

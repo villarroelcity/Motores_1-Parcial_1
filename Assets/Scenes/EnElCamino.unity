@@ -3406,7 +3406,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnElCamino.PatrulleroIA
   gameFlow: {fileID: 7153598}
   targetCar: {fileID: 470211927}
-  chaseSpeed: 58
+  chaseSpeed: 72
   obstacleLayers:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -22552,7 +22552,7 @@ WheelCollider:
     m_ExtremumValue: 1
     m_AsymptoteSlip: 0.8
     m_AsymptoteValue: 0.5
-    m_Stiffness: 1.6
+    m_Stiffness: 1.7
   m_SidewaysFriction:
     m_ExtremumSlip: 0.2
     m_ExtremumValue: 1
@@ -62712,7 +62712,7 @@ WheelCollider:
     m_ExtremumValue: 1
     m_AsymptoteSlip: 0.8
     m_AsymptoteValue: 0.5
-    m_Stiffness: 1.6
+    m_Stiffness: 1.7
   m_SidewaysFriction:
     m_ExtremumSlip: 0.2
     m_ExtremumValue: 1
@@ -88241,7 +88241,7 @@ WheelCollider:
     m_ExtremumValue: 1
     m_AsymptoteSlip: 0.8
     m_AsymptoteValue: 0.5
-    m_Stiffness: 1.6
+    m_Stiffness: 1.7
   m_SidewaysFriction:
     m_ExtremumSlip: 0.2
     m_ExtremumValue: 1
@@ -143755,7 +143755,7 @@ WheelCollider:
     m_ExtremumValue: 1
     m_AsymptoteSlip: 0.8
     m_AsymptoteValue: 0.5
-    m_Stiffness: 1.6
+    m_Stiffness: 1.7
   m_SidewaysFriction:
     m_ExtremumSlip: 0.2
     m_ExtremumValue: 1

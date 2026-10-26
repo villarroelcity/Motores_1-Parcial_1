@@ -2,7 +2,7 @@
 
 ## Alcance de esta revisión
 
-Fecha: 20/10/2026. Rama: `parcial-2`. Esta revisión ordena la base del proyecto y no reemplaza una prueba manual de punta a punta ni una build de entrega.
+Última revisión: 26/10/2026. Rama: `parcial-2`. El registro comienza el 20/10. Las verificaciones de editor no reemplazan una prueba manual de punta a punta ni una build de entrega.
 
 ## Verificaciones técnicas registradas
 
@@ -224,4 +224,25 @@ Se revisó el video de 30,65 segundos `Desktop 2026.10.24 - 22.12.53.02.mp4`: se
 Se reactivó la superficie y se enlazó explícitamente a PatrulleroIA. Awake habilita el objeto y su superficie, con búsqueda de respaldo para una escena que todavía no tenga serializada esa referencia. El ajuste de espera del editor oculta solamente el dibujo del NavMesh al abrir la escena o salir de Play, manteniendo activa la navegación. La propiedad de visualización es interna en esta versión de Unity, por lo que se consulta por reflexión únicamente desde el script de editor.
 
 Se verificaron el enlace serializado y la superficie habilitada. Gameplay y editor compilan con 0 errores; se mantienen las advertencias conocidas del paquete de vegetación. No se ejecutó una nueva partida: falta comprobar esta corrección durante la persecución real.
+
+## Aceleración, limpieza y shaders — 26/10/2026
+
+Con Unity cerrado y sin Play se comprobó la escena guardada: cero scripts perdidos, 64 autos en la reserva con sus cuatro modelos de rueda visibles y sin controladores VPP de tráfico. La patrulla conserva cuatro ruedas físicas y sus modelos. Los cuatro clips del personaje resuelven todas las rutas después de renombrar PlayerModel a ModeloJugador. Se conservan todos los transform explícitos supervivientes de la escena guardada por el usuario, incluidas las posiciones de los escapes.
+
+Se eliminó el tope recto involuntario de sqrt(9 / 0,006), aproximadamente 139 km/h, y el frenado doble por esquina. Subir solo el torque no mejoró el alcance: la rueda patinaba. El corte de torque por deslizamiento longitudinal mayor o igual a 0,4 y la rigidez longitudinal 1,7 sí redujeron la separación máxima. Se ensayó un objetivo que comienza 60 m delante, con velocidad constante y sin colisionar con él. La patrulla arranca detenida y replantea cada 0,2 s. PhysX avanza en pasos de 0,02 s.
+
+| Objetivo | Separación máxima entre centros | Tiempo hasta menos de 5,5 m |
+| --- | --- | --- |
+| 144 km/h, recta | 120,82 m | 19,04 s |
+| 180 km/h, recta | 144,57 m | 21,22 s |
+| 198 km/h, recta | 160,83 m | 22,72 s |
+| 108 km/h, desvío lateral de 24 m al pasto | 91,89 m | 19,02 s |
+
+La incorporación desde la posición real del escondite terminó con error lateral de 0,45 m y ángulo de 2,91 grados respecto a la ruta. En un ensayo adicional con un auto detenido, la ruta consultada permaneció recta: la patrulla frenó antes del auto, sin penetración, pero no completó el adelantamiento. Por ello **la evasión de tráfico no se da por validada**. Debe verificarse durante gameplay junto con la actualización de los obstáculos de navegación, choques y recuperación. Los ensayos de alcance no representan tráfico simultáneo ni velocidades de impacto.
+
+El acceso directo al agarre público de VPP produjo multiplicador 1 en asfalto, 0,45 en pasto y restauración a 1; se recuperó también el clip original de arranque. La polvareda estacionaria a 3 s produjo 144 partículas y tamaño máximo de 4,59 m. Se revisó un render fuera de pantalla con el emisor activado expresamente: trail marrón y mayor volumen, sin material cian. No equivale a una partida grabada.
+
+Se renderizaron 20 vistas para registrar y precalentar 31 variantes de 11 shaders. La colección está referenciada por Graphics Settings y se deshabilitó el shader provisional asíncrono del editor. Esto trata una causa comprobable del cian; no descarta otros defectos visuales que solo aparezcan durante la partida. Referencias: [compilación asíncrona](https://docs.unity3d.com/6000.0/Documentation/Manual/AsynchronousShaderCompilation-introduction.html), [colecciones de variantes](https://docs.unity3d.com/6000.0/Documentation/Manual/shader-variant-collections.html) y [deslizamiento de WheelCollider](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/WheelHit-forwardSlip.html).
+
+La importación final sin herramienta temporal terminó con código 0. Gameplay compiló con 0 errores y las 17 advertencias conocidas de Nature Starter Kit; editor, con 0 errores y 0 advertencias. Siguen 17 scripts propios y una herramienta permanente de editor. Se retiraron el diagnóstico, respaldos, capturas y registros temporales. Las posiciones guardadas por el usuario se incluyeron en la escena conservada.
 

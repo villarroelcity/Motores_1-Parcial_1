@@ -1,5 +1,7 @@
 # GDD — En el Camino
 
+Última revisión: 26/10/2026. Las secciones fechadas registran la evolución; prevalece la configuración de la revisión más reciente.
+
 ## Ficha
 
 | Campo | Definición |
@@ -179,4 +181,16 @@ El tráfico aplica torque para recuperar el rumbo, en vez de imponer la rotació
 ## Organización del historial — 25/10/2026
 
 Los cambios acumulados del 24 y 25 se separaron por tema en `parcial-2`: renombrado de controladores conservando GUID, entorno nativo y flujo, Cinemachine/retrovisor, Animator, navegación de patrulla, contactos/aparición de tráfico, partículas, inicio de música y precarga del audio. La documentación se mantiene en un commit propio. Se conservó el historial anterior; la escena compartida se dividió junto a las referencias de cada integración. No se incorporaron herramientas temporales ni paquetes comerciales al repositorio.
+
+## Alcance de patrulla, jerarquía y polvo — 26/10/2026
+
+La patrulla conservaba un límite involuntario de unos 139 km/h incluso en recta, además de otro freno por esquinas que duplicaba el límite de curva. Se retiran esos topes redundantes; el máximo configurado queda en 72 m/s. Las ruedas cortan momentáneamente el motor al superar 0,4 de deslizamiento longitudinal para recuperar tracción, con rigidez longitudinal 1,7. Se mantienen frenada ante obstáculos, incorporación paralela, cierre gradual cercano, 200 m para escapar y 60 segundos de reserva. El coste de navegar por pasto baja mientras el jugador esté fuera de la ruta, para seguirlo sin insistir en volver al asfalto.
+
+Se retiraron más de 1.400 nodos y ramas sin uso, principalmente variantes ocultas de ruedas del tráfico, antiguos ayudantes de VPP, marcadores y UI obsoleta. Patrulla y tráfico conservan sus carrocerías, ruedas visibles, luces y colliders; no conservan controladores VPP adicionales ni telemetría. La patrulla usa solamente sus cuatro WheelColliders. Los objetos principales pasan a nombres como `Generador`, `CamaraPrincipal`, `SistemaEventos`, `ModeloJugador`, `MusicaPersecucion` y `AutoTrafico_00`. Los cuatro clips del Animator apuntan a `ModeloJugador` después del cambio de nombre. Se conservan las posiciones elegidas por el usuario, incluidos los escapes.
+
+La polvareda aumenta a 50 partículas por segundo y 8 por metro, vida de 2,5–3,8 s, tamaño inicial de 0,9–1,5 m, crecimiento y máximo de 1.200. El emisor sigue preparado en Unity y solo se habilita sobre pasto, conduciendo a más de 10 km/h.
+
+Se guardaron 31 variantes de 11 shaders en `VariantesEscena.shadervariants`, incluidas vistas diurnas, nocturnas, luces y efectos. Se precargan desde Graphics Settings y en espera del editor. Se deshabilita la compilación asíncrona del editor para evitar el material provisional cian. Una variante nueva todavía puede producir espera al compilarse por primera vez; la precarga no certifica ausencia de tirones en todo el recorrido.
+
+Los 17 scripts pasan de 3.894 a 3.617 líneas: 277 menos. Se sustituyó reflexión innecesaria por acceso público a VPP para agarre y audio, se retiraron búsquedas de respaldo y estados sin uso, y se trasladó configuración física a los componentes guardados. También se quitaron comentarios históricos. Se conserva el pequeño acceso al motor privado de VPP y el bloqueo de sus atajos internos porque siguen siendo necesarios. No se crean GameObjects, componentes, materiales ni emisores durante gameplay. El control nativo del auto del jugador se conserva.
 

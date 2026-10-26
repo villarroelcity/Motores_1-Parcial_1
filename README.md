@@ -18,7 +18,7 @@ Los paquetes de terceros de licencia comercial no se suben al repositorio. La li
 - En el vehículo: WASD/flechas para conducir, abajo/S para frenar y luego retroceder; Espacio conserva el freno existente.
 - `Esc`: pausa. `R`: reinicio desde pausa o resultado.
 
-La cámara usa Cinemachine: `CinemachineBrain` en Main Camera y `CamaraCinemachine` con seguimiento, encuadre y acercamiento ante paredes. `CamaraJugador` solo cambia el objetivo entre jugador y auto. El cielo y el anochecer usan herramientas nativas de Unity, sin Enviro en la escena.
+La cámara usa Cinemachine: `CinemachineBrain` en `CamaraPrincipal` y `CamaraCinemachine` con seguimiento, encuadre y acercamiento ante paredes. `CamaraJugador` solo cambia el objetivo entre jugador y auto. El cielo y el anochecer usan herramientas nativas de Unity, sin Enviro en la escena.
 
 ## Recorrido actual
 
@@ -34,6 +34,8 @@ El HUD muestra tanto el tiempo general como el combustible restante del generado
 ## Estado de la entrega
 
 La IA y la persecución están integradas, pero su validación jugable final sigue pendiente. Cinemachine, el Animator del personaje y los emisores de humo del generador y ambos escapes, polvareda del pasto y chispas de impacto están preparados en la escena. La revisión de requisitos y entregables está en [ESTADO_PARCIAL_2.md](Documentacion/ESTADO_PARCIAL_2.md). Las pruebas de editor no sustituyen el recorrido en Play ni una build.
+
+Revisión del 26/10: jerarquía depurada y nombres principales en castellano, mayor polvareda, precarga de shaders y ajuste de aceleración de la patrulla. Permanecen 17 scripts propios, ahora con 3.617 líneas frente a las 3.894 anteriores. Se conserva el control VPP del jugador. Las mediciones y el caso de evasión todavía pendiente están registrados en el informe de pruebas.
 
 - Diseño: [GDD_EN_EL_CAMINO.md](Documentacion/GDD_EN_EL_CAMINO.md)
 - Pruebas y pendientes: [Informe_Testing_EN_EL_CAMINO.md](Documentacion/Informe_Testing_EN_EL_CAMINO.md)

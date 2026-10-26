@@ -1,6 +1,6 @@
 # Mapa de scripts propios
 
-Revisión: 25/10/2026. Hay **17 archivos de gameplay** y una herramienta permanente de editor. Los scripts de VPP, Enviro y otros paquetes no se cuentan como propios.
+Revisión: 26/10/2026. Hay **17 archivos de gameplay**, 3.617 líneas y una herramienta permanente de editor. La revisión anterior tenía 3.894 líneas. Los scripts de VPP y otros paquetes no se cuentan como propios.
 
 | Script | Responsabilidad |
 | --- | --- |
@@ -22,7 +22,7 @@ Revisión: 25/10/2026. Hay **17 archivos de gameplay** y una herramienta permane
 | `PortonTaller` | Apertura del portón y su secuencia de movimiento. |
 | `AudioController` | Ambiente, portón y transición musical al comenzar la sirena. |
 
-`Assets/Editor/DaylightStandbySetup.cs` solo mantiene la hora diurna de espera en el editor. No forma parte del gameplay ni crea objetos.
+`Assets/Editor/DaylightStandbySetup.cs` mantiene la hora diurna de espera, oculta el dibujo de navegación y precalienta la colección de shaders en el editor. No forma parte del gameplay ni crea objetos.
 
 ## Nombres cambiados
 
@@ -35,6 +35,8 @@ Revisión: 25/10/2026. Hay **17 archivos de gameplay** y una herramienta permane
 | `GameUI` | `UI.cs` | `UI` |
 
 Los cinco `.meta` mantienen sus GUID: no son componentes nuevos ni copias. Se actualizaron tipos y referencias de escena, prefabs y botones. Los demás nombres de archivos no se cambiaron fuera de lo solicitado.
+
+Otros nombres de jerarquía: `CamaraPrincipal`, `SistemaEventos`, `Generador`, `ModeloJugador`, `MusicaExploracion`, `MusicaPersecucion`, `AudioDerrota`, `AudioVictoria`, `PanelVentaja`, `PanelRetrovisor` y `AutoTrafico_00` a `AutoTrafico_63`. Los nombres internos de mallas y del SDK se conservan para no romper referencias.
 
 ## Criterio de limpieza
 

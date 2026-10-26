@@ -1,6 +1,6 @@
 # Estado contra la consigna del Segundo Parcial
 
-Revisión: 25/10/2026. Fuente: [consigna oficial aportada por el usuario](Consigna_Parcial2.txt), originalmente en `C:/Users/El Barto/Desktop/PARCIAL 2.txt`.
+Revisión: 26/10/2026. Fuente: [consigna oficial aportada por el usuario](Consigna_Parcial2.txt), originalmente en `C:/Users/El Barto/Desktop/PARCIAL 2.txt`.
 
 Se distingue presencia en código/escena de funcionamiento verificado en una partida. Este informe no certifica la aprobación.
 
@@ -13,7 +13,7 @@ El proyecto tiene recorrido estación-combustible-ruta-persecución, Cinemachine
 | Punto de la consigna | Evidencia actual | Estado |
 | --- | --- | --- |
 | Organización | Carpetas propias, 17 scripts y mapa de responsabilidades | Implementado; revisar entrega limpia |
-| GitHub y commits | Repositorio, rama `parcial-2` e historial de cambios | Cambios actuales pendientes de commit/push; colaboración no certificada |
+| GitHub y commits | Repositorio, rama `parcial-2` e historial de cambios por tema | Historial actualizado; colaboración no certificada |
 | High Concept actualizado | GDD: robo del auto, estación y escape policial | Documentado |
 | Movimiento | CharacterController, carrera y descenso | Implementado; prueba final pendiente |
 | Física y colisiones | VPP, WheelColliders y Rigidbody del tráfico | Implementado; colisiones/manejo requieren prueba |
@@ -43,7 +43,7 @@ El proyecto tiene recorrido estación-combustible-ruta-persecución, Cinemachine
 | UI | HUD, objetivos, tiempo, daño, espejo, pausa, controles y reinicio | Integrado; probar resolución y botones en build |
 | Cinemachine | Brain en la cámara principal; cámara virtual con Follow, Rotation Composer y Deoccluder | **Integrado y comprobado en editor**; prueba jugable final pendiente |
 | Iluminación | Sol, Skybox Procedural, niebla, postes, tablero, faros y balizas | Enviro reemplazado por Unity nativo; transición y capturas diurna/nocturna comprobadas, recorrido pendiente |
-| IA | Patrulla con NavMesh, WheelColliders y sensores; tráfico con obstáculos de navegación | Integrado; pruebas aisladas de seguimiento físico y desvío. Validar partida completa y tráfico en movimiento |
+| IA | Patrulla con NavMesh, WheelColliders y sensores; tráfico con obstáculos de navegación | Alcance e incorporación comprobados en simulación aislada el 26/10. La evasión de un auto detenido no se completó en edición; validar y ajustar con tráfico durante la partida |
 | Partículas | Humo del generador y ambos escapes; polvareda sobre pasto; chispas por impactos | **Integrado**; emisión/simulación y apagado de escapes comprobados; registrar efectos en video de gameplay |
 | Eventos y secuencias | Llegada, combustible, energía, portón, repostaje, emboscada y resultados | Integrado; prueba completa pendiente |
 

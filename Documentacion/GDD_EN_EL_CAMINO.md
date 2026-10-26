@@ -194,3 +194,15 @@ Se guardaron 31 variantes de 11 shaders en `VariantesEscena.shadervariants`, inc
 
 Los 17 scripts pasan de 3.894 a 3.617 líneas: 277 menos. Se sustituyó reflexión innecesaria por acceso público a VPP para agarre y audio, se retiraron búsquedas de respaldo y estados sin uso, y se trasladó configuración física a los componentes guardados. También se quitaron comentarios históricos. Se conserva el pequeño acceso al motor privado de VPP y el bloqueo de sus atajos internos porque siguen siendo necesarios. No se crean GameObjects, componentes, materiales ni emisores durante gameplay. El control nativo del auto del jugador se conserva.
 
+
+## Persecución tras el video de las 01:12 — 26/10/2026
+
+La patrulla anticipa la incorporación y acelera cuando el jugador se acerca; deja de frenar en el punto de espera durante la alarma. El estado de incorporación termina cuando el jugador la pasa, sin exigir que coincidan simultáneamente dos tolerancias de alineación. La sirena y la música mantienen su trigger existente.
+
+Se sigue un punto previsto delante del jugador cuando el corredor físico está libre. NavMesh queda como respaldo ante obstáculos reales, evitando los rodeos innecesarios del mapa horneado sobre tramos despejados. Aumenta la distancia de anticipación de dirección con la velocidad. Los sensores de frenado miran la trayectoria elegida y acotan su alcance al objetivo, evitando frenar por objetos lejanos fuera del recorrido.
+
+La patrulla busca vehículos lentos delante, elige un lado con espacio y mantiene ese lado hasta quedar 8 m por delante del auto adelantado. Comprueba el acceso diagonal y el corredor lateral antes de iniciar la maniobra. Si queda detenida por un bloqueo puede iniciar recuperación aunque el sensor haya reducido la velocidad deseada a cero. La comprobación de espacio trasero sigue activa.
+
+Se aplica un par estabilizador para amortiguar el giro excesivo y se suaviza el cambio de agarre pasto/asfalto. La patrulla deja de recibir los impulsos artificiales de baches del jugador; mantiene suspensión y contacto mediante sus WheelColliders. El jugador conserva esos baches y sus controles VPP. El límite de patrulla continúa en 72 m/s, la victoria en 200 m y la reserva en 60 s.
+
+Solo cambia PatrulleroIA: no se agregan scripts ni objetos de gameplay. El archivo queda en 549 líneas y el total propio en 3.697. Las pruebas aisladas incorporan salida real, desvío al pasto, regreso y tráfico de ambos sentidos; la validación jugable sigue a cargo del usuario.

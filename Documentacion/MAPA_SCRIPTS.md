@@ -1,6 +1,6 @@
 # Mapa de scripts propios
 
-Revisión: 26/10/2026. Hay **17 archivos de gameplay**, 3.617 líneas y una herramienta permanente de editor. La revisión anterior tenía 3.894 líneas. Los scripts de VPP y otros paquetes no se cuentan como propios.
+Revisión: 26/10/2026. Hay **17 archivos de gameplay**, 3.697 líneas y una herramienta permanente de editor. La limpieza de esta fecha comenzó con 3.894 líneas. Los scripts de VPP y otros paquetes no se cuentan como propios.
 
 | Script | Responsabilidad |
 | --- | --- |
@@ -9,7 +9,7 @@ Revisión: 26/10/2026. Hay **17 archivos de gameplay**, 3.617 líneas y una herr
 | `UI` | Objetivos, mensajes, relojes, espejo, daño, pausa, controles y reinicio. |
 | `Trafico` | Activa y coloca los autos de una reserva preparada en la escena. |
 | `TraficoAutos` | Movimiento recto, ruedas y colisiones del tráfico. Incluye la utilidad compartida de luces/materiales. |
-| `PatrulleroIA` | Persecución con WheelColliders, evasión, recuperación, sirena y balizas. |
+| `PatrulleroIA` | Incorporación anticipada, seguimiento físico directo con respaldo NavMesh, adelantamiento por un corredor libre, recuperación, sirena y balizas. |
 | `PlayerController` | Movimiento a pie, carrera, caída, parámetros del Animator y eventos de pasos. Las poses están en clips editables en Unity. |
 | `CamaraJugador` | Puente a Cinemachine: cambia el objetivo jugador/auto y congela la cámara al finalizar. El seguimiento y las paredes son componentes Cinemachine guardados en Unity. |
 | `DetectorDeInteracciones` | Raycast, selección por cercanía y tecla E. Incluye `IInteractable`. |

@@ -246,3 +246,26 @@ Se renderizaron 20 vistas para registrar y precalentar 31 variantes de 11 shader
 
 La importación final sin herramienta temporal terminó con código 0. Gameplay compiló con 0 errores y las 17 advertencias conocidas de Nature Starter Kit; editor, con 0 errores y 0 advertencias. Siguen 17 scripts propios y una herramienta permanente de editor. Se retiraron el diagnóstico, respaldos, capturas y registros temporales. Las posiciones guardadas por el usuario se incluyeron en la escena conservada.
 
+
+## Persecución del video 01:12:41 — 26/10/2026
+
+Se revisó `Desktop 2026.10.26 - 01.12.41.02.mp4` (40,37 s), con muestras generales, detalle de la persecución y una captura completa. Se observa incorporación de patrulla, salida del jugador al pasto, retorno a la ruta y ventaja creciente. La simulación anterior que empezaba con ambos autos ya colocados en un tramo lejano no representaba esa secuencia.
+
+El diagnóstico nuevo abre la escena guardada en cada caso. La patrulla parte de su escondite; el objetivo comienza 220 m atrás en el carril de avance. Se usa la cota real de Persecucion (z mínimo 431,9) para activar el estado de alarma. PhysX avanza a 0,02 s hasta 35 s después de ese punto. Se desactiva la interpolación solo en la simulación sin render, para leer poses físicas por paso; no cambia la configuración guardada. La maniobra de pasto desplaza al objetivo unos 15 m lateralmente y luego lo devuelve al carril. El tráfico usa dos coupés y dos camionetas de la reserva, a 60 km/h, distribuidos entre ambos sentidos.
+
+| Objetivo y caso | Separación longitudinal máxima | Alcance a menos de 5,5 m después de los primeros 4 s |
+| --- | --- | --- |
+| 144 km/h, recta | 5,19 m | 4,02 s |
+| 198 km/h, recta | 15,83 m | 7,38 s |
+| 198 km/h, pasto y regreso | 84,02 m | 19,86 s |
+| 144 km/h, tráfico | 19,46 m | 4,02 s |
+| 198 km/h, pasto, regreso y tráfico | 157,41 m | 28,70 s |
+| 234 km/h, recta | 31,06 m | 11,60 s |
+
+Los seis casos terminaron sin llegar a los 200 m y cumplieron las aserciones de alcance, penetración máxima menor a 3 cm y desplazamiento por paso menor a 2 m. La penetración medida contra tráfico fue cero. El mayor desplazamiento registrado fue 1,40 m en 20 ms, coherente con la velocidad física. Se siguen simulando los casos después del alcance para observar estabilidad; en gameplay una captura válida termina la partida.
+
+Estas pruebas usan un objetivo de velocidad impuesta y sin colliders, no un conductor VPP ni la entrega completa de callbacks y condiciones de resultado. Comprueban seguimiento, maniobra física y separación en los escenarios descritos; no certifican una partida completa, todas las variantes de tráfico ni un bloqueo total. Se conservan pendientes la validación manual con controles reales y la build de entrega.
+
+Se consultaron de nuevo [NavMeshObstacle de Unity](https://docs.unity3d.com/Packages/com.unity.ai.navigation@2.0/manual/NavMeshObstacle.html) y [CarAI-Unity](https://github.com/Ahmedsaed/CarAI-Unity). No se importó otro controlador ni se copió un paquete. La corrección usa los componentes existentes y las consultas físicas de Unity.
+
+La importación final sin diagnóstico temporal terminó con código 0. Compilaron gameplay y editor con 0 errores; gameplay mantiene las 17 advertencias conocidas de Nature Starter Kit y editor no presenta advertencias. Se retiraron la herramienta, sus registros y las capturas temporales. La escena no cambió y el ajuste previo del usuario en CieloRuta.mat se conserva aparte del cambio de IA.

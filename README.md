@@ -35,7 +35,7 @@ El HUD muestra tanto el tiempo general como el combustible restante del generado
 
 La IA y la persecución están integradas, pero su validación jugable final sigue pendiente. Cinemachine, el Animator del personaje y los emisores de humo del generador y ambos escapes, polvareda del pasto y chispas de impacto están preparados en la escena. La revisión de requisitos y entregables está en [ESTADO_PARCIAL_2.md](Documentacion/ESTADO_PARCIAL_2.md). Las pruebas de editor no sustituyen el recorrido en Play ni una build.
 
-Revisión del 26/10: jerarquía depurada y nombres principales en castellano, mayor polvareda, precarga de shaders y ajuste de aceleración de la patrulla. Permanecen 17 scripts propios, ahora con 3.617 líneas frente a las 3.894 anteriores. Se conserva el control VPP del jugador. Las mediciones y el caso de evasión todavía pendiente están registrados en el informe de pruebas.
+Revisión del 26/10: jerarquía depurada y nombres principales en castellano, mayor polvareda, precarga de shaders y revisión de persecución tras el video. Permanecen 17 scripts propios, ahora con 3.697 líneas frente a las 3.894 del comienzo de la limpieza. Se conserva el control VPP del jugador. Las seis simulaciones de alcance, pasto y tráfico están registradas en el informe; la partida completa sigue pendiente de validación manual.
 
 - Diseño: [GDD_EN_EL_CAMINO.md](Documentacion/GDD_EN_EL_CAMINO.md)
 - Pruebas y pendientes: [Informe_Testing_EN_EL_CAMINO.md](Documentacion/Informe_Testing_EN_EL_CAMINO.md)

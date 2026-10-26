@@ -43,7 +43,7 @@ El proyecto tiene recorrido estación-combustible-ruta-persecución, Cinemachine
 | UI | HUD, objetivos, tiempo, daño, espejo, pausa, controles y reinicio | Integrado; probar resolución y botones en build |
 | Cinemachine | Brain en la cámara principal; cámara virtual con Follow, Rotation Composer y Deoccluder | **Integrado y comprobado en editor**; prueba jugable final pendiente |
 | Iluminación | Sol, Skybox Procedural, niebla, postes, tablero, faros y balizas | Enviro reemplazado por Unity nativo; transición y capturas diurna/nocturna comprobadas, recorrido pendiente |
-| IA | Patrulla con NavMesh, WheelColliders y sensores; tráfico con obstáculos de navegación | Alcance e incorporación comprobados en simulación aislada el 26/10. La evasión de un auto detenido no se completó en edición; validar y ajustar con tráfico durante la partida |
+| IA | Patrulla con WheelColliders, seguimiento directo, respaldo NavMesh y sensores de adelantamiento | Seis simulaciones de alcance, incorporación y tráfico móvil completadas tras el video del 26/10. Faltan partida real y bloqueo total con autos detenidos |
 | Partículas | Humo del generador y ambos escapes; polvareda sobre pasto; chispas por impactos | **Integrado**; emisión/simulación y apagado de escapes comprobados; registrar efectos en video de gameplay |
 | Eventos y secuencias | Llegada, combustible, energía, portón, repostaje, emboscada y resultados | Integrado; prueba completa pendiente |
 

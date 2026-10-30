@@ -1,6 +1,6 @@
 # GDD — En el Camino
 
-Última revisión: 26/10/2026. Las secciones fechadas registran la evolución; prevalece la configuración de la revisión más reciente.
+Última revisión del diseño narrativo y la progresión: 30/10/2026. Las secciones fechadas al final documentan cambios anteriores; para las reglas vigentes, consultar primero las secciones principales.
 
 ## Ficha
 
@@ -15,32 +15,72 @@
 
 ## High concept
 
-El protagonista es un ladrón que huye en un auto robado. Se queda sin combustible frente a una estación abandonada y debe recuperar combustible antes de quedar varado de noche. Al llegar a la ruta cree haber escapado: aparece una victoria aparente y la conducción continúa. Una patrulla escondida, que recibió el aviso del robo, reconoce el auto y sale a perseguirlo. La emboscada es una sorpresa; los objetivos anteriores no anticipan el operativo.
+*En el camino* es un juego de exploración, interacción y conducción en tercera persona. El protagonista es un ladrón que acaba de robar un auto y huye por una ruta rural. En medio de la fuga se queda sin combustible y alcanza una estación de servicio abandonada. Tiene una ventana de oportunidad de dos minutos para conseguir nafta, volver al vehículo y salir a la ruta antes de que anochezca. Durante esta primera parte nadie lo está persiguiendo.
 
-## Bucle principal
+Para reabastecerse debe entrar a un taller por el techo, recuperar la energía eléctrica de la estación mediante un generador con apenas 30 segundos de combustible, encontrar un bidón vacío y llenarlo en el surtidor antes de que el generador se apague.
 
-Llegada con motor encendido → corte de combustible y conducción con el envión → exploración a pie → taller → generador → tablero eléctrico → portón → bidón → surtidor → vehículo → ruta → emboscada policial → escape.
+Cuando por fin regresa a la ruta, cree que consiguió escapar. Pero un patrullero oculto, alertado por el robo, reconoce el vehículo y comienza a perseguirlo. La fuga termina con un desafío de conducción: sacar 200 metros de ventaja antes de que se agote un minuto. Si lo consigue, gana; si no, la historia plantea que el auto sufre una avería y la fuga fracasa.
 
-La secuencia es guiada por objetivos del HUD. Cada interacción valida el paso anterior para que no se pueda completar el recorrido en un orden accidental.
+## Historia y progresión
+
+### Primera etapa: ventana de oportunidad (2 minutos)
+
+El auto comienza la escena circulando por la ruta. Al quedarse sin combustible pierde potencia, se apaga y termina deteniéndose por inercia junto a la estación abandonada. El reloj de **2:00** empieza cuando comienza el corte de combustible, no al aparecer el policía.
+
+El jugador baja y debe resolver la situación contrarreloj. El desafío en esta etapa consiste en explorar la estación, acceder al taller, habilitar el surtidor y volver a conducir. No hay una persecución activa durante esta fase. El plazo termina al cruzar la salida hacia la ruta: si no llega a ese punto antes de que se agote el reloj de anochecer, pierde.
+
+### Segunda etapa: recuperar combustible (30 segundos de generador)
+
+El taller no tiene un acceso directo utilizable desde afuera. El jugador debe subir al techo y descender por un hueco para entrar. Allí encuentra un generador con una reserva limitada de combustible. Después de encenderlo tiene **30 segundos** para conectar la electricidad desde el tablero, accionar el interruptor del portón, recoger el bidón vacío y cargarlo en el surtidor.
+
+El generador es necesario para que el surtidor funcione. Si se apaga **antes de llenar el bidón**, termina la partida. Si el bidón ya está lleno cuando se agota, el generador puede apagarse sin provocar una derrota inmediata. El jugador todavía debe llevar el combustible al auto, cargarlo, arrancarlo y alcanzar la ruta dentro de los dos minutos de la primera etapa. Los dos relojes son independientes: encender el generador no reinicia la cuenta general.
+
+### Tercera etapa: salida a la ruta y emboscada policial
+
+Al pasar por `SalidaAlCamino`, el juego muestra una **victoria aparente** y oculta el reloj de anochecer, pero no termina la partida. El jugador sigue conduciendo y no recibe un aviso anticipado de la patrulla.
+
+Un policía permanece escondido cerca de la ruta. Reconoce el auto robado y, cuando se activa la zona de persecución, comienza el desafío final. La patrulla se incorpora al camino, enciende la sirena y persigue al jugador entre el tráfico.
+
+### Desafío final: escapar del patrullero (1 minuto)
+
+El jugador dispone de **60 segundos** para ganar **200 metros de ventaja** respecto del patrullero. Debe conducir, esquivar el tráfico y elegir si se mantiene sobre el asfalto o intenta escapar por el pasto.
+
+- **Victoria:** alcanzar los 200 metros de ventaja durante la persecución.
+- **Derrota por tiempo:** agotarse el minuto sin alcanzar la distancia requerida. En la historia, el auto sufre una avería y el ladrón no consigue escapar.
+- **Otras derrotas:** colisión de captura con la patrulla, daño acumulado del vehículo del 100 % y las condiciones de derrota de la etapa anterior.
+
+**Estado de implementación:** el minuto, el límite de 200 metros y el Game Over al agotarse el tiempo están programados. Sin embargo, el código aún describe el reloj como «RESERVA» y avisa que queda un minuto de combustible; además, al terminar el tiempo llama a `GameOver()`, sin una secuencia específica de avería. Antes de la entrega conviene alinear esos textos y, si se desea mostrar la falla, implementar su efecto visual o sonoro. El GDD describe la intención narrativa sin presentar esa avería como un efecto ya implementado.
+
+## Bucle jugable
+
+Conducir hasta quedarse sin combustible → bajar del auto → explorar la estación → entrar por el techo al taller → encender el generador → conectar el tablero eléctrico → abrir el portón → recoger el bidón → cargarlo en el surtidor → cargar el auto → arrancar y salir a la ruta → emboscada policial → evasión y resultado final.
+
+La UI guía las interacciones del taller y muestra los relojes correspondientes. La patrulla se revela recién en la última parte, para que el desafío final cambie el ritmo de exploración a conducción bajo presión.
 
 ## Objetivos y condiciones
 
-| Paso | Acción | Resultado |
+| Paso | Acción del jugador | Resultado |
 | --- | --- | --- |
-| 1 | Subir al techo y usar el hueco | Acceso al taller |
-| 2 | Encender el generador | Inicia el contador de combustible del generador |
-| 3 | Conectar el generador al tablero | Energiza la estación |
+| 1 | Entrar al taller por el techo y descender por el hueco | Accede al generador y a la zona del bidón |
+| 2 | Encender el generador | Comienza su cuenta de 30 segundos |
+| 3 | Conectar la electricidad desde el tablero | Habilita la energía de la estación |
 | 4 | Accionar el interruptor del portón | Abre la salida del taller |
-| 5 | Recoger el bidón | Permite usar el surtidor |
-| 6 | Llenar el bidón | Combustible disponible para el auto |
-| 7 | Cargar y arrancar el auto | Habilita la conducción |
-| 8 | Llegar a `SalidaAlCamino` | Oculta el reloj de anochecer y muestra una victoria aparente sin pausar |
-| 9 | Pasar por la zona de emboscada | Inicia la persecución y su reloj de 60 segundos |
-| 10 | Sacar 200 metros de ventaja al patrullero | Victoria |
+| 5 | Recoger el bidón vacío | Puede trasladarlo hasta el surtidor |
+| 6 | Llenar el bidón antes de que se apague el generador | Asegura el combustible para el auto |
+| 7 | Llevar el bidón al vehículo y cargarlo | Permite volver a arrancar |
+| 8 | Salir de la estación y alcanzar `SalidaAlCamino` antes de los 2 minutos | Supera la primera etapa; aparece una victoria aparente |
+| 9 | Avanzar hasta la zona de emboscada | Se activa la persecución y el reloj de 60 segundos |
+| 10 | Ganar 200 metros de ventaja sobre el patrullero | Victoria definitiva |
 
-Derrotas vigentes: agotar el tiempo hasta la ruta, agotar el generador antes de resolver el taller, una caída peligrosa, captura por contacto de la patrulla, agotar los 60 segundos de persecución y alcanzar el 100% de daño del auto. Victoria y derrota vuelven a estar habilitadas después de la prueba de grabación. `GAME OVER` detiene la partida y deja disponible `REINICIAR`.
+## Reglas de tiempo y condiciones de derrota
 
-El tiempo inicial hasta alcanzar la ruta es de **120 segundos (dos minutos)**. El generador tiene 30 segundos de combustible. Su cuenta interna continúa aunque se oculte el indicador tras llenar el bidón. Al agotarse se apagan el audio y la electricidad, sin desenchufar el cable. Alimenta también las luces exteriores. Al alcanzar la ruta desaparece el reloj de anochecer; el ciclo ambiental continúa sin saltar de golpe a la noche y sin causar derrota por ese reloj.
+| Límite | Cuándo empieza | Qué sucede al agotarse |
+| --- | --- | --- |
+| Ventana de oportunidad: 120 segundos | Cuando el auto comienza a quedarse sin combustible durante la llegada | Si aún no llegó a `SalidaAlCamino`, `Game Over` |
+| Generador: 30 segundos | Al encenderlo dentro del taller | Se corta la energía; si todavía no llenó el bidón, `Game Over` |
+| Persecución: 60 segundos | Al activar la persecución mientras conduce | Si no alcanzó 200 m de ventaja, `Game Over`; la avería es la explicación narrativa prevista |
+
+Además se pierde por una caída peligrosa, captura del patrullero o daño del auto del 100 %. La victoria final congela el juego y muestra el resultado correspondiente; las derrotas presentan `GAME OVER` y permiten reiniciar.
 
 ## Sistemas implementados
 
